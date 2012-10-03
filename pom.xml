@@ -9,6 +9,7 @@
   <packaging>pom</packaging>
   <modules>
     <module>sftp</module>
+    <module>webdav</module>
   </modules>
   
   <build>
