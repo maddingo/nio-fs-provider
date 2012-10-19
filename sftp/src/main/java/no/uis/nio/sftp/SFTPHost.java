@@ -1,6 +1,7 @@
 package no.uis.nio.sftp;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -10,12 +11,28 @@ import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Set;
 
-public class SFTPFileSystem extends FileSystem {
+public class SFTPHost extends FileSystem {
 
+  private final FileSystemProvider provider;
+  private final URI serverUri;
+  private final int port;
+  private final String host;
+  private final String password;
+  private final String username;
+  
+  public SFTPHost(FileSystemProvider provider, URI serverUri) {
+    this.provider = provider;
+    this.serverUri = serverUri;
+    this.host = serverUri.getHost();
+    this.port = serverUri.getPort();
+    String[] ui = serverUri.getUserInfo().split(":");
+    this.username = ui[0];
+    this.password = ui[1];
+  }
+  
   @Override
   public FileSystemProvider provider() {
-    // TODO Auto-generated method stub
-    return null;
+    return provider;
   }
 
   @Override
@@ -82,5 +99,21 @@ public class SFTPFileSystem extends FileSystem {
   public WatchService newWatchService() throws IOException {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  public String getUserName() {
+    return this.username;
+  }
+
+  public String getPassword() {
+    return this.password;
+  }
+  
+  public String getHost() {
+    return this.host;
+  }
+
+  public int getPort() {
+    return this.port;
   }
 }
