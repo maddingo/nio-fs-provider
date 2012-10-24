@@ -17,7 +17,7 @@ public class WebdavPathTest {
 	@Test
 	public void getURI() throws Exception {
 		URI uri = URI
-				.create("webdav://2910195:A1b3c45bbd080158@lportal-test.uis.no");
+				.create("webdav://2910195:password@lportal-test.uis.no");
 
 		FileSystems.newFileSystem(uri, null);
 		Path path = Paths.get(uri);
@@ -28,7 +28,7 @@ public class WebdavPathTest {
 	@Test
 	public void getNewURI() throws Exception {
 		URI uri = URI
-				.create("webdav://2910195:A1b3c45bbd080158@lportal-test.uis.no");
+				.create("webdav://2910195:password@lportal-test.uis.no");
 
 		Path path = Paths.get(uri);
 
@@ -37,7 +37,7 @@ public class WebdavPathTest {
 
 	@Test
 	public void getCreateChildPath() throws Exception {
-		URI uri = URI.create("webdav://2910195:A1b3c45bbd080158@lportal-test.uis.no/webdav/test/");
+		URI uri = URI.create("webdav://2910195:password@lportal-test.uis.no/webdav/test/");
 		Path path = Paths.get(uri);
 		Path newPath = Files.createDirectories(path);
 		assertThat(newPath, is(notNullValue()));
