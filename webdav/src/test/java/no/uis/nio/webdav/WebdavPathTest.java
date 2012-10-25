@@ -37,10 +37,26 @@ public class WebdavPathTest {
 
 	@Test
 	public void getCreateChildPath() throws Exception {
-		URI uri = URI.create("webdav://2910195:password@lportal-test.uis.no/webdav/test/");
+		URI uri = URI.create("webdav://2910195:password@lportal-test.uis.no/webdav/test2");
 		Path path = Paths.get(uri);
 		Path newPath = Files.createDirectories(path);
 		assertThat(newPath, is(notNullValue()));
 	}
 
+	@Test
+	public void deleteFile() throws Exception {
+		URI uri = URI.create("webdav://2910195:password@lportal-test.uis.no/webdav/test/file.txt");
+		Path path = Paths.get(uri);
+		Files.delete(path);
+	}
+	
+	@Test
+	public void copyFiles() throws Exception {
+		URI uri = URI.create("webdav://2910195:password@lportal-test.uis.no/webdav/test/file.txt");
+		URI uriTo = URI.create("webdav://2910195:password@lportal-test.uis.no/webdav/test2/file.txt");
+		Path path = Paths.get(uri);
+		Path pathTo = Paths.get(uriTo);
+		Files.createDirectory(path);
+		Files.copy(path, pathTo);
+	}
 }
