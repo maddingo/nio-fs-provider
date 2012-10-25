@@ -3,6 +3,7 @@ package no.uis.nio.webdav;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -15,21 +16,22 @@ import java.util.Iterator;
 
 public class WebdavPath implements Path {
 
-	private static final String DEFAULT_ROOT_PATH = "";
+	private static final String DEFAULT_ROOT_PATH = "/";
 	private static final String PATH_SEP = "/";
 	private final String path;
 	private final WebdavFileSystem host;
 
 	public WebdavPath(WebdavFileSystem webdavHost, String path) {
 		this.host = webdavHost;
-		if (path == null || path.trim().isEmpty()) {
-			this.path = DEFAULT_ROOT_PATH;
+		if (path == null) {
+		  this.path = DEFAULT_ROOT_PATH;
 		} else {
-			if (path.startsWith("/~/")) {
-				this.path = path.substring(3);
-			} else {
-				this.path = path;
-			}
+		  path = path.trim();
+		  if (!path.startsWith(PATH_SEP)) {
+		    this.path = PATH_SEP + path; 
+		  } else {
+		    this.path = path;
+		  }
 		}
 	}
 
@@ -48,9 +50,10 @@ public class WebdavPath implements Path {
 
 	@Override
 	public boolean isAbsolute() {
-		return path.startsWith(PATH_SEP);
+		return true;
 	}
 
+	@Deprecated
 	public String getPathString() {
 		return this.path;
 	}
@@ -93,7 +96,14 @@ public class WebdavPath implements Path {
 
 	@Override
 	public Path getParent() {
-		// TODO Auto-generated method stub
+	  if (path.equals(DEFAULT_ROOT_PATH)) {
+	    return null;
+	  }
+	  int lastSep = this.path.lastIndexOf(PATH_SEP);
+	  if (lastSep > 0) {
+	    String parentString = this.path.substring(0, lastSep);
+	    return new WebdavPath(this.host, parentString);
+	  }
 		return null;
 	}
 	
@@ -173,8 +183,7 @@ public class WebdavPath implements Path {
 
 	@Override
 	public Path toAbsolutePath() {
-		Path path = Paths.get(this.path);
-		return path;
+		return this;
 	}
 
 	@Override
@@ -194,5 +203,16 @@ public class WebdavPath implements Path {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+  public URI getSardineUri() throws URISyntaxException {
+    
+    String scheme = (host.provider() instanceof WebdavsFileSystemProvider) ? "https" : "http";
+    String server = host.getHost();
+    int port = host.getPort();
+    
+    URI sardineUri = new URI(scheme, null, server, port, path, null, null); 
+    
+    return sardineUri;
+  }
 
 }

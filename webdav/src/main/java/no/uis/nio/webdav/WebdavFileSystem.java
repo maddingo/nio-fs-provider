@@ -11,6 +11,12 @@ import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Set;
 
+import org.apache.http.conn.ssl.SSLSocketFactory;
+
+import com.googlecode.sardine.Sardine;
+import com.googlecode.sardine.SardineFactory;
+import com.googlecode.sardine.util.SardineException;
+
 public class WebdavFileSystem extends FileSystem {
 
 	private final FileSystemProvider provider;
@@ -118,4 +124,15 @@ public class WebdavFileSystem extends FileSystem {
 		return this.password;
 	}
 
+  protected Sardine getSardine() throws IOException {
+    
+    Sardine sardine;
+    SSLSocketFactory sslSocketFactory = null;
+    if (serverUri.getScheme().equals("webdavs")) {
+      sslSocketFactory = SSLSocketFactory.getSocketFactory();
+    }
+    sardine = SardineFactory.begin(username, password, sslSocketFactory, null, port);
+
+    return sardine;
+  }
 }

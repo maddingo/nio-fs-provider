@@ -1,25 +1,59 @@
 package no.uis.nio.webdav;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileAttribute;
+import java.util.Properties;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class WebdavPathTest {
 
+  private static Properties testprops;
+  
+  @BeforeClass
+  public static void initProps() throws IOException {
+    File testpropsFile = new File(System.getProperty("user.home"), "webdav-test.xml");
+    testprops = new Properties();
+    testprops.loadFromXML(new FileInputStream(testpropsFile));
+  }
+  
+  @Test
+  public void newFileSystemWebdav() throws Exception {
+    URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, null);
+
+    FileSystem fs = FileSystems.newFileSystem(uri, null);
+    
+    assertThat(fs, is(notNullValue()));
+  }
+  
+  @Test
+  public void newFileSystemWebdavs() throws Exception {
+    URI uri = createTestUri("webdavs", "lportal-test.uis.no", -1, null);
+
+    FileSystem fs = FileSystems.newFileSystem(uri, null);
+    
+    assertThat(fs, is(notNullValue()));
+  }
+  
 	@Test
 	public void getURI() throws Exception {
-		URI uri = URI
-				.create("webdav://2910195:password@lportal-test.uis.no");
+		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, null);
 
-		FileSystems.newFileSystem(uri, null);
 		Path path = Paths.get(uri);
 
 		assertThat(path, is(notNullValue()));
@@ -27,8 +61,7 @@ public class WebdavPathTest {
 
 	@Test
 	public void getNewURI() throws Exception {
-		URI uri = URI
-				.create("webdav://2910195:password@lportal-test.uis.no");
+		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, null);
 
 		Path path = Paths.get(uri);
 
@@ -37,26 +70,36 @@ public class WebdavPathTest {
 
 	@Test
 	public void getCreateChildPath() throws Exception {
-		URI uri = URI.create("webdav://2910195:password@lportal-test.uis.no/webdav/test2");
+		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2");
 		Path path = Paths.get(uri);
-		Path newPath = Files.createDirectories(path);
+		FileAttribute<?> create;
+    Path newPath = Files.createDirectories(path);
 		assertThat(newPath, is(notNullValue()));
 	}
 
 	@Test
-	public void deleteFile() throws Exception {
-		URI uri = URI.create("webdav://2910195:password@lportal-test.uis.no/webdav/test/file.txt");
-		Path path = Paths.get(uri);
-		Files.delete(path);
+	public void copyFiles() throws Exception {
+	  File src = File.createTempFile("webdavtest", ".txt");
+	  FileWriter fw = new FileWriter(src);
+	  fw.append("test test");
+	  fw.close();
+	  
+		URI uriTo = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2/file.txt");
+		Path pathTo = Paths.get(uriTo);
+		Files.copy(src.toPath(), pathTo, StandardCopyOption.REPLACE_EXISTING);
 	}
 	
 	@Test
-	public void copyFiles() throws Exception {
-		URI uri = URI.create("webdav://2910195:password@lportal-test.uis.no/webdav/test/file.txt");
-		URI uriTo = URI.create("webdav://2910195:password@lportal-test.uis.no/webdav/test2/file.txt");
-		Path path = Paths.get(uri);
-		Path pathTo = Paths.get(uriTo);
-		Files.createDirectory(path);
-		Files.copy(path, pathTo);
+	public void deleteFile() throws Exception {
+	  URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2/file.txt");
+	  Path path = Paths.get(uri);
+	  Files.delete(path);
+	}
+	
+	private URI createTestUri(String scheme, String host, int port, String path) throws URISyntaxException {
+	  String username = testprops.getProperty("webdav.user");
+	  String password = testprops.getProperty("webdav.password");
+	  
+	  return new URI(scheme, username + ':' + password, host, port, path, null, null);
 	}
 }
