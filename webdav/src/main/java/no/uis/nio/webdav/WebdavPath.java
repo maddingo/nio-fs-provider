@@ -24,14 +24,14 @@ public class WebdavPath implements Path {
 	public WebdavPath(WebdavFileSystem webdavHost, String path) {
 		this.host = webdavHost;
 		if (path == null) {
-		  this.path = DEFAULT_ROOT_PATH;
+			this.path = DEFAULT_ROOT_PATH;
 		} else {
-		  path = path.trim();
-		  if (!path.startsWith(PATH_SEP)) {
-		    this.path = PATH_SEP + path; 
-		  } else {
-		    this.path = path;
-		  }
+			path = path.trim();
+			if (!path.startsWith(PATH_SEP)) {
+				this.path = PATH_SEP + path;
+			} else {
+				this.path = path;
+			}
 		}
 	}
 
@@ -57,7 +57,7 @@ public class WebdavPath implements Path {
 	public String getPathString() {
 		return this.path;
 	}
-	
+
 	@Override
 	public int compareTo(Path arg0) {
 		// TODO Auto-generated method stub
@@ -81,7 +81,7 @@ public class WebdavPath implements Path {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	@Override
 	public Path getName(int arg0) {
 		// TODO Auto-generated method stub
@@ -90,23 +90,22 @@ public class WebdavPath implements Path {
 
 	@Override
 	public int getNameCount() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public Path getParent() {
-	  if (path.equals(DEFAULT_ROOT_PATH)) {
-	    return null;
-	  }
-	  int lastSep = this.path.lastIndexOf(PATH_SEP);
-	  if (lastSep > 0) {
-	    String parentString = this.path.substring(0, lastSep);
-	    return new WebdavPath(this.host, parentString);
-	  }
+		if (path.equals(DEFAULT_ROOT_PATH)) {
+			return null;
+		}
+		int lastSep = this.path.lastIndexOf(PATH_SEP);
+		if (lastSep > 0) {
+			String parentString = this.path.substring(0, lastSep);
+			return new WebdavPath(this.host, parentString);
+		}
 		return null;
 	}
-	
+
 	@Override
 	public Iterator<Path> iterator() {
 		// TODO Auto-generated method stub
@@ -135,7 +134,6 @@ public class WebdavPath implements Path {
 
 	@Override
 	public Path relativize(Path arg0) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -204,15 +202,16 @@ public class WebdavPath implements Path {
 		return null;
 	}
 
-  public URI getSardineUri() throws URISyntaxException {
-    
-    String scheme = (host.provider() instanceof WebdavsFileSystemProvider) ? "https" : "http";
-    String server = host.getHost();
-    int port = host.getPort();
-    
-    URI sardineUri = new URI(scheme, null, server, port, path, null, null); 
-    
-    return sardineUri;
-  }
+	public URI getSardineUri() throws URISyntaxException {
+
+		String scheme = (host.provider() instanceof WebdavsFileSystemProvider) ? "https"
+				: "http";
+		String server = host.getHost();
+		int port = host.getPort();
+
+		URI sardineUri = new URI(scheme, null, server, port, path, null, null);
+
+		return sardineUri;
+	}
 
 }

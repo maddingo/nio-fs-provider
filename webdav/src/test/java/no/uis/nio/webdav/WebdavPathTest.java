@@ -78,7 +78,7 @@ public class WebdavPathTest {
 		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2");
 		Path path = Paths.get(uri);
 		FileAttribute<?> create;
-    Path newPath = Files.createDirectories(path);
+		Path newPath = Files.createDirectories(path);
 		assertThat(newPath, is(notNullValue()));
 	}
 
