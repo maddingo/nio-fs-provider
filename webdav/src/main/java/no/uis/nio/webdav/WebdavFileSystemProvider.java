@@ -23,6 +23,7 @@ import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import com.googlecode.sardine.Sardine;
@@ -95,7 +96,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     } catch(URISyntaxException e) {
       throw new IllegalArgumentException(e);
     } catch(SardineException se) {
-      if (se.getResponsePhrase().equals("Not Found")) {
+      if (Objects.equals(se.getResponsePhrase(), "Not Found")) {
         throw new NoSuchFileException(dirString);
       }
     }

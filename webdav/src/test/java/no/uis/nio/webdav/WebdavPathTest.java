@@ -19,11 +19,16 @@ import java.nio.file.attribute.FileAttribute;
 import java.util.Properties;
 
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class WebdavPathTest {
 
   private static Properties testprops;
+  
+  @Rule
+  public ExpectedException exception = ExpectedException.none();
   
   @BeforeClass
   public static void initProps() throws IOException {
@@ -94,6 +99,22 @@ public class WebdavPathTest {
 	  URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2/file.txt");
 	  Path path = Paths.get(uri);
 	  Files.delete(path);
+	}
+
+  @Test
+  public void deleteWrongHost() throws Exception {
+    URI uri = createTestUri("webdav", "non-exixsting-host", -1, "/");
+    exception.expect(is(IOException.class));
+    Path path = Paths.get(uri);
+    Files.delete(path);
+  }
+  
+	@Test
+	public void testCatalogCreator() throws Exception {
+	  CatalogCreatorMock cc = new CatalogCreatorMock();
+	  URI uri = createTestUri("webdav", "lportal-test-uis.no", -1, "/webdav/catalog/2012/emne/BOKMÅL/");
+	  Path outPath = Paths.get(uri);
+	  cc.createCatalog(outPath);
 	}
 	
 	private URI createTestUri(String scheme, String host, int port, String path) throws URISyntaxException {
