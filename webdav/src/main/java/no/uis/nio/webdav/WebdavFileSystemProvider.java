@@ -8,6 +8,7 @@ import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemException;
@@ -20,12 +21,15 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.googlecode.sardine.DavResource;
 import com.googlecode.sardine.Sardine;
 import com.googlecode.sardine.util.SardineException;
 
@@ -35,7 +39,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
   private Map<URI, WebdavFileSystem> hosts = new HashMap<URI, WebdavFileSystem>();
 
   @Override
-  public void copy(Path fileFrom, Path fileTo, CopyOption... arg2) throws IOException {
+  public void copy(Path fileFrom, Path fileTo, CopyOption... options) throws IOException {
 
     if ((fileFrom instanceof WebdavPath) == false) {
       throw new IllegalArgumentException(fileFrom.toString());
@@ -51,15 +55,11 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     Sardine webdav = webdavHost.getSardine();
 
-    try {
-      webdav.put(wPathTo.getSardineUri().toString(), Files.readAllBytes(fileFrom));
-    } catch(URISyntaxException e) {
-      throw new IllegalArgumentException(e);
-    }
+    webdav.put(wPathTo.toUri().toString(), Files.readAllBytes(fileFrom));
   }
 
   @Override
-  public void createDirectory(Path dir, FileAttribute<?>... arg1) throws IOException {
+  public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
     
     if ((dir instanceof WebdavPath) == false) {
       throw new IllegalArgumentException(dir.toString());
@@ -71,11 +71,20 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     Sardine webdav = webdavHost.getSardine();
     
-    try {
-      webdav.createDirectory(wDir.getSardineUri().toString());
-    } catch(URISyntaxException e) {
-      throw new IllegalArgumentException(e);
+    createDirectoryRecursive(webdav, wDir, attrs);
+  }
+
+  private void createDirectoryRecursive(Sardine webdav, WebdavPath wDir, FileAttribute<?>[] attrs) throws IOException {
+
+    if (webdav.exists(wDir.toUri().toString())) {
+      return;
     }
+    
+    WebdavPath parent = (WebdavPath)wDir.getParent();
+    if (parent != null) {
+      createDirectoryRecursive(webdav, parent, attrs);
+    }
+    webdav.createDirectory(wDir.toUri().toString());
   }
 
   @Override
@@ -91,10 +100,8 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     String dirString="";
     try {
-      dirString = wDir.getSardineUri().toString();
+      dirString = wDir.toUri().toString();
       webdav.delete(dirString);
-    } catch(URISyntaxException e) {
-      throw new IllegalArgumentException(e);
     } catch(SardineException se) {
       if (Objects.equals(se.getResponsePhrase(), "Not Found")) {
         throw new NoSuchFileException(dirString);
@@ -151,53 +158,48 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
   }
 
   @Override
-  public <V extends FileAttributeView> V getFileAttributeView(Path arg0, Class<V> arg1, LinkOption... arg2) {
-    // TODO Auto-generated method stub
-    return null;
+  public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public FileStore getFileStore(Path arg0) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+  public FileStore getFileStore(Path path) throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public void checkAccess(Path arg0, AccessMode... arg1) throws IOException {
-    // TODO Auto-generated method stub
-
+  public void checkAccess(Path path, AccessMode... modes) throws IOException {
+    WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
+    if (!webdavFs.getSardine().exists(path.toUri().toString())) {
+      throw new NoSuchFileException(path.toUri().toString());
+    }
   }
 
   @Override
-  public boolean isHidden(Path arg0) throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+  public boolean isHidden(Path path) throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public boolean isSameFile(Path arg0, Path arg1) throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+  public boolean isSameFile(Path path, Path path2) throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public void move(Path arg0, Path arg1, CopyOption... arg2) throws IOException {
-    // TODO Auto-generated method stub
-
+  public void move(Path source, Path target, CopyOption... options) throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public SeekableByteChannel newByteChannel(Path arg0, Set<? extends OpenOption> arg1, FileAttribute<?>... arg2)
+  public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)
       throws IOException
   {
-    // TODO Auto-generated method stub
-    return null;
+    return new SardineChannel((WebdavPath)path);
   }
 
   @Override
   public DirectoryStream<Path> newDirectoryStream(Path arg0, Filter<? super Path> arg1) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -210,20 +212,73 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
   }
 
   @Override
-  public <A extends BasicFileAttributes> A readAttributes(Path arg0, Class<A> arg1, LinkOption... arg2) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+  public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
+    WebdavFileSystem wfs = (WebdavFileSystem)path.getFileSystem();
+    List<DavResource> resources = wfs.getSardine().getResources(path.toUri().toString());
+    if (resources.size() != 1) {
+      throw new IllegalArgumentException();
+    }
+    final DavResource res = resources.get(0);
+    
+    BasicFileAttributes attrs = new BasicFileAttributes() {
+      
+      @Override
+      public long size() {
+        return -1;
+      }
+      
+      @Override
+      public FileTime lastModifiedTime() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+      
+      @Override
+      public FileTime lastAccessTime() {
+        return FileTime.fromMillis(System.currentTimeMillis());
+      }
+      
+      @Override
+      public boolean isSymbolicLink() {
+        return false;
+      }
+      
+      @Override
+      public boolean isRegularFile() {
+        return !res.isDirectory();
+      }
+      
+      @Override
+      public boolean isOther() {
+        return false;
+      }
+      
+      @Override
+      public boolean isDirectory() {
+        return res.isDirectory();
+      }
+      
+      @Override
+      public Object fileKey() {
+        return null;
+      }
+      
+      @Override
+      public FileTime creationTime() {
+        return FileTime.fromMillis(res.getCreation().getTime());
+      }
+    };
+    
+    return (A)attrs;
   }
 
   @Override
   public Map<String, Object> readAttributes(Path arg0, String arg1, LinkOption... arg2) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public void setAttribute(Path arg0, String arg1, Object arg2, LinkOption... arg3) throws IOException {
-    // TODO Auto-generated method stub
-
+    throw new UnsupportedOperationException();
   }
 }

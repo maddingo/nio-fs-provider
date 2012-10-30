@@ -112,7 +112,7 @@ public class WebdavPathTest {
 	@Test
 	public void testCatalogCreator() throws Exception {
 	  CatalogCreatorMock cc = new CatalogCreatorMock();
-	  URI uri = createTestUri("webdav", "lportal-test-uis.no", -1, "/webdav/catalog/2012/emne/BOKMÅL/");
+	  URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2/2012/emne/B/");
 	  Path outPath = Paths.get(uri);
 	  cc.createCatalog(outPath);
 	}

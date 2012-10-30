@@ -25,6 +25,7 @@ public class CatalogCreatorMock {
   }
   
   public void createCatalog(Path baseDir) throws Exception {
+    cleanOutputDir(baseDir);
     String baseFileName = "test";
     Path filePath = baseDir.resolve(baseFileName + ".pdf"); //$NON-NLS-1$
     OutputStream out = Files.newOutputStream(filePath);
