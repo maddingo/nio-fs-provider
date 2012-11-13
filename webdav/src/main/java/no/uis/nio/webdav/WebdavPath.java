@@ -156,7 +156,15 @@ public class WebdavPath implements Path {
 
   @Override
   public Path resolve(String part) {
-    return new WebdavPath(this.host, this.path + PATH_SEP + part);
+    if (part.startsWith(PATH_SEP)) {
+      throw new IllegalArgumentException(part);
+    }
+    StringBuilder resolvedPath = new StringBuilder(this.path);
+    if (!this.path.endsWith(PATH_SEP)) {
+      resolvedPath.append(PATH_SEP);
+    }
+    resolvedPath.append(part);
+    return new WebdavPath(this.host, resolvedPath.toString());
   }
 
   @Override

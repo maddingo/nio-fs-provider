@@ -10,6 +10,7 @@
   <modules>
     <module>sftp</module>
     <module>webdav</module>
+    <module>commons</module>
   </modules>
   
   <build>
