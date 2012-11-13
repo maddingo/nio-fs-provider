@@ -15,9 +15,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.FileAttribute;
 import java.util.Properties;
 
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,12 +33,15 @@ public class WebdavPathTest {
   @BeforeClass
   public static void initProps() throws IOException {
     File testpropsFile = new File(System.getProperty("user.home"), "webdav-test.xml");
-    testprops = new Properties();
-    testprops.loadFromXML(new FileInputStream(testpropsFile));
+    if (testpropsFile.canRead()) {
+      testprops = new Properties();
+      testprops.loadFromXML(new FileInputStream(testpropsFile));
+    }
   }
   
   @Test
   public void newFileSystemWebdav() throws Exception {
+    Assume.assumeNotNull(testprops);
     URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, null);
 
     FileSystem fs = FileSystems.newFileSystem(uri, null);
@@ -48,6 +51,7 @@ public class WebdavPathTest {
   
   @Test
   public void newFileSystemWebdavs() throws Exception {
+    Assume.assumeNotNull(testprops);
     URI uri = createTestUri("webdavs", "lportal-test.uis.no", -1, null);
 
     FileSystem fs = FileSystems.newFileSystem(uri, null);
@@ -57,6 +61,7 @@ public class WebdavPathTest {
   
 	@Test
 	public void getURI() throws Exception {
+    Assume.assumeNotNull(testprops);
 		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, null);
 
 		Path path = Paths.get(uri);
@@ -66,6 +71,7 @@ public class WebdavPathTest {
 
 	@Test
 	public void getNewURI() throws Exception {
+    Assume.assumeNotNull(testprops);
 		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, null);
 
 		Path path = Paths.get(uri);
@@ -75,15 +81,16 @@ public class WebdavPathTest {
 
 	@Test
 	public void getCreateChildPath() throws Exception {
+    Assume.assumeNotNull(testprops);
 		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2");
 		Path path = Paths.get(uri);
-		FileAttribute<?> create;
 		Path newPath = Files.createDirectories(path);
 		assertThat(newPath, is(notNullValue()));
 	}
 
 	@Test
 	public void copyFiles() throws Exception {
+    Assume.assumeNotNull(testprops);
 	  File src = File.createTempFile("webdavtest", ".txt");
 	  FileWriter fw = new FileWriter(src);
 	  fw.append("test test");
@@ -96,6 +103,7 @@ public class WebdavPathTest {
 	
 	@Test
 	public void deleteFile() throws Exception {
+    Assume.assumeNotNull(testprops);
 	  URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2/file.txt");
 	  Path path = Paths.get(uri);
 	  Files.delete(path);
@@ -103,7 +111,8 @@ public class WebdavPathTest {
 
   @Test
   public void deleteWrongHost() throws Exception {
-    URI uri = createTestUri("webdav", "non-exixsting-host", -1, "/");
+    Assume.assumeNotNull(testprops);
+    URI uri = createTestUri("webdav", "non-existing-host", -1, "/");
     exception.expect(is(IOException.class));
     Path path = Paths.get(uri);
     Files.delete(path);
@@ -111,6 +120,7 @@ public class WebdavPathTest {
   
 	@Test
 	public void testCatalogCreator() throws Exception {
+    Assume.assumeNotNull(testprops);
 	  CatalogCreatorMock cc = new CatalogCreatorMock();
 	  URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2/2012/emne/B/");
 	  Path outPath = Paths.get(uri);

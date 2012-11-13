@@ -3,6 +3,7 @@ package no.uis.nio.webdav;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
@@ -105,6 +106,10 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
       if (Objects.equals(se.getResponsePhrase(), "Not Found")) {
         throw new NoSuchFileException(dirString);
       }
+      if (se.getCause() instanceof IOException) {
+        throw (IOException)se.getCause();
+      }
+      throw new IOException(se);
     }
   }
 
