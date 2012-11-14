@@ -41,7 +41,6 @@ public class WebdavFileSystem extends FileSystem {
 		return provider;
 	}
 
-	
 	@Override
 	public void close() throws IOException {
 		// TODO Auto-generated method stub
@@ -108,6 +107,29 @@ public class WebdavFileSystem extends FileSystem {
 		return null;
 	}
 
+	/**
+	 * Check if one filesystem is equal to another. Checks Host, username and
+	 * Port
+	 * 
+	 * @param Object
+	 *            other
+	 */
+	@Override
+	public boolean equals(Object other) {
+		if (!(other instanceof WebdavFileSystem)) {
+			throw new IllegalArgumentException(
+					"Argument must be of instance WebdavFileSystem");
+		}
+		WebdavFileSystem current = (WebdavFileSystem) other;
+		if (current.host.equals(this.host)
+				&& current.username.equals(this.username)
+				&& current.port == this.port) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public String getUserName() {
 		return this.username;
 	}
@@ -119,20 +141,21 @@ public class WebdavFileSystem extends FileSystem {
 	public int getPort() {
 		return this.port;
 	}
-	
+
 	public String getPassword() {
 		return this.password;
 	}
 
-  protected Sardine getSardine() throws IOException {
-    
-    Sardine sardine;
-    SSLSocketFactory sslSocketFactory = null;
-    if (serverUri.getScheme().equals("webdavs")) {
-      sslSocketFactory = SSLSocketFactory.getSocketFactory();
-    }
-    sardine = SardineFactory.begin(username, password, sslSocketFactory, null, port);
+	protected Sardine getSardine() throws IOException {
 
-    return sardine;
-  }
+		Sardine sardine;
+		SSLSocketFactory sslSocketFactory = null;
+		if (serverUri.getScheme().equals("webdavs")) {
+			sslSocketFactory = SSLSocketFactory.getSocketFactory();
+		}
+		sardine = SardineFactory.begin(username, password, sslSocketFactory,
+				null, port);
+
+		return sardine;
+	}
 }
