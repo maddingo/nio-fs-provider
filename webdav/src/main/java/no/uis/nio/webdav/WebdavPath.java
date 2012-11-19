@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 public class WebdavPath implements Path {
 
@@ -125,8 +126,54 @@ public class WebdavPath implements Path {
 
 	@Override
 	public Path normalize() {
-		// TODO Auto-generated method stub
-		return null;
+		if (!(this instanceof WebdavPath)) {
+			throw new IllegalArgumentException(
+					"Need to be an instance of WebdavPath");
+		}
+		String other = this.path;
+		if (other.contains("..")) {
+		      if ("".equals(this.path)) {
+		          return new WebdavPath(this.host, this.path);
+		      }
+		      int leadingSlashes;
+		      for (leadingSlashes = 0 ; leadingSlashes < this.path.length()
+		              && this.path.charAt(leadingSlashes) == '/' ; ++leadingSlashes) {}
+		      boolean isDir = (this.path.charAt(this.path.length() - 1) == '/');
+		      StringTokenizer st = new StringTokenizer(this.path, "/");
+		      LinkedList clean = new LinkedList();
+		      while (st.hasMoreTokens()) {
+		          String token = st.nextToken();
+		          if ("..".equals(token)) {
+		              if (! clean.isEmpty() && ! "..".equals(clean.getLast())) {
+		                  clean.removeLast();
+		                  if (! st.hasMoreTokens()) {
+		                      isDir = true;
+		                  }
+		              } else {
+		                  clean.add("..");
+		              }
+		          } else if (! ".".equals(token) && ! "".equals(token)) {
+		              clean.add(token);
+		          }
+		      }
+		      StringBuffer sb = new StringBuffer();
+		      while (leadingSlashes-- > 0) {
+		          sb.append('/');
+		      }
+		      for (Iterator it = clean.iterator() ; it.hasNext() ; ) {
+		          sb.append(it.next());
+		          if (it.hasNext()) {
+		              sb.append('/');
+		          }
+		      }
+		      if (isDir && sb.length() > 0 && sb.charAt(sb.length() - 1) != '/') {
+		          sb.append('/');
+		      }
+			return new WebdavPath(this.host, sb.toString());
+		}
+		else {
+			return this;
+		}
 	}
 
 	@Override

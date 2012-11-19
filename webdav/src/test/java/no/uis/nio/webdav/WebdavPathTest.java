@@ -40,8 +40,17 @@ public class WebdavPathTest {
 			testprops.loadFromXML(new FileInputStream(testpropsFile));
 		}
 	}
+	
+	@Test
+	public void nomalizeTest() throws Exception {
+		Assume.assumeNotNull(testprops);
+		Path path = createRelativeTestUri("nohost", -1, "/webdav/../test/something");
+		Path result = path.normalize();
+		
+		assertThat(result.isAbsolute(), is(true));
+	}
 
-//	@Test
+	@Test
 	public void newFileSystemWebdav() throws Exception {
 		Assume.assumeNotNull(testprops);
 		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, null);
@@ -51,7 +60,7 @@ public class WebdavPathTest {
 		assertThat(fs, is(notNullValue()));
 	}
 
-//	@Test
+	@Test
 	public void newFileSystemWebdavs() throws Exception {
 		Assume.assumeNotNull(testprops);
 		URI uri = createTestUri("webdavs", "lportal-test.uis.no", -1, null);
@@ -61,7 +70,7 @@ public class WebdavPathTest {
 		assertThat(fs, is(notNullValue()));
 	}
 
-//	@Test
+	@Test
 	public void getURI() throws Exception {
 		Assume.assumeNotNull(testprops);
 		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, null);
@@ -71,7 +80,7 @@ public class WebdavPathTest {
 		assertThat(path, is(notNullValue()));
 	}
 
-//	@Test
+	@Test
 	public void getNewURI() throws Exception {
 		Assume.assumeNotNull(testprops);
 		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, null);
@@ -81,7 +90,7 @@ public class WebdavPathTest {
 		assertThat(path, is(notNullValue()));
 	}
 
-//	@Test
+	@Test
 	public void getCreateChildPath() throws Exception {
 		Assume.assumeNotNull(testprops);
 		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1,
@@ -91,7 +100,7 @@ public class WebdavPathTest {
 		assertThat(newPath, is(notNullValue()));
 	}
 
-//	@Test
+	@Test
 	public void copyFiles() throws Exception {
 		Assume.assumeNotNull(testprops);
 		File src = File.createTempFile("webdavtest", ".txt");
@@ -105,7 +114,7 @@ public class WebdavPathTest {
 		Files.copy(src.toPath(), pathTo, StandardCopyOption.REPLACE_EXISTING);
 	}
 
-//	@Test
+	@Test
 	public void deleteFile() throws Exception {
 		Assume.assumeNotNull(testprops);
 		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1,
@@ -114,7 +123,7 @@ public class WebdavPathTest {
 		Files.delete(path);
 	}
 
-//	@Test
+	@Test
 	public void deleteWrongHost() throws Exception {
 		Assume.assumeNotNull(testprops);
 		URI uri = createTestUri("webdav", "non-existing-host", -1, "/");
@@ -123,7 +132,7 @@ public class WebdavPathTest {
 		Files.delete(path);
 	}
 
-//	@Test
+	@Test
 	public void testCatalogCreator() throws Exception {
 		Assume.assumeNotNull(testprops);
 		CatalogCreatorMock cc = new CatalogCreatorMock();
@@ -140,5 +149,13 @@ public class WebdavPathTest {
 
 		return new URI(scheme, username + ':' + password, host, port, path,
 				null, null);
+	}
+	
+	private WebdavPath createRelativeTestUri(String host, int port, String path)
+			throws URISyntaxException {
+		String username = testprops.getProperty("webdav.user");
+		String password = testprops.getProperty("webdav.password");
+		
+		return new WebdavPath(new WebdavFileSystem(new WebdavFileSystemProvider(), new URI(null, username + ':' + password, host, port, null, null, null)),path);
 	}
 }
