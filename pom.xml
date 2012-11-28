@@ -11,6 +11,8 @@
     <module>sftp</module>
     <module>webdav</module>
     <module>commons</module>
+    <module>smb</module>
+    <module>commons-test</module>
   </modules>
 
   <build>
@@ -48,6 +50,13 @@
           <source>1.7</source>
         </configuration>
       </plugin>
+      <plugin>
+      	<artifactId>maven-eclipse-plugin</artifactId>
+      	<version>2.9</version>
+      	<configuration>
+      	  <projectNameTemplate>[groupId]-[artifactId]</projectNameTemplate>
+      	</configuration>
+      </plugin>
     </plugins>
   </build>
 
@@ -79,7 +88,7 @@
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
 </project>

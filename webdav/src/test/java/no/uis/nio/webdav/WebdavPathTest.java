@@ -17,34 +17,24 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Properties;
 
-import org.hamcrest.core.IsEqual;
+import no.uis.nio.commons.AbstractTest;
+import no.uis.nio.commons.CatalogCreatorMock;
+
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-public class WebdavPathTest {
+public class WebdavPathTest extends AbstractTest {
 
-	private static Properties testprops;
-
-	@Rule
-	public ExpectedException exception = ExpectedException.none();
-
-	@BeforeClass
-	public static void initProps() throws IOException {
-		File testpropsFile = new File(System.getProperty("user.home"),
-				"webdav-test.xml");
-		if (testpropsFile.canRead()) {
-			testprops = new Properties();
-			testprops.loadFromXML(new FileInputStream(testpropsFile));
-		}
-	}
+  @Rule
+  public ExpectedException exception = ExpectedException.none();
 	
 	@Test
 	public void nomalizeTest() throws Exception {
 		Assume.assumeNotNull(testprops);
-		Path path = createRelativeTestUri("nohost", -1, "/webdav/../test/something");
+		Path path = createRelativeTestPath("nohost", -1, "/webdav/../test/something");
 		Path result = path.normalize();
 		
 		assertThat(result.isAbsolute(), is(true));
@@ -69,7 +59,7 @@ public class WebdavPathTest {
 
 		assertThat(fs, is(notNullValue()));
 	}
-
+	
 	@Test
 	public void getURI() throws Exception {
 		Assume.assumeNotNull(testprops);
@@ -93,8 +83,7 @@ public class WebdavPathTest {
 	@Test
 	public void getCreateChildPath() throws Exception {
 		Assume.assumeNotNull(testprops);
-		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1,
-				"/webdav/test2");
+		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2");
 		Path path = Paths.get(uri);
 		Path newPath = Files.createDirectories(path);
 		assertThat(newPath, is(notNullValue()));
@@ -108,8 +97,7 @@ public class WebdavPathTest {
 		fw.append("test test");
 		fw.close();
 
-		URI uriTo = createTestUri("webdav", "lportal-test.uis.no", -1,
-				"/webdav/test2/file.txt");
+		URI uriTo = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2/file.txt");
 		Path pathTo = Paths.get(uriTo);
 		Files.copy(src.toPath(), pathTo, StandardCopyOption.REPLACE_EXISTING);
 	}
@@ -134,25 +122,14 @@ public class WebdavPathTest {
 
 	@Test
 	public void testCatalogCreator() throws Exception {
-		Assume.assumeNotNull(testprops);
-		CatalogCreatorMock cc = new CatalogCreatorMock();
-		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1,
-				"/webdav/test2/2012/emne/B/");
-		Path outPath = Paths.get(uri);
-		cc.createCatalog(outPath);
-	}
-
-	private URI createTestUri(String scheme, String host, int port, String path)
-			throws URISyntaxException {
-		String username = testprops.getProperty("webdav.user");
-		String password = testprops.getProperty("webdav.password");
-
-		return new URI(scheme, username + ':' + password, host, port, path,
-				null, null);
+    Assume.assumeNotNull(testprops);
+	  CatalogCreatorMock cc = new CatalogCreatorMock();
+	  URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2/2012/emne/B/");
+	  Path outPath = Paths.get(uri);
+	  cc.createCatalog(outPath);
 	}
 	
-	private WebdavPath createRelativeTestUri(String host, int port, String path)
-			throws URISyntaxException {
+	private WebdavPath createRelativeTestPath(String host, int port, String path) throws URISyntaxException {
 		String username = testprops.getProperty("webdav.user");
 		String password = testprops.getProperty("webdav.password");
 		

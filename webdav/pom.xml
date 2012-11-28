@@ -23,6 +23,12 @@
 			<artifactId>sardine</artifactId>
 			<version>146</version>
 		</dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>commons-test</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
 	</dependencies>
   <!--profiles>
     <profile>

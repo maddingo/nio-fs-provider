@@ -103,11 +103,11 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
       dirString = wDir.toUri().toString();
       webdav.delete(dirString);
     } catch(SardineException se) {
-      if (Objects.equals(se.getResponsePhrase(), "Not Found")) {
-        throw new NoSuchFileException(dirString);
-      }
       if (se.getCause() instanceof IOException) {
         throw (IOException)se.getCause();
+      }
+      if (Objects.equals(se.getResponsePhrase(), "Not Found")) {
+        throw new NoSuchFileException(dirString);
       }
       throw new IOException(se);
     }

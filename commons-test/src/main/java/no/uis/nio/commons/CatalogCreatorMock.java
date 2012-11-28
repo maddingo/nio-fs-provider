@@ -1,4 +1,5 @@
-package no.uis.nio.webdav;
+package no.uis.nio.commons;
+
 
 import java.io.IOException;
 import java.io.OutputStream;
