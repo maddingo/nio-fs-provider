@@ -24,9 +24,17 @@ public abstract class AbstractTest {
   }
   
   protected URI createTestUri(String scheme, String host, int port, String path) throws URISyntaxException {
-    String username = testprops.getProperty("nio.user");
-    String password = testprops.getProperty("nio.password");
+    String username = getProperty(scheme, "nio.user");
+    String password = getProperty(scheme, "nio.password");
     
     return new URI(scheme, username + ':' + password, host, port, path, null, null);
+  }
+  
+  public String getProperty(String schema, String key) {
+    String value = testprops.getProperty(schema+'.'+key);
+    if (value == null) {
+      value = testprops.getProperty(key);
+    }
+    return value;
   }
 }
