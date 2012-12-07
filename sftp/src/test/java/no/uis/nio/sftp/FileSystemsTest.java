@@ -42,7 +42,8 @@ public class FileSystemsTest extends AbstractTest {
   
   private URI createSftpURI(String path) throws URISyntaxException {
     String host = testprops.getProperty("sftp.host");
-    int port = Integer.parseInt(testprops.getProperty("sftp.port"));
+    Assume.assumeNotNull(host);
+    int port = Integer.parseInt(testprops.getProperty("sftp.port", "-1"));
     return createTestUri("sftp", host, port, path);
   }
 }
