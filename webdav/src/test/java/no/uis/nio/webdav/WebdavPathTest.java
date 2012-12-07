@@ -12,10 +12,12 @@ import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Properties;
+import java.util.UUID;
 
 import no.uis.nio.commons.AbstractTest;
 import no.uis.nio.commons.CatalogCreatorMock;
@@ -102,12 +104,21 @@ public class WebdavPathTest extends AbstractTest {
 		Files.copy(src.toPath(), pathTo, StandardCopyOption.REPLACE_EXISTING);
 	}
 
+  @Test
+  public void deleteNonexistingFile() throws Exception {
+    Assume.assumeNotNull(testprops);
+    URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, String.format("/webdav/test2/file-%s.txt", UUID.randomUUID().toString()));
+    Path path = Paths.get(uri);
+    exception.expect(NoSuchFileException.class);
+    Files.delete(path);
+  }
+
 	@Test
 	public void deleteFile() throws Exception {
 		Assume.assumeNotNull(testprops);
-		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1,
-				"/webdav/test2/file.txt");
+		URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2/file.txt");
 		Path path = Paths.get(uri);
+		Assume.assumeTrue(Files.exists(path));
 		Files.delete(path);
 	}
 
