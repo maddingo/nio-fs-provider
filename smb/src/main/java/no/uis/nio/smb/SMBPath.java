@@ -3,6 +3,7 @@ package no.uis.nio.smb;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
@@ -22,8 +23,8 @@ public class SMBPath extends SMBBasePath {
   private final SMBFileSystemProvider provider;
   private final URI uri;
   
-  public SMBPath(SMBFileSystemProvider provider, URI uri) throws IOException {
-    super(uri.toString());
+  public SMBPath(SMBFileSystemProvider provider, URI uri) throws IOException, URISyntaxException {
+    super(toPublicString(uri));
     SmbFile _file = new SmbFile(new URL(null, uri.toString(), new jcifs.smb.Handler()));
     if (_file.getShare() == null) {
       throw new IllegalArgumentException(uri.toString());
@@ -114,7 +115,7 @@ public class SMBPath extends SMBBasePath {
     URI otherUri = this.uri.resolve(other);
     try {
       return new SMBPath(provider, otherUri);
-    } catch(IOException e) {
+    } catch(Exception e) {
       throw new IllegalArgumentException(other, e);
     }
   }
@@ -137,4 +138,9 @@ public class SMBPath extends SMBBasePath {
   public SMBFileAttributes getAttributes() throws IOException {
     return new SMBFileAttributes(file.getUncPath(), file.getAttributes());
   }
+
+  private static String toPublicString(URI uri) throws URISyntaxException {
+    return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment()).toString();
+  }
 }
+

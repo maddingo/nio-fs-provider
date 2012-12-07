@@ -70,7 +70,7 @@ public class SMBFileSystemProvider extends FileSystemProvider {
   public Path getPath(URI uri) {
     try {
       return new SMBPath(this, uri);
-    } catch(IOException e) {
+    } catch(Exception e) {
       throw new IllegalArgumentException(e);
     }
   }

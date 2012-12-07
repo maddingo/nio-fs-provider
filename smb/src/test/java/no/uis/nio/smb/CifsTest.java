@@ -18,6 +18,9 @@ import jcifs.util.LogStream;
 import no.uis.nio.commons.AbstractTest;
 import no.uis.nio.commons.CatalogCreatorMock;
 
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -45,8 +48,12 @@ public class CifsTest extends AbstractTest {
     
     Path baseDir = Paths.get(baseDirUri);
     assertThat(baseDir, is(notNullValue(Path.class)));
+
+    Path outDir = createOutPath(baseDir, "TEST", 2013, "VÅR", "X");
     
-    catalogCreator.createCatalog(baseDir);
+    assertThat(outDir.toString(), endsWith("TEST/2013/VÅR/X/"));
+    
+    catalogCreator.createCatalog(outDir);
   }
   
   @Test
@@ -117,5 +124,29 @@ public class CifsTest extends AbstractTest {
     assertThat(count, is(3));
   }
   
+  private static Path createOutPath(Path base, String type, int year,
+      String fsSemester, String language) {
+    Path out = base.
+        resolve(type.toString()+"/").
+        resolve(String.valueOf(year)+"/").
+        resolve(fsSemester+"/").
+        resolve(language+"/");
+
+    return out;
+  }
   
+  private static Matcher<String> endsWith(final String string) {
+    return new BaseMatcher<String> () {
+
+      @Override
+      public boolean matches(Object value) {
+        return (value instanceof String && ((String)value).endsWith(string));
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("a string that ends with ").appendValue(string);
+      }
+    };
+  }
 }
