@@ -13,6 +13,7 @@
     <module>commons</module>
     <module>smb</module>
     <module>commons-test</module>
+    <module>util</module>
   </modules>
 
   <build>
