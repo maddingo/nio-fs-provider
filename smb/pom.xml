@@ -38,7 +38,7 @@
   			<groupId>org.apache.maven.plugins</groupId>
   			<artifactId>maven-shade-plugin</artifactId>
   			<configuration>
-  				<shadedArtifactAttahed>true</shadedArtifactAttahed>
+  				<shadedArtifactAttached>true</shadedArtifactAttached>
   				<shadedClassifierName>all</shadedClassifierName>
   			</configuration>
   			<executions>
