@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>no.uis.nio</groupId>
   <artifactId>nio-fs</artifactId>
-  <version>1.0.3-SNAPSHOT</version>
+  <version>1.0.3</version>
   <name>nio-fs</name>
   <description>Java7 FileSystemProviders</description>
   <packaging>pom</packaging>
