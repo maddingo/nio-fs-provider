@@ -14,7 +14,7 @@
     <property name="tabWidth" value="2"/>
     <module name="FileContentsHolder"/>
     <module name="PackageName">
-      <property name="format" value="no\.uis\.nio\.(\.[a-z][a-zA-Z0-9]+)*$"/>
+      <property name="format" value="no\.uis\.nio(\.[a-z]+)*$"/>
     </module>
     <module name="WhitespaceAfter">
       <property name="tokens" value="COMMA,SEMI"/>

@@ -46,7 +46,11 @@ import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 import com.jcraft.jsch.UserInfo;
 
+/**
+ * FileSystemProvider for Secure FTP.
+ */
 public class SFTPFileSystemProvider extends FileSystemProvider {
+  private static final String SFTP = "sftp";
   private static final int DEFAULT_PORT = 22;
   private Map<URI, SFTPHost> hosts = new HashMap<URI, SFTPHost>();
 
@@ -58,7 +62,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
   @Override
   public String getScheme() {
-    return "sftp";
+    return SFTP;
   }
 
   @Override
@@ -95,7 +99,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
   }
 
   /**
-   * Get a SFTP Host with the given host, user, password and port
+   * Get a SFTP Host with the given host, user, password and port.
    * 
    * @param uri
    * @param create
@@ -139,7 +143,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
   @Override
   public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-    if ((dir instanceof SFTPPath) == false) {
+    if (!(dir instanceof SFTPPath)) {
       throw new IllegalArgumentException(dir.toString());
     }
 
@@ -155,7 +159,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
       session.setUserInfo(userinfo);
       session.connect();
       
-      ChannelSftp sftp = (ChannelSftp)session.openChannel("sftp");
+      ChannelSftp sftp = (ChannelSftp)session.openChannel(SFTP);
       
       sftp.connect();
       

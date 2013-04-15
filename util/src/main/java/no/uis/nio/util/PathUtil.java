@@ -24,6 +24,9 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Objects;
 
+/**
+ * Utility functions for file  providers.
+ */
 public class PathUtil {
   private PathUtil() {
   }

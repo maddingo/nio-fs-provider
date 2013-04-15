@@ -26,6 +26,9 @@ import java.util.Properties;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 
+/**
+ * Base class for unit tests.
+ */
 public abstract class AbstractTest {
 
   protected static Properties testprops = new Properties();
