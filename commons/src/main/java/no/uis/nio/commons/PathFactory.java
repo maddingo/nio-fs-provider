@@ -38,7 +38,8 @@ public final class PathFactory {
    * Loading file system providers that are supplied in a web application fails, because the list of file system providers is initialized 
    * with the application server's classloader.
    *  
-   * The method tries first {@link Paths#get(URI)}. If this fails, The service loader tries to load FileSystemProviders with the given class loader.   
+   * The method tries first {@link Paths#get(URI)}. If this fails, The service loader tries to load 
+   * FileSystemProviders with the given class loader.   
    * 
    * @param uri 
    * @param cl if null, the current context class loader is used 

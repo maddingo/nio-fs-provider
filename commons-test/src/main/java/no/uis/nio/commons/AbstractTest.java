@@ -31,6 +31,9 @@ import org.junit.BeforeClass;
  */
 public abstract class AbstractTest {
 
+  /**
+   * Test parameters provided by <code>${user.home}/nio-test.xml</code>.
+   */
   protected static Properties testprops = new Properties();
 
   @BeforeClass

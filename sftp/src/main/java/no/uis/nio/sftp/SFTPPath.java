@@ -28,8 +28,13 @@ import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.util.Iterator;
 
+/**
+ * A Path implementation for SFTP.
+ */
 public class SFTPPath implements Path {
 
+  private static final String HOME_PREFIX = "/~/";
+  private static final int HOME_PREFIX_LEN = HOME_PREFIX.length();
   private static final String DEFAULT_ROOT_PATH = "";
   private static final String PATH_SEP = "/";
   private final String path;
@@ -42,8 +47,8 @@ public class SFTPPath implements Path {
     if (path == null || path.trim().isEmpty()) {
       this.path = DEFAULT_ROOT_PATH;
     } else {
-      if (path.startsWith("/~/")) {
-        this.path = path.substring(3);
+      if (path.startsWith(HOME_PREFIX)) {
+        this.path = path.substring(HOME_PREFIX_LEN);
       } else {
         this.path = path;
       }

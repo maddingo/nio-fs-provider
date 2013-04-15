@@ -18,6 +18,9 @@ package no.uis.nio.sftp;
 
 import com.jcraft.jsch.UserInfo;
 
+/**
+ * Provides the password for SFTP.
+ */
 public class SFTPUserInfo implements UserInfo {
 
   private final String password;

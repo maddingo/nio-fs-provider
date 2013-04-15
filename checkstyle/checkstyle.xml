@@ -5,7 +5,7 @@
     This configuration file was written by the eclipse-cs plugin configuration editor
 -->
 <!--
-    Checkstyle-Configuration: fsimport-local
+    Checkstyle-Configuration: local-checkstyle
     Description: none
 -->
 <module name="Checker">
@@ -48,7 +48,9 @@
       <property name="severity" value="ignore"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
-    <module name="AbstractClassName"/>
+    <module name="AbstractClassName">
+      <property name="format" value="^Abstract.*$"/>
+    </module>
     <module name="ClassTypeParameterName"/>
     <module name="ConstantName"/>
     <module name="LocalFinalVariableName"/>

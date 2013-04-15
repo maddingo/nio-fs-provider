@@ -36,6 +36,12 @@ public class SFTPHost extends FileSystem {
   private final String password;
   private final String username;
   
+  /**
+   * Represents a host for the SFTP file system provider.
+   *  
+   * @param provider
+   * @param serverUri
+   */
   public SFTPHost(FileSystemProvider provider, URI serverUri) {
     this.provider = provider;
     this.serverUri = serverUri;
