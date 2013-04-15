@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>no.uis.nio</groupId>
   <artifactId>nio-fs</artifactId>
@@ -16,6 +17,10 @@
     <module>util</module>
   </modules>
 
+  <properties>
+    <checkstyle.dir>.</checkstyle.dir>
+  </properties>
+  
   <build>
     <extensions>
       <extension>
@@ -24,7 +29,7 @@
         <version>2.2</version>
       </extension>
     </extensions>
-    
+
     <pluginManagement>
       <plugins>
         <plugin>
@@ -37,17 +42,33 @@
               <goals>
                 <goal>attach-descriptor</goal>
               </goals>
-            </execution>          
+            </execution>
           </executions>
         </plugin>
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-shade-plugin</artifactId>
-			<version>2.0</version>
-		</plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>2.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>2.10</version>
+          <configuration>
+            <configLocation>${checkstyle.dir}/checkstyle/checkstyle.xml</configLocation>
+            <propertyExpansion>basedir=${checkstyle.dir}</propertyExpansion>
+            <suppressionsLocation>${checkstyle.dir}/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
+            <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
-    
+
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -57,11 +78,11 @@
         </configuration>
       </plugin>
       <plugin>
-      	<artifactId>maven-eclipse-plugin</artifactId>
-      	<version>2.9</version>
-      	<configuration>
-      	  <projectNameTemplate>[groupId]-[artifactId]</projectNameTemplate>
-      	</configuration>
+        <artifactId>maven-eclipse-plugin</artifactId>
+        <version>2.9</version>
+        <configuration>
+          <projectNameTemplate>[groupId]-[artifactId]</projectNameTemplate>
+        </configuration>
       </plugin>
     </plugins>
   </build>

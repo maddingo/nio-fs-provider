@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.0//EN" "http://www.puppycrawl.com/dtds/suppressions_1_0.dtd">
+
+<suppressions>
+  <suppress checks=".*"
+             files="src/test/.*"/>
+             
+  <suppress checks=".*"
+             files=".*\.(xml|xsl|properties)"/>
+
+  <suppress checks=".*"
+             files="target/.*"/>
+
+  <suppress checks=".*"
+             files=".*/META-INF/.*"/>
+             
+  <suppress checks="RegexpHeaderCheck"
+             files="src/main/resources/\.*"/>
+</suppressions>
