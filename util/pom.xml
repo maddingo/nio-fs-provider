@@ -6,20 +6,10 @@
     <artifactId>nio-fs</artifactId>
     <version>1.0.4-SNAPSHOT</version>
   </parent>
-  <groupId>no.uis.nio</groupId>
   <artifactId>util</artifactId>
-  <version>1.0.4-SNAPSHOT</version>
   <name>util</name>
-  <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  <url>http://forge.uis.no/projects/nio-fs-provider</url>
 </project>

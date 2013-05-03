@@ -7,8 +7,8 @@
     <version>1.0.4-SNAPSHOT</version>
   </parent>
   <artifactId>sftp</artifactId>
-  <name>sftpfs</name>
-  <url>http://forge.uis.no</url>
+  <name>sftp</name>
+  <url>http://forge.uis.no/projects/nio-fs-provider</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>

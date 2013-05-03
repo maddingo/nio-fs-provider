@@ -8,6 +8,13 @@
   <name>nio-fs</name>
   <description>Java7 FileSystemProviders</description>
   <packaging>pom</packaging>
+
+  <parent>
+    <groupId>no.uis</groupId>
+    <artifactId>parent-pom</artifactId>
+    <version>2.0.4-SNAPSHOT</version>
+  </parent>
+
   <modules>
     <module>sftp</module>
     <module>webdav</module>
@@ -17,43 +24,28 @@
     <module>util</module>
   </modules>
 
+  <ciManagement>
+    <system>Jenkins</system>
+    <url>http://build01.uis.no/jenkins/job/uis-nio/</url>
+  </ciManagement>
+  
+  <issueManagement>
+    <system>ChiliProject</system>
+    <url>http://forge.uis.no/projects/nio-fs-provider/issues</url>
+  </issueManagement>
+  
   <properties>
     <checkstyle.dir>.</checkstyle.dir>
   </properties>
   
   <build>
-    <extensions>
-      <extension>
-        <groupId>org.apache.maven.wagon</groupId>
-        <artifactId>wagon-webdav-jackrabbit</artifactId>
-        <version>2.2</version>
-      </extension>
-    </extensions>
 
     <pluginManagement>
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-site-plugin</artifactId>
-          <version>3.1</version>
-          <executions>
-            <execution>
-              <id>attach-descriptor</id>
-              <goals>
-                <goal>attach-descriptor</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
           <version>2.0</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -68,40 +60,49 @@
         </plugin>
       </plugins>
     </pluginManagement>
-
     <plugins>
       <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
         <configuration>
-          <target>1.7</target>
-          <source>1.7</source>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-eclipse-plugin</artifactId>
-        <version>2.9</version>
-        <configuration>
-          <projectNameTemplate>[groupId]-[artifactId]</projectNameTemplate>
+          <locales></locales>
         </configuration>
       </plugin>
     </plugins>
   </build>
 
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <reportSets>
+          <reportSet>
+            <id>aggregate</id>
+            <reports>
+              <report>aggregate</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <configuration>
+          <linkJavadoc>true</linkJavadoc>
+          <aggregate>true</aggregate>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+  
   <profiles>
     <profile>
       <id>uis</id>
       <distributionManagement>
-        <repository>
-          <id>internal</id>
-          <url>https://source01.uis.no/archiva/repository/internal/</url>
-        </repository>
-        <snapshotRepository>
-          <id>snapshots</id>
-          <url>https://source01.uis.no/archiva/repository/snapshots/</url>
-        </snapshotRepository>
         <site>
-          <id>source01.uis.no</id>
-          <url>dav:https://source01.uis.no/maven-site/${project.groupId}/${project.artifactId}/${project.version}</url>
+          <id>code01.uis.no</id>
+          <url>dav:https://code01.uis.no/maven-site/nio-fs-provider</url>
         </site>
       </distributionManagement>
     </profile>

@@ -27,6 +27,10 @@ import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Set;
 
+/**
+ * Represents a host for the SFTP file system provider.
+ *  
+ */
 public class SFTPHost extends FileSystem {
 
   private final FileSystemProvider provider;
@@ -36,12 +40,6 @@ public class SFTPHost extends FileSystem {
   private final String password;
   private final String username;
   
-  /**
-   * Represents a host for the SFTP file system provider.
-   *  
-   * @param provider
-   * @param serverUri
-   */
   public SFTPHost(FileSystemProvider provider, URI serverUri) {
     this.provider = provider;
     this.serverUri = serverUri;

@@ -16,4 +16,6 @@
     </dependency>
   </dependencies>
   
+  <name>commons-test</name>
+  <url>http://forge.uis.no/projects/nio-fs-provider</url>
 </project>

@@ -8,7 +8,6 @@
   </parent>
   <artifactId>smb</artifactId>
   <name>smb</name>
-  <url>http://www.uis.no</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -52,4 +51,5 @@
   		</plugin>
   	</plugins>
   </build>
+  <url>http://forge.uis.no/projects/nio-fs-provider</url>
 </project>

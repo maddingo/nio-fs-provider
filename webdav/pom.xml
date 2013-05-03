@@ -52,4 +52,5 @@
 		</plugins>
 	</build>
 
+	<url>http://forge.uis.no/projects/nio-fs-provider</url>
 </project>
