@@ -3,7 +3,7 @@
   <parent>
     <groupId>no.uis.nio</groupId>
     <artifactId>nio-fs</artifactId>
-    <version>1.0.5-SNAPSHOT</version>
+    <version>1.0.5</version>
   </parent>
   <artifactId>commons-test</artifactId>
   <description>common test functions</description>
@@ -13,7 +13,7 @@
       <id>2906430</id>
       <name>Martin Goldhahn</name>
       <email>martin.goldhahn@uis.no</email>
-      <url></url>
+      <url />
       <organization>Universitetet i Stavanger</organization>
       <organizationUrl>http://www.uis.no</organizationUrl>
       <roles>
