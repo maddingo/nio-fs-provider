@@ -4,7 +4,7 @@
   <parent>
     <groupId>no.uis.nio</groupId>
     <artifactId>nio-fs</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6-SNAPSHOT</version>
   </parent>
   <artifactId>smb</artifactId>
   <name>smb</name>
