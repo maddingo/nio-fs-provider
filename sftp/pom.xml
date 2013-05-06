@@ -4,7 +4,7 @@
   <parent>
     <artifactId>nio-fs</artifactId>
     <groupId>no.uis.nio</groupId>
-    <version>1.0.5-SNAPSHOT</version>
+    <version>1.0.4-SNAPSHOT</version>
   </parent>
   <artifactId>sftp</artifactId>
   <name>sftp</name>
@@ -18,7 +18,7 @@
       <id>2906430</id>
       <name>Martin Goldhahn</name>
       <email>martin.goldhahn@uis.no</email>
-      <url />
+      <url></url>
       <organization>Universitetet i Stavanger</organization>
       <organizationUrl>http://www.uis.no</organizationUrl>
       <roles>
