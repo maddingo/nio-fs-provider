@@ -11,6 +11,23 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+  
+  <developers>
+    <developer>
+      <id>2906430</id>
+      <name>Martin Goldhahn</name>
+      <email>martin.goldhahn@uis.no</email>
+      <url></url>
+      <organization>Universitetet i Stavanger</organization>
+      <organizationUrl>http://www.uis.no</organizationUrl>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+  
   <dependencies>
     <dependency>
       <groupId>no.uis.nio</groupId>

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="${project.name}">
-  <version position="right"/>
+  <version position="left"/>
   <bannerLeft>
-    <name>${project.name} ${project.version}</name>
+    <name>${project.name}</name>
   </bannerLeft>
 
   <body>
     <menu name="${project.name}" inherit="bottom">
-      <item name="Introduction" href="index.html"/>
+      <item name="back" href=".."/>
     </menu>
     <menu ref="reports"/>
   </body>

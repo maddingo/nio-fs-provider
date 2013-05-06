@@ -8,6 +8,8 @@
   <name>nio-fs</name>
   <description>Java7 FileSystemProviders</description>
   <packaging>pom</packaging>
+  <url>http://forge.uis.no/projects/nio-fs-provider</url>
+  <inceptionYear>2012</inceptionYear>
 
   <parent>
     <groupId>no.uis</groupId>
@@ -34,6 +36,34 @@
     <url>http://forge.uis.no/projects/nio-fs-provider/issues</url>
   </issueManagement>
   
+  <scm>
+    <url>http://forge.uis.no/projects/nio-fs-provider/repository</url>
+    <connection>scm:git:git://forge.uis.no/nio-fs-provider.git</connection>
+    <developerConnection>scm:git:ssh://git@forge.uis.no/nio-fs-provider.git</developerConnection>
+  </scm>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>2906430</id>
+      <name>Martin Goldhahn</name>
+      <email>martin.goldhahn@uis.no</email>
+      <url></url>
+      <organization>Universitetet i Stavanger</organization>
+      <organizationUrl>http://www.uis.no</organizationUrl>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+
   <properties>
     <checkstyle.dir>.</checkstyle.dir>
   </properties>
@@ -107,16 +137,4 @@
       </distributionManagement>
     </profile>
   </profiles>
-  <scm>
-    <url>http://forge.uis.no/projects/nio-fs-provider/repository</url>
-    <connection>scm:git:git://forge.uis.no/nio-fs-provider.git</connection>
-    <developerConnection>scm:git:ssh://git@forge.uis.no/nio-fs-provider.git</developerConnection>
-  </scm>
-  <url>http://forge.uis.no/projects/nio-fs-provider</url>
-  <licenses>
-    <license>
-      <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-    </license>
-  </licenses>
 </project>
