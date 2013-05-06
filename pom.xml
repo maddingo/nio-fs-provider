@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>no.uis.nio</groupId>
   <artifactId>nio-fs</artifactId>
-  <version>1.0.5-SNAPSHOT</version>
+  <version>1.0.5</version>
   <name>nio-fs</name>
   <description>Java7 FileSystemProviders</description>
   <packaging>pom</packaging>
@@ -40,6 +39,7 @@
     <url>http://forge.uis.no/projects/nio-fs-provider/repository</url>
     <connection>scm:git:git://forge.uis.no/nio-fs-provider.git</connection>
     <developerConnection>scm:git:ssh://git@forge.uis.no/nio-fs-provider.git</developerConnection>
+    <tag>nio-fs-1.0.5</tag>
   </scm>
   <licenses>
     <license>
@@ -53,7 +53,7 @@
       <id>2906430</id>
       <name>Martin Goldhahn</name>
       <email>martin.goldhahn@uis.no</email>
-      <url></url>
+      <url />
       <organization>Universitetet i Stavanger</organization>
       <organizationUrl>http://www.uis.no</organizationUrl>
       <roles>
