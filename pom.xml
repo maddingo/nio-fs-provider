@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>no.uis.nio</groupId>
   <artifactId>nio-fs</artifactId>
-  <version>1.0.4-SNAPSHOT</version>
+  <version>1.0.5-SNAPSHOT</version>
   <name>nio-fs</name>
   <description>Java7 FileSystemProviders</description>
   <packaging>pom</packaging>
@@ -79,6 +79,11 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.4.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
           <version>2.10</version>
           <configuration>
@@ -92,11 +97,13 @@
     </pluginManagement>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-site-plugin</artifactId>
-        <configuration>
-          <locales></locales>
-        </configuration>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <configuration>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+            <commitByProject>true</commitByProject>
+            <preparationGoals>clean install</preparationGoals>
+          </configuration>
       </plugin>
     </plugins>
   </build>
@@ -125,6 +132,16 @@
       </plugin>
     </plugins>
   </reporting>
+  
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.10</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   
   <profiles>
     <profile>

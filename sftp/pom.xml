@@ -4,7 +4,7 @@
   <parent>
     <artifactId>nio-fs</artifactId>
     <groupId>no.uis.nio</groupId>
-    <version>1.0.4-SNAPSHOT</version>
+    <version>1.0.5-SNAPSHOT</version>
   </parent>
   <artifactId>sftp</artifactId>
   <name>sftp</name>
@@ -33,7 +33,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.10</version>
       <scope>test</scope>
     </dependency>
     <dependency>
