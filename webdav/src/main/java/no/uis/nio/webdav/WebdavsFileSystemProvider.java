@@ -16,6 +16,9 @@
 
 package no.uis.nio.webdav;
 
+/**
+ * WebdavFileSystemProvider with SSL transport.
+ */
 public class WebdavsFileSystemProvider extends WebdavFileSystemProvider {
 
   @Override

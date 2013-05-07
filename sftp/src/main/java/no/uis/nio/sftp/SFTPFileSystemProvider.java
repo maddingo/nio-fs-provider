@@ -78,7 +78,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
   public FileSystem getFileSystem(URI uri) {
     try {
       return getSFTPHost(uri, true);
-    } catch(Exception ex) {
+    } catch(URISyntaxException ex) {
       throw new FileSystemNotFoundException(uri.toString());
     }
   }

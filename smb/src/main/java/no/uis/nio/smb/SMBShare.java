@@ -27,6 +27,9 @@ import java.nio.file.spi.FileSystemProvider;
 import java.security.Principal;
 import java.util.Set;
 
+/**
+ * Denotes a Windows share.
+ */
 public class SMBShare extends FileSystem {
 
   private final Principal principal;

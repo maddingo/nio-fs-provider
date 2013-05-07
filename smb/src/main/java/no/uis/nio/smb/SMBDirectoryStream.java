@@ -17,6 +17,7 @@
 package no.uis.nio.smb;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -24,14 +25,16 @@ import java.util.Iterator;
 import java.util.List;
 
 import jcifs.smb.SmbFile;
-import jcifs.smb.SmbFilenameFilter;
 
+/**
+ * Iterates over SMB entries in an SMB directory. 
+ */
 public class SMBDirectoryStream implements DirectoryStream<Path> {
 
   private final SMBPath smbFile;
   private final java.nio.file.DirectoryStream.Filter<? super Path> filter;
   private final SMBFileSystemProvider provider;
-  private boolean closed=false;
+  private boolean closed;
   
   public SMBDirectoryStream(SMBFileSystemProvider provider, SMBPath smbFile, java.nio.file.DirectoryStream.Filter<? super Path> filter) {
     this.smbFile = smbFile;
@@ -59,16 +62,8 @@ public class SMBDirectoryStream implements DirectoryStream<Path> {
         }
       }
       return paths.iterator();
-    } catch(Exception e) {
+    } catch(IOException | URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }
-  
-  private SmbFilenameFilter convertFilter(java.nio.file.DirectoryStream.Filter<? super Path> srcFilter) {
-    if (srcFilter == null) {
-      return null;
-    }
-    return null;
-  }
-  
 }

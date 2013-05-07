@@ -36,7 +36,6 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
-import java.nio.file.attribute.FileTime;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +47,9 @@ import com.googlecode.sardine.DavResource;
 import com.googlecode.sardine.Sardine;
 import com.googlecode.sardine.util.SardineException;
 
+/**
+ * The WebDAV FileSystemProvider based on Sardine.
+ */
 public class WebdavFileSystemProvider extends FileSystemProvider {
 
   private static final int DEFAULT_PORT = 80;
@@ -56,11 +58,11 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
   @Override
   public void copy(Path fileFrom, Path fileTo, CopyOption... options) throws IOException {
 
-    if ((fileFrom instanceof WebdavPath) == false) {
+    if (!(fileFrom instanceof WebdavPath)) {
       throw new IllegalArgumentException(fileFrom.toString());
     }
 
-    if ((fileTo instanceof WebdavPath) == false) {
+    if (!(fileTo instanceof WebdavPath)) {
       throw new IllegalArgumentException(fileTo.toString());
     }
 
@@ -76,7 +78,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
   @Override
   public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
     
-    if ((dir instanceof WebdavPath) == false) {
+    if (!(dir instanceof WebdavPath)) {
       throw new IllegalArgumentException(dir.toString());
     }
 
@@ -104,7 +106,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
   @Override
   public void delete(Path dir) throws IOException {
-    if ((dir instanceof WebdavPath) == false) {
+    if (!(dir instanceof WebdavPath)) {
       throw new IllegalArgumentException(dir.toString());
     }
 
@@ -113,7 +115,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     Sardine webdav = webdavHost.getSardine();
 
-    String dirString="";
+    String dirString = "";
     try {
       dirString = wDir.toUri().toString();
       webdav.delete(dirString);
@@ -132,7 +134,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
   public FileSystem getFileSystem(URI uri) {
     try {
       return getWebdavHost(uri, true);
-    } catch(Exception ex) {
+    } catch(URISyntaxException ex) {
       throw new FileSystemNotFoundException(uri.toString());
     }
   }
@@ -239,54 +241,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     }
     final DavResource res = resources.get(0);
     
-    BasicFileAttributes attrs = new BasicFileAttributes() {
-      
-      @Override
-      public long size() {
-        return -1;
-      }
-      
-      @Override
-      public FileTime lastModifiedTime() {
-        // TODO Auto-generated method stub
-        return null;
-      }
-      
-      @Override
-      public FileTime lastAccessTime() {
-        return FileTime.fromMillis(System.currentTimeMillis());
-      }
-      
-      @Override
-      public boolean isSymbolicLink() {
-        return false;
-      }
-      
-      @Override
-      public boolean isRegularFile() {
-        return !res.isDirectory();
-      }
-      
-      @Override
-      public boolean isOther() {
-        return false;
-      }
-      
-      @Override
-      public boolean isDirectory() {
-        return res.isDirectory();
-      }
-      
-      @Override
-      public Object fileKey() {
-        return null;
-      }
-      
-      @Override
-      public FileTime creationTime() {
-        return FileTime.fromMillis(res.getCreation().getTime());
-      }
-    };
+    BasicFileAttributes attrs = new WebdavFileAttributes(res);
     
     return (A)attrs;
   }

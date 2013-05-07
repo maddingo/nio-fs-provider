@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
@@ -46,14 +47,13 @@ import jcifs.Config;
 import jcifs.smb.NtStatus;
 import jcifs.smb.SmbException;
 
+/**
+ * Provider based on jcifs. 
+ * jCifs can be configured with <code>/jcifs-config.properties</code>, if jCifs properties are not already loaded.
+ * If it was previously configured, a warning is issued. 
+ */
 public class SMBFileSystemProvider extends FileSystemProvider {
 
-  /**
-   * Provider based on jcifs. 
-   * jCifs can be configured with <code>/jcifs-config.properties</code>, if jCifs properties are not already loaded.
-   * If it was previously configured, a warning is issued. 
-   * @throws IOException
-   */
   public SMBFileSystemProvider() throws IOException {
     
     ByteArrayOutputStream outBuffer = new ByteArrayOutputStream();
@@ -86,7 +86,7 @@ public class SMBFileSystemProvider extends FileSystemProvider {
   public Path getPath(URI uri) {
     try {
       return new SMBPath(this, uri);
-    } catch(Exception e) {
+    } catch(IOException | URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
   }

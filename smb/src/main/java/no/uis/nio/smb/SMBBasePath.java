@@ -32,6 +32,9 @@ import java.util.List;
 
 import jcifs.smb.SmbFile;
 
+/**
+ * Common super-class for {@link SMBFileSystemProvider} and {@link SMBPath}.
+ */
 public class SMBBasePath implements Path {
 
   private final String path;
@@ -173,7 +176,7 @@ public class SMBBasePath implements Path {
     StringBuilder sb = null;
     for (int i = 0; i < parts.length; i++) {
       String part = parts[i];
-      if (part.equals("..")) {
+      if ("..".equals(part)) {
         if (sb == null) {
           sb = new StringBuilder();
         }
@@ -184,7 +187,7 @@ public class SMBBasePath implements Path {
           sb = null;
         }
         StringBuilder partSB = new StringBuilder(part);
-        if (i < (parts.length-1) || isDirectory) {
+        if (i < (parts.length - 1) || isDirectory) {
           partSB.append('\\');
         }
         list.add(new SMBBasePath(partSB.toString()));

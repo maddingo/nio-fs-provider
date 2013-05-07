@@ -25,6 +25,9 @@ import java.nio.channels.SeekableByteChannel;
 
 import com.googlecode.sardine.Sardine;
 
+/**
+ * A {@link SeekableByteChannel} based on Sardine.
+ */
 public class SardineChannel implements SeekableByteChannel {
 
   private final Sardine sardine;

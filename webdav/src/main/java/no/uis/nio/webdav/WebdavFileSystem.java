@@ -32,145 +32,142 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import com.googlecode.sardine.Sardine;
 import com.googlecode.sardine.SardineFactory;
 
+/**
+ * WebDAV implementation of a FileSystem.
+ */
 public class WebdavFileSystem extends FileSystem {
 
-	private final FileSystemProvider provider;
-	private final URI serverUri;
-	private final int port;
-	private final String host;
-	private final String password;
-	private final String username;
+  private final FileSystemProvider provider;
+  private final URI serverUri;
+  private final int port;
+  private final String host;
+  private final String password;
+  private final String username;
 
-	public WebdavFileSystem(WebdavFileSystemProvider provider, URI serverUri) {
-		this.provider = provider;
-		this.serverUri = serverUri;
-		this.host = serverUri.getHost();
-		this.port = serverUri.getPort();
-		String[] ui = serverUri.getUserInfo().split(":");
-		this.username = ui[0];
-		this.password = ui[1];
-	}
+  public WebdavFileSystem(WebdavFileSystemProvider provider, URI serverUri) {
+    this.provider = provider;
+    this.serverUri = serverUri;
+    this.host = serverUri.getHost();
+    this.port = serverUri.getPort();
+    String[] ui = serverUri.getUserInfo().split(":");
+    this.username = ui[0];
+    this.password = ui[1];
+  }
 
-	@Override
-	public FileSystemProvider provider() {
-		return provider;
-	}
+  @Override
+  public FileSystemProvider provider() {
+    return provider;
+  }
 
-	@Override
-	public void close() throws IOException {
-		// TODO Auto-generated method stub
+  @Override
+  public void close() throws IOException {
+    // TODO Auto-generated method stub
 
-	}
+  }
 
-	@Override
-	public Iterable<FileStore> getFileStores() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public Iterable<FileStore> getFileStores() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	@Override
-	public Path getPath(String first, String... more) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public Path getPath(String first, String... more) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	@Override
-	public PathMatcher getPathMatcher(String syntaxAndPattern) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public PathMatcher getPathMatcher(String syntaxAndPattern) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	@Override
-	public Iterable<Path> getRootDirectories() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public Iterable<Path> getRootDirectories() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	@Override
-	public String getSeparator() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public String getSeparator() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	@Override
-	public UserPrincipalLookupService getUserPrincipalLookupService() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public UserPrincipalLookupService getUserPrincipalLookupService() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	@Override
-	public boolean isOpen() {
-		// TODO Auto-generated method stub
-		return false;
-	}
+  @Override
+  public boolean isOpen() {
+    // TODO Auto-generated method stub
+    return false;
+  }
 
-	@Override
-	public boolean isReadOnly() {
-		// TODO Auto-generated method stub
-		return false;
-	}
+  @Override
+  public boolean isReadOnly() {
+    // TODO Auto-generated method stub
+    return false;
+  }
 
-	@Override
-	public WatchService newWatchService() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public WatchService newWatchService() throws IOException {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	@Override
-	public Set<String> supportedFileAttributeViews() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public Set<String> supportedFileAttributeViews() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	/**
-	 * Check if one filesystem is equal to another. Checks Host, username and
-	 * Port
-	 * 
-	 * @param Object
-	 *            other
-	 */
-	@Override
-	public boolean equals(Object other) {
-		if (!(other instanceof WebdavFileSystem)) {
-			throw new IllegalArgumentException(
-					"Argument must be of instance WebdavFileSystem");
-		}
-		WebdavFileSystem current = (WebdavFileSystem) other;
-		if (current.host.equals(this.host)
-				&& current.username.equals(this.username)
-				&& current.port == this.port) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+  /**
+   * Check if one filesystem is equal to another. Checks Host, username and Port.
+   */
+  @Override
+  public boolean equals(Object other) {
+    if (!(other instanceof WebdavFileSystem)) {
+      throw new IllegalArgumentException("Argument must be of instance WebdavFileSystem");
+    }
+    WebdavFileSystem current = (WebdavFileSystem)other;
 
-	public String getUserName() {
-		return this.username;
-	}
+    return current.host.equals(this.host) && current.username.equals(this.username) && current.port == this.port;
+  }
 
-	public String getHost() {
-		return this.host;
-	}
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
 
-	public int getPort() {
-		return this.port;
-	}
+  public String getUserName() {
+    return this.username;
+  }
 
-	public String getPassword() {
-		return this.password;
-	}
+  public String getHost() {
+    return this.host;
+  }
 
-	protected Sardine getSardine() throws IOException {
+  public int getPort() {
+    return this.port;
+  }
 
-		Sardine sardine;
-		SSLSocketFactory sslSocketFactory = null;
-		if (serverUri.getScheme().equals("webdavs")) {
-			sslSocketFactory = SSLSocketFactory.getSocketFactory();
-		}
-		sardine = SardineFactory.begin(username, password, sslSocketFactory,
-				null, port);
+  public String getPassword() {
+    return this.password;
+  }
 
-		return sardine;
-	}
+  protected Sardine getSardine() throws IOException {
+
+    Sardine sardine;
+    SSLSocketFactory sslSocketFactory = null;
+    if ("webdavs".equals(serverUri.getScheme())) {
+      sslSocketFactory = SSLSocketFactory.getSocketFactory();
+    }
+    sardine = SardineFactory.begin(username, password, sslSocketFactory, null, port);
+
+    return sardine;
+  }
 }

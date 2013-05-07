@@ -26,8 +26,13 @@ import java.nio.file.Path;
 
 import jcifs.smb.SmbFile;
 
+/**
+ * Denotes a path in an SMB share.
+ */
 public class SMBPath extends SMBBasePath {
 
+  private static final int MIN_COMMON_LEVEL = 4;
+  private static final String REGEX_BACKSLASH = "\\\\";
   private final SmbFile file;
   private final SMBShare fileSystem;
   private final SMBFileSystemProvider provider;
@@ -35,11 +40,11 @@ public class SMBPath extends SMBBasePath {
   
   public SMBPath(SMBFileSystemProvider provider, URI uri) throws IOException, URISyntaxException {
     super(toPublicString(uri));
-    SmbFile _file = new SmbFile(new URL(null, uri.toString(), new jcifs.smb.Handler()));
-    if (_file.getShare() == null) {
+    SmbFile f = new SmbFile(new URL(null, uri.toString(), new jcifs.smb.Handler()));
+    if (f.getShare() == null) {
       throw new IllegalArgumentException(uri.toString());
     }
-    this.file = _file;
+    this.file = f;
     this.provider = provider;
     this.uri = uri;
     this.fileSystem = new SMBShare(provider, file.getServer(), file.getShare(), file.getPrincipal());
@@ -61,7 +66,7 @@ public class SMBPath extends SMBBasePath {
     try {
       URI parentUri = new URI(parent);
       return new SMBPath(provider, parentUri);
-    } catch(Exception e) {
+    } catch(IOException | URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }
@@ -91,8 +96,8 @@ public class SMBPath extends SMBBasePath {
     String thisUNC = file.getUncPath();
     String otherUNC = otherSmbPath.getSmbFile().getUncPath();
 
-    String[] thisParts = thisUNC.split("\\\\");
-    String[] otherParts = otherUNC.split("\\\\");
+    String[] thisParts = thisUNC.split(REGEX_BACKSLASH);
+    String[] otherParts = otherUNC.split(REGEX_BACKSLASH);
 
     // find common root
     int commonLevel = 0;
@@ -102,7 +107,7 @@ public class SMBPath extends SMBBasePath {
       }
     }
     
-    if (commonLevel < 4) {
+    if (commonLevel < MIN_COMMON_LEVEL) {
       // the share and server are not equal
       throw new IllegalArgumentException(other.toString());
     }
@@ -125,7 +130,7 @@ public class SMBPath extends SMBBasePath {
     URI otherUri = this.uri.resolve(other);
     try {
       return new SMBPath(provider, otherUri);
-    } catch(Exception e) {
+    } catch(IOException | URISyntaxException e) {
       throw new IllegalArgumentException(other, e);
     }
   }

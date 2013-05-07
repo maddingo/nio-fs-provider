@@ -21,6 +21,9 @@ import java.nio.file.attribute.FileTime;
 
 import jcifs.smb.SmbFile;
 
+/**
+ * File attributes for SMB files and directories.
+ */
 public class SMBFileAttributes implements BasicFileAttributes {
 
   private final String uncPath;

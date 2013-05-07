@@ -22,10 +22,15 @@ import java.nio.channels.SeekableByteChannel;
 
 import jcifs.smb.SmbFileOutputStream;
 
+/**
+ * Implementation of {@link SeekableByteChannel} for writing SMB files.
+ * 
+ * Reading is not supported at the moment.
+ */
 public class SMBByteChannel implements SeekableByteChannel {
 
   private final SMBPath path;
-  private boolean closed=true;
+  private boolean closed = true;
   private SmbFileOutputStream out;
 
   public SMBByteChannel(SMBPath smbPath) throws IOException {
