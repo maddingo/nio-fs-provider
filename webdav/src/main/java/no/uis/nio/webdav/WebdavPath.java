@@ -51,11 +51,11 @@ public class WebdavPath implements Path {
     if (path == null) {
       this.path = DEFAULT_ROOT_PATH;
     } else {
-      path = path.trim();
-      if (!path.startsWith(PATH_SEP)) {
-        this.path = PATH_SEP + path;
+      String p = path.trim();
+      if (!p.startsWith(PATH_SEP)) {
+        this.path = PATH_SEP + p;
       } else {
-        this.path = path;
+        this.path = p;
       }
     }
   }
