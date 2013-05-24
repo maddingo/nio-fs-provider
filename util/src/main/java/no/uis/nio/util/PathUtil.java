@@ -39,7 +39,7 @@ public class PathUtil {
     Files.createDirectories(outDir);
   }
   
-  private static void cleanDirectory(Path outDir) throws IOException {
+  public static void cleanDirectory(Path outDir) throws IOException {
     if (Files.isDirectory(outDir) && Files.exists(outDir)) {
       Files.walkFileTree(outDir, new SimpleFileVisitor<Path>() {
 
