@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>no.uis.nio</groupId>
   <artifactId>nio-fs</artifactId>
-  <version>1.0.6-SNAPSHOT</version>
+  <version>1.1.0-SNAPSHOT</version>
   <name>nio-fs</name>
   <description>Java7 FileSystemProviders</description>
   <packaging>pom</packaging>
@@ -20,7 +20,7 @@
     <module>sftp</module>
     <module>webdav</module>
     <module>smb</module>
-    <module>commons-test</module>
+    <module>test-util</module>
     <module>util</module>
   </modules>
 

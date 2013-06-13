@@ -4,10 +4,10 @@
   <parent>
     <groupId>no.uis.nio</groupId>
     <artifactId>nio-fs</artifactId>
-    <version>1.0.6-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>webdav</artifactId>
-  <name>webdav</name>
+  <artifactId>nio-fs-webdav</artifactId>
+  <name>nio-fs-webdav</name>
   <url>http://forge.uis.no/projects/nio-fs-provider</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -52,7 +52,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>commons-test</artifactId>
+      <artifactId>nio-fs-test-util</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

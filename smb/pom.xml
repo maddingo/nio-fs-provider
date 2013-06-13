@@ -4,10 +4,10 @@
   <parent>
     <groupId>no.uis.nio</groupId>
     <artifactId>nio-fs</artifactId>
-    <version>1.0.6-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>smb</artifactId>
-  <name>smb</name>
+  <artifactId>nio-fs-smb</artifactId>
+  <name>nio-fs-smb</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -31,7 +31,7 @@
   <dependencies>
     <dependency>
       <groupId>no.uis.nio</groupId>
-      <artifactId>commons-test</artifactId>
+      <artifactId>nio-fs-test-util</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
