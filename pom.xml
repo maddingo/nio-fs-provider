@@ -19,7 +19,6 @@
   <modules>
     <module>sftp</module>
     <module>webdav</module>
-    <module>commons</module>
     <module>smb</module>
     <module>commons-test</module>
     <module>util</module>

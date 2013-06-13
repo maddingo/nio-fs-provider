@@ -14,7 +14,7 @@
    limitations under the License.
  */
 
-package no.uis.nio.commons;
+package no.uis.nio.util;
 
 import java.io.IOException;
 import java.net.URI;

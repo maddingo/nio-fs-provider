@@ -6,8 +6,8 @@
     <artifactId>nio-fs</artifactId>
     <version>1.0.6-SNAPSHOT</version>
   </parent>
-  <artifactId>util</artifactId>
-  <name>util</name>
+  <artifactId>nio-fs-util</artifactId>
+  <name>nio-fs-util</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>

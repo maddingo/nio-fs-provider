@@ -5,7 +5,7 @@
     <artifactId>nio-fs</artifactId>
     <version>1.0.6-SNAPSHOT</version>
   </parent>
-  <artifactId>commons-test</artifactId>
+  <artifactId>nio-fs-commons-test</artifactId>
   <description>common test functions</description>
 
   <developers>
@@ -31,6 +31,6 @@
     </dependency>
   </dependencies>
   
-  <name>commons-test</name>
+  <name>nio-fs-commons-test</name>
   <url>http://forge.uis.no/projects/nio-fs-provider</url>
 </project>
