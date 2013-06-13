@@ -26,10 +26,8 @@ import jcifs.smb.SmbFile;
  */
 public class SMBFileAttributes implements BasicFileAttributes {
 
-  private final String uncPath;
   private final int attributes;
   public SMBFileAttributes(String uncPath, int attributes) {
-    this.uncPath = uncPath;
     this.attributes = attributes;
   }
 

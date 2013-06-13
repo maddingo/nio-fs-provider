@@ -184,6 +184,7 @@ public class SMBFileSystemProvider extends FileSystemProvider {
     throw new UnsupportedOperationException();
   }
 
+  @SuppressWarnings("unchecked")
   public static <A extends SMBBasePath> A toSMBPath(Path path) {
     if (path == null) {
       throw new NullPointerException();
@@ -192,6 +193,5 @@ public class SMBFileSystemProvider extends FileSystemProvider {
       throw new ProviderMismatchException();
     }
     return (A)path;
-
   }
 }

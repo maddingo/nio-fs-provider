@@ -30,7 +30,6 @@ import jcifs.smb.SmbFileOutputStream;
 public class SMBByteChannel implements SeekableByteChannel {
 
   private final SMBPath path;
-  private boolean closed = true;
   private SmbFileOutputStream out;
 
   public SMBByteChannel(SMBPath smbPath) throws IOException {

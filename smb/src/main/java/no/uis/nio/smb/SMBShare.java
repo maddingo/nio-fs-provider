@@ -32,15 +32,9 @@ import java.util.Set;
  */
 public class SMBShare extends FileSystem {
 
-  private final Principal principal;
-  private final String share;
-  private final String server;
   private final SMBFileSystemProvider provider;
 
   public SMBShare(SMBFileSystemProvider provider, String server, String share, Principal principal) {
-    this.server = server;
-    this.share = share;
-    this.principal = principal;
     this.provider = provider;
   }
   
@@ -52,7 +46,6 @@ public class SMBShare extends FileSystem {
   @Override
   public void close() throws IOException {
     // TODO Auto-generated method stub
-
   }
 
   @Override

@@ -33,6 +33,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.ProviderMismatchException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
@@ -232,6 +233,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     }
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
     WebdavFileSystem wfs = (WebdavFileSystem)path.getFileSystem();
@@ -241,9 +243,11 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     }
     final DavResource res = resources.get(0);
     
-    BasicFileAttributes attrs = new WebdavFileAttributes(res);
+    if (!type.isAssignableFrom(WebdavFileAttributes.class)) {
+      throw new ProviderMismatchException();
+    }
     
-    return (A)attrs;
+    return (A)new WebdavFileAttributes(res);
   }
 
   @Override
