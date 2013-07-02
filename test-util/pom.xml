@@ -8,7 +8,7 @@
   <artifactId>nio-fs-test-util</artifactId>
   <name>nio-fs-test-util</name>
   <description>common test functions</description>
-  <url>http://forge.uis.no/projects/nio-fs-provider</url>
+  <url>https://github.com/uis-it/nio-fs-provider</url>
 
   <developers>
     <developer>

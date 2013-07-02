@@ -67,5 +67,5 @@
   		</plugin>
   	</plugins>
   </build>
-  <url>http://forge.uis.no/projects/nio-fs-provider</url>
+  <url>https://github.com/uis-it/nio-fs-provider</url>
 </project>

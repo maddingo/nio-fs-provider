@@ -7,13 +7,13 @@
   <name>nio-fs</name>
   <description>Java7 FileSystemProviders</description>
   <packaging>pom</packaging>
-  <url>http://forge.uis.no/projects/nio-fs-provider</url>
+  <url>https://github.com/uis-it/nio-fs-provider</url>
   <inceptionYear>2012</inceptionYear>
 
   <parent>
     <groupId>no.uis</groupId>
     <artifactId>parent-pom</artifactId>
-    <version>2.0.4</version>
+    <version>2.0.5</version>
   </parent>
 
   <modules>
@@ -30,14 +30,14 @@
   </ciManagement>
   
   <issueManagement>
-    <system>ChiliProject</system>
-    <url>http://forge.uis.no/projects/nio-fs-provider/issues</url>
+    <system>Github</system>
+    <url>http://github.com/uis-it/nio-fs-provider/issues</url>
   </issueManagement>
   
   <scm>
-    <url>http://forge.uis.no/projects/nio-fs-provider/repository</url>
-    <connection>scm:git:git://forge.uis.no/nio-fs-provider.git</connection>
-    <developerConnection>scm:git:ssh://git@forge.uis.no/nio-fs-provider.git</developerConnection>
+    <url>https://github.com/uis-it/nio-fs-provider</url>
+    <connection>scm:git:git://github.com/uis-it/nio-fs-provider.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/uis-it/nio-fs-provider.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
   <licenses>
