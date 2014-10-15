@@ -73,8 +73,22 @@ public class WebdavFileSystem extends FileSystem {
 
   @Override
   public Path getPath(String first, String... more) {
-    // TODO Auto-generated method stub
-    return null;
+      String path;
+      if (more.length == 0) {
+          path = first;
+      } else {
+          StringBuilder sb = new StringBuilder();
+          sb.append(first);
+          for (String segment: more) {
+              if (segment.length() > 0) {
+                  if (sb.length() > 0)
+                      sb.append(getSeparator());
+                  sb.append(segment);
+              }
+          }
+          path = sb.toString();
+      }
+      return new WebdavPath(this, path);
   }
 
   @Override
@@ -91,8 +105,7 @@ public class WebdavFileSystem extends FileSystem {
 
   @Override
   public String getSeparator() {
-    // TODO Auto-generated method stub
-    return null;
+    return "/";
   }
 
   @Override
