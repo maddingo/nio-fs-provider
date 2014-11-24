@@ -19,7 +19,7 @@ package no.uis.nio.webdav;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 
-import com.googlecode.sardine.DavResource;
+import com.github.sardine.DavResource;
 
 /**
  * File attributes for WebDAV.

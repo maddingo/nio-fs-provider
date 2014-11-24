@@ -29,8 +29,8 @@ import java.util.Set;
 
 import org.apache.http.conn.ssl.SSLSocketFactory;
 
-import com.googlecode.sardine.Sardine;
-import com.googlecode.sardine.SardineFactory;
+import com.github.sardine.Sardine;
+import com.github.sardine.SardineFactory;
 
 /**
  * WebDAV implementation of a FileSystem.
@@ -173,14 +173,6 @@ public class WebdavFileSystem extends FileSystem {
   }
 
   protected Sardine getSardine() throws IOException {
-
-    Sardine sardine;
-    SSLSocketFactory sslSocketFactory = null;
-    if ("webdavs".equals(serverUri.getScheme())) {
-      sslSocketFactory = SSLSocketFactory.getSocketFactory();
-    }
-    sardine = SardineFactory.begin(username, password, sslSocketFactory, null, port);
-
-    return sardine;
+    return SardineFactory.begin(username, password);
   }
 }

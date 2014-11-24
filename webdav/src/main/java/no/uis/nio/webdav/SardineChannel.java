@@ -23,7 +23,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 
-import com.googlecode.sardine.Sardine;
+import com.github.sardine.Sardine;
 
 /**
  * A {@link SeekableByteChannel} based on Sardine.
@@ -66,7 +66,7 @@ public class SardineChannel implements SeekableByteChannel {
   public int read(ByteBuffer dst) throws IOException {
     synchronized (sardine) {
       if (in == null) {
-        in = sardine.getInputStream(path.toUri().toString());
+        in = sardine.get(path.toUri().toString());
       }
       if (dst.hasArray()) {
         return in.read(dst.array());

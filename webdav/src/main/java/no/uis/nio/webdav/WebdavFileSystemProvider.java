@@ -44,9 +44,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import com.googlecode.sardine.DavResource;
-import com.googlecode.sardine.Sardine;
-import com.googlecode.sardine.util.SardineException;
+import com.github.sardine.DavResource;
+import com.github.sardine.Sardine;
+import com.github.sardine.impl.SardineException;
 
 /**
  * The WebDAV FileSystemProvider based on Sardine.

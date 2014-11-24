@@ -46,9 +46,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.googlecode.sardine</groupId>
+      <groupId>com.github.lookfirst</groupId>
       <artifactId>sardine</artifactId>
-      <version>146</version>
+      <version>5.4</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
