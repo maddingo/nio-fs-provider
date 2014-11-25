@@ -18,6 +18,7 @@ package no.uis.nio.webdav;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.ProxySelector;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -173,6 +174,6 @@ public class WebdavFileSystem extends FileSystem {
   }
 
   protected Sardine getSardine() throws IOException {
-    return SardineFactory.begin(username, password);
+      return SardineFactory.begin(username, password, ProxySelector.getDefault());
   }
 }
