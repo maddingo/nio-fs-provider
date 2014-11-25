@@ -131,6 +131,21 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     }
   }
 
+  /**
+   * The default implementation in FileSystemProvider will simply call
+   * delete() in deleteIfExists() and silently ignore any NoSuchFileException.
+   * In case of Nexus, trying to delete() will result in 503 (Not allowed)
+   * even if the path points to nowhere.
+   */
+  @Override
+  public boolean deleteIfExists(Path path) throws IOException {
+    WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
+    final String s = path.toUri().toString();
+    final boolean exists = webdavFs.getSardine().exists(s);
+    // System.out.println("exists(" + s + ") = " + exists);
+    return exists;
+  }
+
   @Override
   public FileSystem getFileSystem(URI uri) {
     try {
@@ -192,9 +207,10 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
   @Override
   public void checkAccess(Path path, AccessMode... modes) throws IOException {
     WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
-    if (!webdavFs.getSardine().exists(path.toUri().toString())) {
-      throw new NoSuchFileException(path.toUri().toString());
-    }
+    final String s = path.toUri().toString();
+    final boolean exists = webdavFs.getSardine().exists(s);
+    // System.out.println("exists(" + s + ") = " + exists);
+    if (!exists) throw new NoSuchFileException(s);
   }
 
   @Override
