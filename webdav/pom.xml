@@ -7,6 +7,7 @@
     <version>1.1.1-SNAPSHOT</version>
   </parent>
   <artifactId>nio-fs-webdav</artifactId>
+  <version>1.1.1.999</version>
   <name>nio-fs-webdav</name>
   <url>https://github.com/uis-it/nio-fs-provider</url>
   <properties>
@@ -46,14 +47,14 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.googlecode.sardine</groupId>
+      <groupId>com.github.lookfirst</groupId>
       <artifactId>sardine</artifactId>
-      <version>146</version>
+      <version>5.4</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>nio-fs-test-util</artifactId>
-      <version>${project.version}</version>
+      <version>${project.parent.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
