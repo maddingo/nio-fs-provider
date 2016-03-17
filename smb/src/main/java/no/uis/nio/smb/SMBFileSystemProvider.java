@@ -54,144 +54,144 @@ import jcifs.smb.SmbException;
  */
 public class SMBFileSystemProvider extends FileSystemProvider {
 
-  public SMBFileSystemProvider() throws IOException {
-    
-    ByteArrayOutputStream outBuffer = new ByteArrayOutputStream();
-    Config.list(new PrintStream(outBuffer, true));
-    if (outBuffer.size() > 0) {
-      Logger.getLogger(getClass().getName()).warning("jcifs already configured with:\n"+outBuffer.toString());
+    public SMBFileSystemProvider() throws IOException {
+
+        ByteArrayOutputStream outBuffer = new ByteArrayOutputStream();
+        Config.list(new PrintStream(outBuffer, true));
+        if (outBuffer.size() > 0) {
+            Logger.getLogger(getClass().getName()).warning("jcifs already configured with:\n"+outBuffer.toString());
+        }
+        try (InputStream config = getClass().getResourceAsStream("/jcifs-config.properties")) {
+            if (config != null) {
+                Config.load(config);
+            }
+        }
     }
-    InputStream config = getClass().getResourceAsStream("/jcifs-config.properties");
-    if (config != null) {
-      Config.load(config);
+
+    @Override
+    public String getScheme() {
+        return "smb";
     }
-  }
-  
-  @Override
-  public String getScheme() {
-    return "smb";
-  }
 
-  @Override
-  public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public FileSystem getFileSystem(URI uri) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Path getPath(URI uri) {
-    try {
-      return new SMBPath(this, uri);
-    } catch(IOException | URISyntaxException e) {
-      throw new IllegalArgumentException(e);
+    @Override
+    public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
+        throw new UnsupportedOperationException();
     }
-  }
 
-  @Override
-  public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)
-      throws IOException
-  {
-    SMBPath smbPath = toSMBPath(path);
-    return new SMBByteChannel(smbPath); 
-  }
-
-  @Override
-  public DirectoryStream<Path> newDirectoryStream(Path dir, Filter<? super Path> filter) throws IOException {
-    SMBBasePath smbFile = toSMBPath(dir);
-    if (!smbFile.isAbsolute()) {
-      throw new IllegalArgumentException(dir.toString());
+    @Override
+    public FileSystem getFileSystem(URI uri) {
+        throw new UnsupportedOperationException();
     }
-    
-    SMBDirectoryStream dirStream = new SMBDirectoryStream(this, (SMBPath)smbFile, filter);
-    return dirStream;
-  }
 
-  @Override
-  public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-    try {
-      toSMBPath(dir).getSmbFile().mkdirs();
-    } catch(SmbException e) {
-      if (e.getNtStatus() == NtStatus.NT_STATUS_OBJECT_NAME_COLLISION) {
-        throw new FileAlreadyExistsException(dir.toString(), null, e.getMessage());
-      }
+    @Override
+    public Path getPath(URI uri) {
+        try {
+            return new SMBPath(this, uri);
+        } catch(IOException | URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
-  }
 
-  @Override
-  public void delete(Path path) throws IOException {
-    SMBPath smbPath = toSMBPath(path);
-    smbPath.getSmbFile().delete();
-  }
-
-  @Override
-  public void copy(Path source, Path target, CopyOption... options) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void move(Path source, Path target, CopyOption... options) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public boolean isSameFile(Path path, Path path2) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public boolean isHidden(Path path) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public FileStore getFileStore(Path path) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void checkAccess(Path path, AccessMode... modes) throws IOException {
-    
-    if (!toSMBPath(path).getSmbFile().exists()) {
-      throw new NoSuchFileException(path.toString());
+    @Override
+    public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)
+            throws IOException
+    {
+        SMBPath smbPath = toSMBPath(path);
+        return new SMBByteChannel(smbPath);
     }
-  }
 
-  @Override
-  public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
-    throw new UnsupportedOperationException();
-  }
+    @Override
+    public DirectoryStream<Path> newDirectoryStream(Path dir, Filter<? super Path> filter) throws IOException {
+        SMBBasePath smbFile = toSMBPath(dir);
+        if (!smbFile.isAbsolute()) {
+            throw new IllegalArgumentException(dir.toString());
+        }
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
-    if (type == BasicFileAttributes.class || type == SMBFileAttributes.class) {
-      return (A)toSMBPath(path).getAttributes();
+        return new SMBDirectoryStream(this, (SMBPath)smbFile, filter);
     }
-    return null;
-  }
 
-  @Override
-  public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <A extends SMBBasePath> A toSMBPath(Path path) {
-    if (path == null) {
-      throw new NullPointerException();
+    @Override
+    public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
+        try {
+            toSMBPath(dir).getSmbFile().mkdirs();
+        } catch(SmbException e) {
+            if (e.getNtStatus() == NtStatus.NT_STATUS_OBJECT_NAME_COLLISION) {
+                throw new FileAlreadyExistsException(dir.toString(), null, e.getMessage());
+            }
+        }
     }
-    if (!(path instanceof SMBBasePath)) {
-      throw new ProviderMismatchException();
+
+    @Override
+    public void delete(Path path) throws IOException {
+        SMBPath smbPath = toSMBPath(path);
+        smbPath.getSmbFile().delete();
     }
-    return (A)path;
-  }
+
+    @Override
+    public void copy(Path source, Path target, CopyOption... options) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void move(Path source, Path target, CopyOption... options) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isSameFile(Path path, Path path2) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isHidden(Path path) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public FileStore getFileStore(Path path) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void checkAccess(Path path, AccessMode... modes) throws IOException {
+
+        if (!toSMBPath(path).getSmbFile().exists()) {
+            throw new NoSuchFileException(path.toString());
+        }
+    }
+
+    @Override
+    public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
+        throw new UnsupportedOperationException();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
+        if (type == BasicFileAttributes.class || type == SMBFileAttributes.class) {
+            return (A)toSMBPath(path).getAttributes();
+        }
+        return null;
+    }
+
+    @Override
+    public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <A extends SMBBasePath> A toSMBPath(Path path) {
+        if (path == null) {
+            throw new NullPointerException();
+        }
+        if (!(path instanceof SMBBasePath)) {
+            throw new ProviderMismatchException();
+        }
+        return (A)path;
+    }
 }
