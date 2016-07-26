@@ -4,7 +4,7 @@
   <parent>
     <groupId>no.uis.nio</groupId>
     <artifactId>nio-fs</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.1.2-SNAPSHOT</version>
   </parent>
   <artifactId>nio-fs-webdav</artifactId>
   <version>1.1.1.999</version>
@@ -54,7 +54,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>nio-fs-test-util</artifactId>
-      <version>${project.parent.version}</version>
+      <version>1.1.2-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
