@@ -18,16 +18,19 @@ package no.uis.nio.smb;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeThat;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.util.List;
+import java.util.ArrayList;
 
 import jcifs.Config;
+import jcifs.smb.NtlmAuthenticator;
+import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbFile;
 import jcifs.util.LogStream;
 
@@ -38,6 +41,7 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -60,6 +64,7 @@ public class CifsTest extends AbstractTest {
         Config.registerSmbURLHandler();
     }
 
+    @Ignore("Don't have the environment")
     @Test
     public void testCatalogCreator() throws Exception {
         CatalogCreatorMock catalogCreator = new CatalogCreatorMock();
@@ -77,6 +82,7 @@ public class CifsTest extends AbstractTest {
         catalogCreator.createCatalog(outDir);
     }
 
+    @Ignore("Don't have the environment")
     @Test
     public void testConnectToShare() throws Exception {
         URI baseDirUri = createTestUri("smb", "wsapps-test01.uis.no", -1, "/d$/temp/");
@@ -185,5 +191,26 @@ public class CifsTest extends AbstractTest {
                 description.appendText("a string that ends with ").appendValue(string);
             }
         };
+    }
+
+    @Test
+    public void testSamba() throws Exception {
+
+        SmbFile smbf = new SmbFile("smb://127.0.0.1/public/Untitled Folder/");
+        assumeThat("Test file " + smbf.toString() + " exists", smbf.canRead(), is(true));
+        Path remotePath = Paths.get(new URI("smb://127.0.0.1/public/"));
+
+        List<String> fileNames = new ArrayList<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(remotePath, new DirectoryStream.Filter<Path>() {
+            @Override
+            public boolean accept(Path entry) throws IOException {
+                return !Files.isSymbolicLink(entry);
+            }
+        })) {
+            for (Path path : directoryStream) {
+                fileNames.add(path.toString());
+            }
+        }
+        assertThat(fileNames, hasItem("smb://127.0.0.1/public/Untitled%20Folder"));
     }
 }

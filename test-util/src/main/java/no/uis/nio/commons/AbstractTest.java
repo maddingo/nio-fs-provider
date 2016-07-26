@@ -32,15 +32,15 @@ import org.junit.BeforeClass;
 public abstract class AbstractTest {
 
   /**
-   * Test parameters provided by <code>${user.home}/nio-test.xml</code>.
+   * Test parameters provided by <code>${user.dir}/nio-test.xml</code>.
    */
   protected static Properties testprops = new Properties();
 
   @BeforeClass
   public static void initProps() throws IOException {
-    File testpropsFile = new File(System.getProperty("user.home"), "nio-test.xml");
+    File testpropsFile = new File(System.getProperty("user.dir"), "nio-test.xml");
 
-    Assume.assumeTrue(testpropsFile.canRead());
+    Assume.assumeTrue("Can read " + testpropsFile.getAbsolutePath(), testpropsFile.canRead());
     
     testprops.loadFromXML(new FileInputStream(testpropsFile));
   }
