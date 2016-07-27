@@ -4,7 +4,7 @@
   <parent>
     <groupId>no.uis.nio</groupId>
     <artifactId>nio-fs</artifactId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.1.3-SNAPSHOT</version>
   </parent>
   <artifactId>nio-fs-util</artifactId>
   <name>nio-fs-util</name>
@@ -12,7 +12,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <url>https://github.com/uis-it/nio-fs-provider</url>
-  
+
   <developers>
     <developer>
       <id>2906430</id>
@@ -28,5 +28,5 @@
       <timezone>+1</timezone>
     </developer>
   </developers>
-  
+
 </project>
