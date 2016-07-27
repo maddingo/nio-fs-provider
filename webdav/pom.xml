@@ -4,7 +4,7 @@
   <parent>
     <groupId>no.uis.nio</groupId>
     <artifactId>nio-fs</artifactId>
-    <version>1.1.4</version>
+    <version>1.1.5-SNAPSHOT</version>
   </parent>
   <artifactId>nio-fs-webdav</artifactId>
   <name>nio-fs-webdav</name>
@@ -17,20 +17,15 @@
     <developer>
       <name>Patrik Bakke</name>
       <email>patrik.s.bakke@uis.no</email>
-      <organization>Universitetet i Stavanger</organization>
-      <organizationUrl>http://www.uis.no</organizationUrl>
       <roles>
         <role>developer</role>
       </roles>
       <timezone>+1</timezone>
     </developer>
     <developer>
-      <id>2906430</id>
       <name>Martin Goldhahn</name>
-      <email>martin.goldhahn@uis.no</email>
+      <email>mgoldhahn@gmail.com</email>
       <url />
-      <organization>Universitetet i Stavanger</organization>
-      <organizationUrl>http://www.uis.no</organizationUrl>
       <roles>
         <role>architect</role>
         <role>developer</role>
@@ -53,7 +48,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>nio-fs-test-util</artifactId>
-      <version>1.1.4</version>
+      <version>1.1.5-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -64,7 +59,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <configuration>
-          <shadedArtifactAttahed>true</shadedArtifactAttahed>
+          <shadedArtifactAttached>true</shadedArtifactAttached>
           <shadedClassifierName>all</shadedClassifierName>
         </configuration>
         <executions>

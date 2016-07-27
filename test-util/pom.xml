@@ -3,7 +3,7 @@
   <parent>
     <groupId>no.uis.nio</groupId>
     <artifactId>nio-fs</artifactId>
-    <version>1.1.4</version>
+    <version>1.1.5-SNAPSHOT</version>
   </parent>
   <artifactId>nio-fs-test-util</artifactId>
   <name>nio-fs-test-util</name>
@@ -12,12 +12,9 @@
 
   <developers>
     <developer>
-      <id>2906430</id>
       <name>Martin Goldhahn</name>
-      <email>martin.goldhahn@uis.no</email>
+      <email>mgoldhahn@gmail.com</email>
       <url />
-      <organization>Universitetet i Stavanger</organization>
-      <organizationUrl>http://www.uis.no</organizationUrl>
       <roles>
         <role>architect</role>
         <role>developer</role>

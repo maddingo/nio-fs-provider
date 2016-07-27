@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.uis.nio</groupId>
     <artifactId>nio-fs</artifactId>
-    <version>1.1.4</version>
+    <version>1.1.5-SNAPSHOT</version>
     <name>nio-fs</name>
     <description>Java7 FileSystemProviders</description>
     <packaging>pom</packaging>
@@ -69,6 +69,13 @@
     </properties>
 
     <build>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-webdav-jackrabbit</artifactId>
+                <version>2.4</version>
+            </extension>
+        </extensions>
 
         <pluginManagement>
             <plugins>
@@ -111,6 +118,11 @@
                     <artifactId>maven-jxr-plugin</artifactId>
                     <version>2.5</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>2.2.1</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -122,6 +134,19 @@
                     <commitByProject>true</commitByProject>
                     <preparationGoals>clean install</preparationGoals>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-source</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -146,8 +171,31 @@
                 <version>2.5</version>
                 <configuration>
                     <linkJavadoc>true</linkJavadoc>
-                    <aggregate>true</aggregate>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <showAvatarImages>false</showAvatarImages>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>index</report>
+                            <report>summary</report>
+                            <report>dependencies</report>
+                            <report>dependency-convergence</report>
+                            <report>dependency-info</report>
+                            <report>project-team</report>
+                            <report>cim</report>
+                            <report>scm</report>
+                            <report>license</report>
+                            <report>plugins</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
             </plugin>
         </plugins>
     </reporting>
