@@ -46,7 +46,7 @@
       <version>5.4</version>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
+      <groupId>no.uis.nio</groupId>
       <artifactId>nio-fs-test-util</artifactId>
       <version>1.1.6-SNAPSHOT</version>
       <scope>test</scope>
