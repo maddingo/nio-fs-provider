@@ -4,7 +4,7 @@
   <parent>
     <groupId>no.uis.nio</groupId>
     <artifactId>nio-fs</artifactId>
-    <version>1.1.6-SNAPSHOT</version>
+    <version>1.1.6</version>
   </parent>
   <artifactId>nio-fs-smb</artifactId>
   <name>nio-fs-smb</name>
@@ -29,7 +29,7 @@
     <dependency>
       <groupId>no.uis.nio</groupId>
       <artifactId>nio-fs-test-util</artifactId>
-      <version>1.1.6-SNAPSHOT</version>
+      <version>1.1.6</version>
       <scope>test</scope>
     </dependency>
     <dependency>
