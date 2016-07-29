@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.uis.nio</groupId>
     <artifactId>nio-fs</artifactId>
-    <version>1.1.7-SNAPSHOT</version>
+    <version>1.1.7</version>
     <name>nio-fs</name>
     <description>Java7 FileSystemProviders</description>
     <packaging>pom</packaging>
@@ -38,7 +38,7 @@
         <url>https://github.com/uis-it/nio-fs-provider</url>
         <connection>scm:git:git://github.com/uis-it/nio-fs-provider.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/uis-it/nio-fs-provider.git</developerConnection>
-        <tag>nio-fs-1.1.6</tag>
+        <tag>nio-fs-1.1.7</tag>
     </scm>
 
     <licenses>
