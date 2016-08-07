@@ -41,10 +41,10 @@ public final class PathFactory {
    * The method tries first {@link Paths#get(URI)}. If this fails, The service loader tries to load 
    * FileSystemProviders with the given class loader.   
    * 
-   * @param uri 
+   * @param uri valid uri for which the PAth should be generated.
    * @param cl if null, the current context class loader is used 
    * @return {@link Path} for the given {@link URI}
-   * @throws IOException 
+   * @throws IOException If the loading of the Filesystem provider failed.
    */
   public static Path getPath(URI uri, ClassLoader cl) throws IOException {
     
