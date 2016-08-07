@@ -10,7 +10,7 @@ import java.io.InputStream;
 public abstract class AbstractSmbTest extends AbstractTest {
     @BeforeClass
     public static void init() throws Exception {
-        InputStream config = CifsTest.class.getResourceAsStream("/jcifs-test-config.properties");
+        InputStream config = DirectoryStreamIteratorTest.class.getResourceAsStream("/jcifs-test-config.properties");
         if (config != null) {
             Config.load(config);
             int loglevel = Config.getInt("jcifs.util.loglevel", Integer.MIN_VALUE);
