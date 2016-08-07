@@ -95,12 +95,10 @@ public class CifsTest extends AbstractTest {
     }
 
     @Test
-    public void relativeIterator() throws Exception {
-        URI uriA = createTestUri("smb", "wsapps-test01.uis.no", -1, "/d$/temp/a/a/a/");
-        Path smbA = Paths.get(uriA);
+    public void relativeCousin() throws Exception {
+        Path smbA = Paths.get(new URI("smb://localhost/public/temp/a/aa/"));
 
-        URI uriB = createTestUri("smb", "wsapps-test01.uis.no", -1, "/d$/temp/b/b/");
-        Path smbB = Paths.get(uriB);
+        Path smbB = Paths.get(new URI("smb://localhost/public/temp/b/ba/"));
 
         Path relPath = smbA.relativize(smbB);
 
@@ -108,7 +106,7 @@ public class CifsTest extends AbstractTest {
 
         assertThat(relPath, is(instanceOf(SMBBasePath.class)));
 
-        assertThat(relPath.toString(), is("..\\..\\..\\b\\b\\"));
+        assertThat(relPath.toString(), is("..\\..\\b\\ba\\"));
 
         int count = 0;
         for (Path path : relPath) {
