@@ -64,34 +64,6 @@ public class CifsTest extends AbstractTest {
         Config.registerSmbURLHandler();
     }
 
-    @Ignore("Don't have the environment")
-    @Test
-    public void testCatalogCreator() throws Exception {
-        CatalogCreatorMock catalogCreator = new CatalogCreatorMock();
-
-        catalogCreator.setPurgeOutputDir(true);
-        URI baseDirUri = createTestUri("smb", "wsapps-test01.uis.no", -1, "/d$/temp/");
-
-        Path baseDir = Paths.get(baseDirUri);
-        assertThat(baseDir, is(notNullValue(Path.class)));
-
-        Path outDir = createOutPath(baseDir, "TEST", 2013, "VÅR", "X");
-
-        assertThat(outDir.toString(), endsWith("TEST/2013/VÅR/X/"));
-
-        catalogCreator.createCatalog(outDir);
-    }
-
-    @Ignore("Don't have the environment")
-    @Test
-    public void testConnectToShare() throws Exception {
-        URI baseDirUri = createTestUri("smb", "wsapps-test01.uis.no", -1, "/d$/temp/");
-        SmbFile file = new SmbFile(baseDirUri.toURL());
-        assertThat(file, is(notNullValue(SmbFile.class)));
-        boolean canRead = file.canRead();
-        assertThat(canRead, is(true));
-    }
-
     @Test
     public void testRelativize() throws Exception {
         URI uriA = createTestUri("smb", "wsapps-test01.uis.no", -1, "/d$/temp/a/a/a/");
