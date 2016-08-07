@@ -24,6 +24,7 @@ import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 
+import jcifs.smb.Handler;
 import jcifs.smb.SmbFile;
 
 /**
@@ -39,8 +40,12 @@ public class SMBPath extends SMBBasePath {
     private final URI uri;
 
     public SMBPath(SMBFileSystemProvider provider, URI uri) throws IOException, URISyntaxException {
-        super(toPublicString(uri));
-        SmbFile f = new SmbFile(new URL(null, uri.toString(), new jcifs.smb.Handler()));
+        super(uri.toString());
+        if (!"smb".equals(uri.getScheme())) {
+            throw new IllegalArgumentException(uri.toString());
+        }
+        String hostContext = "smb://" + uri.getAuthority();
+        SmbFile f = new SmbFile(hostContext, uri.getPath());
         if (f.getShare() == null) {
             throw new IllegalArgumentException(uri.toString());
         }
