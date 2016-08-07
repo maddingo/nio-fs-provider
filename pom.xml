@@ -153,6 +153,33 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <!-- Deploy the web site -->
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>0.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>site</goal>
+                        </goals>
+                        <!-- select the Maven phase in which the plugin will be executed -->
+                        <phase>site-deploy</phase>
+                        <configuration>
+                            <!-- Plugin configuration ges here -->
+
+                            <server>github</server>
+
+                            <!-- The commit message -->
+                            <message>Building site for ${project.name}</message>
+                            <!-- The location where the site is uploaded -->
+                            <path>${project.version}</path>
+                            <!-- Use merge or override the content -->
+                            <merge>true</merge>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
