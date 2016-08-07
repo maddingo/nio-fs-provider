@@ -1,2 +1,2 @@
-no.uis.nio.webdav.WebdavFileSystemProvider
-no.uis.nio.webdav.WebdavsFileSystemProvider
+no.maddin.niofs.webdav.WebdavFileSystemProvider
+no.maddin.niofs.webdav.WebdavsFileSystemProvider
