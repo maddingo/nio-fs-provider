@@ -78,41 +78,42 @@ public class SMBDirectoryStream implements DirectoryStream<Path> {
     private URI toURI(SmbFile file) throws URISyntaxException, UnsupportedEncodingException {
 
         URL url = file.getURL();
-        StringBuilder sb = new StringBuilder("smb://");
-        sb.append(url.getAuthority());
-        String path = url.getPath();
-        for (String p : path.split("/")) {
-            if (!p.isEmpty()) {
-                sb.append("/");
-                sb.append(encode(p));
-            }
-        }
-
-        return new URI(sb.toString());
+        return new URI(url.getProtocol(), url.getAuthority(), url.getPath(), null);
+//        StringBuilder sb = new StringBuilder("smb://");
+//        sb.append(url.getAuthority());
+//        String path = url.getPath();
+//        for (String p : path.split("/")) {
+//            if (!p.isEmpty()) {
+//                sb.append("/");
+//                sb.append(encode(p));
+//            }
+//        }
+//
+//        return new URI(sb.toString());
     }
 
-    public static String encode(String input) {
-        StringBuilder resultStr = new StringBuilder();
-        for (char ch : input.toCharArray()) {
-            if (isUnsafe(ch)) {
-                resultStr.append('%');
-                resultStr.append(toHex(ch / 16));
-                resultStr.append(toHex(ch % 16));
-            } else {
-                resultStr.append(ch);
-            }
-        }
-        return resultStr.toString();
-    }
+//    public static String encode(String input) {
+//        StringBuilder resultStr = new StringBuilder();
+//        for (char ch : input.toCharArray()) {
+//            if (isUnsafe(ch)) {
+//                resultStr.append('%');
+//                resultStr.append(toHex(ch / 16));
+//                resultStr.append(toHex(ch % 16));
+//            } else {
+//                resultStr.append(ch);
+//            }
+//        }
+//        return resultStr.toString();
+//    }
+//
+//    private static char toHex(int ch) {
+//        return (char) (ch < 10 ? '0' + ch : 'A' + ch - 10);
+//    }
 
-    private static char toHex(int ch) {
-        return (char) (ch < 10 ? '0' + ch : 'A' + ch - 10);
-    }
-
-    private static boolean isUnsafe(char ch) {
-        if (ch > 128 || ch < 0)
-            return true;
-        return " %$&+,/:;=?@<>#%".indexOf(ch) >= 0;
-    }
+//    private static boolean isUnsafe(char ch) {
+//        if (ch > 128 || ch < 0)
+//            return true;
+//        return " %$&+,/:;=?@<>#%".indexOf(ch) >= 0;
+//    }
 
 }
