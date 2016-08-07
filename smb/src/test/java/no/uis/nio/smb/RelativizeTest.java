@@ -89,7 +89,7 @@ public class RelativizeTest extends AbstractTest {
     }
 
     @Test
-    public void relative() throws Exception {
+    public void relativize() throws Exception {
         Path smbA = Paths.get(uriA);
 
         Path smbB = Paths.get(uriB);

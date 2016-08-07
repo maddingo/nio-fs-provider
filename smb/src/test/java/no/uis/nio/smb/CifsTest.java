@@ -16,103 +16,74 @@
 
 package no.uis.nio.smb;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.junit.Assume.assumeThat;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.*;
-import java.util.List;
-import java.util.ArrayList;
-
-import jcifs.Config;
-import jcifs.smb.NtlmAuthenticator;
-import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbFile;
-import jcifs.util.LogStream;
-
-import no.uis.nio.commons.AbstractTest;
-import no.uis.nio.commons.CatalogCreatorMock;
-
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-public class CifsTest extends AbstractTest {
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeThat;
+
+@RunWith(Parameterized.class)
+public class CifsTest extends AbstractSmbTest {
+
+    private String[] childrenUrls;
+    private String parentUrl;
+    private String[] childrenUris;
+    private String parentUri;
+
+    @Parameterized.Parameters(name ="{index} {0}")
+    public static Iterable<Object[]> data() {
+        List<Object[]> data = new ArrayList<>();
+
+        data.add(new Object[] {
+                "smb://127.0.0.1/public/My Documents/",
+                new String[] {"smb://127.0.0.1/public/My Documents/Folder One/", "smb://127.0.0.1/public/My Documents/Folder Two/"}
+        });
+        return data;
+    }
+
+    public CifsTest(String parentUrl, String[] childrenUrls) throws MalformedURLException, URISyntaxException {
+        this.parentUrl = parentUrl;
+        this.childrenUrls = childrenUrls;
+        URL parent = new URL(parentUrl);
+        this.parentUri = new URI(parent.getProtocol(), parent.getAuthority(), parent.getPath(), null).toString();
+        this.childrenUris = new String[childrenUrls.length];
+        for (int i = 0; i < childrenUrls.length; i++) {
+            URL child = new URL(childrenUrls[i]);
+            this.childrenUris[i] = new URI(child.getProtocol(), child.getAuthority(), child.getPath(), null).toString();
+        }
+    }
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
-    @BeforeClass
-    public static void init() throws Exception {
-        InputStream config = CifsTest.class.getResourceAsStream("/jcifs-test-config.properties");
-        if (config != null) {
-            Config.load(config);
-            int loglevel = Config.getInt("jcifs.util.loglevel", Integer.MIN_VALUE);
-            if (loglevel != Integer.MIN_VALUE) {
-                LogStream.setLevel(loglevel);
-            }
+    @Test
+    public void directoryStreamIterator() throws Exception {
+
+        // ignore the test if the expected test file system does not exist
+        for (String child : childrenUrls) {
+            SmbFile smbf = new SmbFile(child);
+            assumeThat("Test file " + smbf.toString() + " exists", smbf.canRead(), is(true));
         }
-        Config.registerSmbURLHandler();
-    }
 
-    @Test
-    public void testUriWithSpace() throws Exception {
-        URI uriSpace = createTestUri("smb", "localhost", -1, "/c$/Program Files/");
-        
-        Path smb = Paths.get(uriSpace);
-        for (Path p: smb) {
-            assertNotNull(p);
-        }
-    }
-
-    @Test
-    public void testSMBDirectoryStreamIteratorWithSpace() throws Exception {
-        exception.expect(URISyntaxException.class);
-
-        new SMBPath(new SMBFileSystemProvider(), new URI("smb://localhost/c$/Program Files/"));
-    }
-
-    private static Path createOutPath(Path base, String type, int year,
-                                      String fsSemester, String language) {
-
-        return base.
-                resolve(type+"/").
-                resolve(String.valueOf(year)+"/").
-                resolve(fsSemester+"/").
-                resolve(language+"/");
-    }
-
-    private static Matcher<String> endsWith(final String string) {
-        return new BaseMatcher<String> () {
-
-            @Override
-            public boolean matches(Object value) {
-                return (value instanceof String && ((String)value).endsWith(string));
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("a string that ends with ").appendValue(string);
-            }
-        };
-    }
-
-    @Test
-    public void testSamba() throws Exception {
-
-        SmbFile smbf = new SmbFile("smb://127.0.0.1/public/Untitled Folder/");
-        assumeThat("Test file " + smbf.toString() + " exists", smbf.canRead(), is(true));
-        Path remotePath = Paths.get(new URI("smb://127.0.0.1/public/"));
-
+        Path remotePath = Paths.get(new URI(parentUri));
         List<String> fileNames = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(remotePath, new DirectoryStream.Filter<Path>() {
             @Override
@@ -124,6 +95,7 @@ public class CifsTest extends AbstractTest {
                 fileNames.add(path.toString());
             }
         }
-        assertThat(fileNames, hasItem("smb://127.0.0.1/public/Untitled%20Folder"));
+
+        assertThat(fileNames, hasItems(childrenUris));
     }
 }
