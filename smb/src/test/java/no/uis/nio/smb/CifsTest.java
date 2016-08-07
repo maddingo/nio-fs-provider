@@ -65,7 +65,7 @@ public class CifsTest extends AbstractTest {
     }
 
     @Test
-    public void testRelativize() throws Exception {
+    public void relativizeSibling() throws Exception {
         Path smbA = Paths.get(new URI("smb://localhost/public/temp/a/"));
 
         Path smbB = Paths.get(new URI("smb://localhost/public/temp/b/"));
@@ -80,12 +80,10 @@ public class CifsTest extends AbstractTest {
     }
 
     @Test
-    public void testRelativize1() throws Exception {
-        URI uriA = createTestUri("smb", "wsapps-test01.uis.no", -1, "/d$/temp/");
-        Path smbA = Paths.get(uriA);
+    public void relativizeChild() throws Exception {
+        Path smbA = Paths.get(new URI("smb://localhost/public/temp/"));
 
-        URI uriB = createTestUri("smb", "wsapps-test01.uis.no", -1, "/d$/temp/b/");
-        Path smbB = Paths.get(uriB);
+        Path smbB = Paths.get(new URI("smb://localhost/public/temp/b/"));
 
         Path relPath = smbA.relativize(smbB);
 
@@ -97,7 +95,7 @@ public class CifsTest extends AbstractTest {
     }
 
     @Test
-    public void testRelativeIterator() throws Exception {
+    public void relativeIterator() throws Exception {
         URI uriA = createTestUri("smb", "wsapps-test01.uis.no", -1, "/d$/temp/a/a/a/");
         Path smbA = Paths.get(uriA);
 
