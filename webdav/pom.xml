@@ -8,9 +8,6 @@
   </parent>
   <artifactId>nio-fs-webdav</artifactId>
   <name>nio-fs-webdav</name>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
 
   <developers>
     <developer>

@@ -36,7 +36,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 import no.maddin.niofs.commons.AbstractTest;
-import no.maddin.niofs.commons.CatalogCreatorMock;
 
 import org.junit.Assume;
 import org.junit.Rule;
@@ -148,16 +147,6 @@ public class WebdavPathTest extends AbstractTest {
     exception.expect(is(IOException.class));
     Path path = Paths.get(uri);
     Files.delete(path);
-  }
-
-  @Test
-  public void testCatalogCreator() throws Exception {
-    Assume.assumeTrue(false); // skip this test
-    Assume.assumeNotNull(testprops);
-    CatalogCreatorMock cc = new CatalogCreatorMock();
-    URI uri = createTestUri("webdav", "lportal-test.uis.no", -1, "/webdav/test2/2012/emne/B/");
-    Path outPath = Paths.get(uri);
-    cc.createCatalog(outPath);
   }
 
   private WebdavPath createRelativeTestPath(String host, int port, String path) throws URISyntaxException {
