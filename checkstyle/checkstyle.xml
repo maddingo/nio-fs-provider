@@ -14,7 +14,7 @@
     <property name="tabWidth" value="2"/>
     <module name="FileContentsHolder"/>
     <module name="PackageName">
-      <property name="format" value="no\.uis\.nio(\.[a-z]+)*$"/>
+      <property name="format" value="no\.maddin\.niofs(\.[a-z]+)*$"/>
     </module>
     <module name="WhitespaceAfter">
       <property name="tokens" value="COMMA,SEMI"/>
@@ -86,7 +86,7 @@
     </module>
     <module name="LineLength">
       <property name="max" value="140"/>
-      <property name="tabWidth" value="2"/>
+      <property name="tabWidth" value="4"/>
     </module>
     <module name="MethodLength"/>
     <module name="ParameterNumber"/>
