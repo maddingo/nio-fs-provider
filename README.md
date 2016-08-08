@@ -11,4 +11,6 @@ much like Apache VFS, but now in standard Java 7.
 __NB:__ The project has moved in Maven Central.
 This library was previously published with groupId no.uis.nio in Maven Central. Version 1.1.7 is the last version under this groupId.
 
-Newer versio are published with groupId no.maddin.niofs.
+Newer versions are published with groupId no.maddin.niofs.
+
+The Project Documentation is available on http://maddingo.github.io/nio-fs-provider.
