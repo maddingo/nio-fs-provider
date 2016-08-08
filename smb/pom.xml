@@ -8,9 +8,6 @@
     </parent>
     <artifactId>nio-fs-smb</artifactId>
     <name>nio-fs-smb</name>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
 
     <developers>
         <developer>

@@ -197,10 +197,6 @@
     <property name="severity" value="ignore"/>
     <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
   </module>
-  <module name="RegexpHeader">
-    <property name="headerFile" value="${basedir}/checkstyle/header.txt"/>
-    <property name="charset" value="UTF-8"/>
-  </module>
   <module name="FileLength"/>
   <module name="FileTabCharacter"/>
   <module name="SuppressionFilter">

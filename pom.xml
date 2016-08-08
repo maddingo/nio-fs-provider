@@ -64,6 +64,7 @@
         <checkstyle.dir>.</checkstyle.dir>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
@@ -128,9 +129,21 @@
                     <artifactId>maven-source-plugin</artifactId>
                     <version>2.2.1</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.3</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <configuration>
+                    <skipDeploy>true</skipDeploy>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
@@ -154,10 +167,12 @@
                 </executions>
             </plugin>
             <plugin>
-                <!-- Deploy the web site -->
+                <!-- Deploy the web site
+                    see https://github.com/github/maven-plugins/issues/22#issuecomment-8421445
+                -->
                 <groupId>com.github.github</groupId>
                 <artifactId>site-maven-plugin</artifactId>
-                <version>0.9</version>
+                <version>0.12</version>
                 <executions>
                     <execution>
                         <goals>
@@ -173,15 +188,23 @@
                             <!-- The commit message -->
                             <message>Building site for ${project.name}</message>
                             <!-- The location where the site is uploaded -->
-                            <path>${project.version}</path>
+                            <path>${project.distributionManagement.site.url}</path>
                             <!-- Use merge or override the content -->
-                            <merge>false</merge>
+                            <merge>true</merge>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <site>
+            <id>github</id>
+            <name>Deployment through GitHub's site deployment plugin</name>
+            <url>site/${project.version}</url>
+        </site>
+    </distributionManagement>
 
     <reporting>
         <plugins>

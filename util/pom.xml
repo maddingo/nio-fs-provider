@@ -8,9 +8,6 @@
   </parent>
   <artifactId>nio-fs-util</artifactId>
   <name>nio-fs-util</name>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
 
   <developers>
     <developer>
