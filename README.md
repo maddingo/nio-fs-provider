@@ -3,6 +3,8 @@ nio-fs-provider
 
 Build status on travis.org: [![Build Status](https://travis-ci.org/maddingo/nio-fs-provider.svg?branch=master)](https://travis-ci.org/maddingo/nio-fs-provider)
 
+Dependency Status: [![Dependency Status](https://www.versioneye.com/user/projects/57b60e1a14b4120012c0fc3a/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/57b60e1a14b4120012c0fc3a)
+
 FileSystemProviders for java.nio in Java 7.
 
 It allows File system operation agnostic to the underlying implementation,
