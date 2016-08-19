@@ -27,7 +27,7 @@ public class FileSystemsTest extends AbstractTest {
     
     URI uri = createSftpURI("/");
     FileSystem fileSystem = FileSystems.getFileSystem(uri);
-    assertThat(fileSystem, is(nullValue()));
+    assertThat(fileSystem, is(notNullValue()));
   }
   
   @Test
