@@ -17,6 +17,7 @@
 package no.maddin.niofs.webdav;
 
 import java.io.File;
+import java.io.IOError;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -89,32 +90,27 @@ public class WebdavPath implements Path {
 
     @Override
     public int compareTo(Path other) {
-        // TODO Auto-generated method stub
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean endsWith(Path other) {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean endsWith(String other) {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Path getFileName() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Path getName(int index) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -151,9 +147,6 @@ public class WebdavPath implements Path {
 
     @Override
     public Path normalize() {
-        if (!(this instanceof WebdavPath)) {
-            throw new IllegalArgumentException(NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH);
-        }
         String other = this.path;
         if (other.contains(PARENT_PATH)) {
             if ("".equals(this.path)) {
@@ -165,7 +158,7 @@ public class WebdavPath implements Path {
             }
             boolean isDir = this.path.charAt(this.path.length() - 1) == '/';
             StringTokenizer st = new StringTokenizer(this.path, PATH_SEP);
-            Deque<String> clean = new LinkedList<String>();
+            Deque<String> clean = new LinkedList<>();
             while (st.hasMoreTokens()) {
                 String token = st.nextToken();
                 if (PARENT_PATH.equals(token)) {
@@ -181,7 +174,7 @@ public class WebdavPath implements Path {
                     clean.add(token);
                 }
             }
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             while (leadingSlashes-- > 0) {
                 sb.append(PATH_SEP);
             }
@@ -202,14 +195,12 @@ public class WebdavPath implements Path {
 
     @Override
     public WatchKey register(WatchService watcher, Kind<?>... events) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public WatchKey register(WatchService watcher, Kind<?>[] events, Modifier... arg2) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -273,32 +264,27 @@ public class WebdavPath implements Path {
 
     @Override
     public Path resolveSibling(Path other) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Path resolveSibling(String other) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean startsWith(Path other) {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean startsWith(String other) {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Path subpath(int beginIndex, int endindex) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -313,8 +299,7 @@ public class WebdavPath implements Path {
 
     @Override
     public Path toRealPath(LinkOption... options) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -328,7 +313,7 @@ public class WebdavPath implements Path {
             sardineUri = new URI(scheme, null, server, port, path, null, null);
             return sardineUri;
         } catch(URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new IOError(e);
         }
     }
 }

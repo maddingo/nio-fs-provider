@@ -54,7 +54,7 @@ import com.github.sardine.impl.SardineException;
 public class WebdavFileSystemProvider extends FileSystemProvider {
 
     private static final int DEFAULT_PORT = 80;
-    private Map<URI, WebdavFileSystem> hosts = new HashMap<URI, WebdavFileSystem>();
+    private final Map<URI, WebdavFileSystem> hosts = new HashMap<>();
 
     @Override
     public void copy(Path fileFrom, Path fileTo, CopyOption... options) throws IOException {
@@ -142,7 +142,6 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
         WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
         final String s = path.toUri().toString();
         final boolean exists = webdavFs.getSardine().exists(s);
-        // System.out.println("exists(" + s + ") = " + exists);
         return exists;
     }
 
@@ -157,17 +156,12 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     @Override
     public Path getPath(URI uri) {
-        WebdavFileSystem host;
         try {
-            host = getWebdavHost(uri, true);
+            WebdavFileSystem host = getWebdavHost(uri, true);
+            return new WebdavPath(host, uri.getPath());
         } catch(URISyntaxException e) {
             throw new FileSystemNotFoundException(uri.toString());
         }
-
-        if (host != null) {
-            return new WebdavPath(host, uri.getPath());
-        }
-        return null;
     }
 
     private WebdavFileSystem getWebdavHost(URI uri, boolean create) throws URISyntaxException {

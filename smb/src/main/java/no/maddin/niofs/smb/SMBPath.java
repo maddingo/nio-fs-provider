@@ -54,7 +54,7 @@ public class SMBPath extends SMBBasePath {
             URI parentUri = new URI(parent);
             return new SMBPath(provider, parentUri);
         } catch(IOException | URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
