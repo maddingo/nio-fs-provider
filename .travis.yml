@@ -3,3 +3,11 @@ jdk:
   - openjdk7
   - oraclejdk7
   - oraclejdk8
+
+addons:
+  sonarqube:
+    token:
+      secure: "Gsoq8DLbvZiyXiBXiD1AgpUxvB5ZTlQTYWso5tLA0rsyRKFd4FqWbh/TEPn2Pt5/RD3HMo9sLMFKyxUZteaY2RfsXZwYrpbzPSES8DQ9mpvmj97Ff6G6+Ka2vlHmccm+0NMQf1BQjR6qRAYx1NxW0iwa/WbJenMjTZy8uSV5+p8="
+
+script:
+  - sonar-scanner
