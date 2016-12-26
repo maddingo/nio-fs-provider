@@ -7,18 +7,8 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.AccessMode;
-import java.nio.file.CopyOption;
-import java.nio.file.DirectoryStream;
+import java.nio.file.*;
 import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.LinkOption;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.nio.file.ProviderMismatchException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
@@ -102,6 +92,7 @@ public class SMBFileSystemProvider extends FileSystemProvider {
             if (e.getNtStatus() == NtStatus.NT_STATUS_OBJECT_NAME_COLLISION) {
                 throw new FileAlreadyExistsException(dir.toString(), null, e.getMessage());
             }
+            throw new FileSystemException(dir.toString(), null, e.getMessage());
         }
     }
 

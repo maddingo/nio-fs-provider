@@ -1,5 +1,6 @@
 package no.maddin.niofs.smb;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -21,7 +22,8 @@ public class SMBDirectoryStream implements DirectoryStream<Path> {
     private final SMBPath smbFile;
     private final java.nio.file.DirectoryStream.Filter<? super Path> filter;
     private final SMBFileSystemProvider provider;
-    private boolean closed;
+    private final AtomicBoolean closed = new AtomicBoolean();
+    private final AtomicBoolean iteratorReturned = new AtomicBoolean();
 
     public SMBDirectoryStream(SMBFileSystemProvider provider, SMBPath smbFile, java.nio.file.DirectoryStream.Filter<? super Path> filter) {
         this.smbFile = smbFile;
@@ -31,17 +33,20 @@ public class SMBDirectoryStream implements DirectoryStream<Path> {
 
     @Override
     public void close() throws IOException {
-        closed = true;
+        closed.set(true);
     }
 
     @Override
     public Iterator<Path> iterator() {
-        if (closed) {
+        if (closed.get()) {
             throw new IllegalStateException("Already closed");
+        }
+        if (!iteratorReturned.compareAndSet(false, true)) {
+            throw new IllegalStateException("Iterator already returned");
         }
         try {
             SmbFile[] files = smbFile.getSmbFile().listFiles();
-            List<Path> paths = new ArrayList<Path>(files.length);
+            List<Path> paths = new ArrayList<>(files.length);
             for (SmbFile file : files) {
                 SMBPath p = new SMBPath(provider, toURI(file));
                 if (filter == null || filter.accept(p)) {
@@ -50,7 +55,7 @@ public class SMBDirectoryStream implements DirectoryStream<Path> {
             }
             return paths.iterator();
         } catch(IOException | URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
