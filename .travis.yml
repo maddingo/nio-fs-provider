@@ -12,4 +12,4 @@ addons:
 
 script:
   - jdk_switcher use oraclejdk8
-  - sonar-scanner -X
+  - sonar-scanner -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_GITHUB_TOKEN
