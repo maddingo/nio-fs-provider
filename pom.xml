@@ -350,12 +350,9 @@
         <profile>
             <id>sonar</id>
             <activation>
-                <!--property>
-                    <name>env.SONAR_LOGIN</name>
-                </property-->
                 <jdk>1.8</jdk>
                 <property>
-                    <name>git.branch</name>
+                    <name>env.TRAVIS_BRANCH</name>
                     <value>master</value>
                 </property>
             </activation>
