@@ -140,6 +140,11 @@
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>0.7.7.201606060606</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>3.1.1</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -236,12 +241,24 @@
                                         <limit>
                                             <counter>COMPLEXITY</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.60</minimum>
+                                            <minimum>0.0</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
                             </rules>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>get-git-revision</id>
+                        <phase>validate</phase>
+                        <goals><goal>revision</goal></goals>
                     </execution>
                 </executions>
             </plugin>
@@ -328,6 +345,41 @@
             </plugin>
         </plugins>
     </reporting>
+
+    <profiles>
+        <profile>
+            <id>sonar</id>
+            <activation>
+                <jdk>1.8</jdk>
+                <property>
+                    <name>env.TRAVIS_BRANCH</name>
+                    <value>master</value>
+                </property>
+            </activation>
+            <properties>
+                <sonar.host.url>https://sonarqube.com/</sonar.host.url>
+                <sonar.login>${env.SONAR_LOGIN}</sonar.login>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonarsource.scanner.maven</groupId>
+                        <artifactId>sonar-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sonar</id>
+                                <goals>
+                                    <goal>sonar</goal>
+                                </goals>
+                                <phase>verify</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <dependencyManagement>
         <dependencies>

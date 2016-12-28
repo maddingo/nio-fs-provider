@@ -92,7 +92,7 @@ public class SMBFileSystemProvider extends FileSystemProvider {
             if (e.getNtStatus() == NtStatus.NT_STATUS_OBJECT_NAME_COLLISION) {
                 throw new FileAlreadyExistsException(dir.toString(), null, e.getMessage());
             }
-            throw new FileSystemException(dir.toString(), null, e.getMessage());
+            throw new IOException(e);
         }
     }
 
