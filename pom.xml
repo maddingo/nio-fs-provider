@@ -250,6 +250,18 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>get-git-revision</id>
+                        <phase>validate</phase>
+                        <goals><goal>revision</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -338,10 +350,14 @@
         <profile>
             <id>sonar</id>
             <activation>
-                <property>
+                <!--property>
                     <name>env.SONAR_LOGIN</name>
-                </property>
+                </property-->
                 <jdk>1.8</jdk>
+                <property>
+                    <name>git.branch</name>
+                    <value>master</value>
+                </property>
             </activation>
             <properties>
                 <sonar.host.url>https://sonarqube.com/</sonar.host.url>
