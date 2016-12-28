@@ -12,10 +12,4 @@ addons:
 
 script:
   - jdk_switcher use oraclejdk8
-  - sonar-scanner -X \
-    -Dsonar.analysis.mode=preview \
-    -Dsonar.github.pullRequest=$PULL_REQUEST_ID \
-    -Dsonar.github.repository=maddingo/nio-fs-provider \
-    -Dsonar.github.oauth=$GITHUB_ACCESS_TOKEN \
-    -Dsonar.host.url=https://sonarqube.com \
-    -Dsonar.login=$SONAR_GITHUB_TOKEN
+  - sonar-scanner -X -Dsonar.analysis.mode=preview -Dsonar.github.pullRequest=$PULL_REQUEST_ID -Dsonar.github.repository=maddingo/nio-fs-provider -Dsonar.github.oauth=$GITHUB_ACCESS_TOKEN -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_GITHUB_TOKEN
