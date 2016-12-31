@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 import org.junit.Assume;
@@ -12,17 +13,19 @@ import org.junit.BeforeClass;
 
 /**
  * Base class for unit tests.
+ * @deprecated try to get rid of this. Test should be self-contained without external configuration.
  */
+@Deprecated
 public abstract class AbstractTest {
 
     /**
-     * Test parameters provided by <code>${user.dir}/nio-test.xml</code>.
+     * Test parameters provided by <code>${user.dir}/src/test/nio-test.xml</code>.
      */
     protected static Properties testprops = new Properties();
 
     @BeforeClass
     public static void initProps() throws IOException {
-        File testpropsFile = new File(System.getProperty("user.dir"), "nio-test.xml");
+        File testpropsFile = Paths.get(System.getProperty("user.dir"), "src", "test", "nio-test.xml").toFile();
 
         Assume.assumeTrue("Can read " + testpropsFile.getAbsolutePath(), testpropsFile.canRead());
 
