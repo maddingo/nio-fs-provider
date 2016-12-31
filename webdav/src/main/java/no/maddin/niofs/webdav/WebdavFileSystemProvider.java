@@ -141,8 +141,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     public boolean deleteIfExists(Path path) throws IOException {
         WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
         final String s = path.toUri().toString();
-        final boolean exists = webdavFs.getSardine().exists(s);
-        return exists;
+        return webdavFs.getSardine().exists(s);
     }
 
     @Override
@@ -188,11 +187,17 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
         return "webdav";
     }
 
+    /**
+     * Unsupported
+     */
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Unsupported
+     */
     @Override
     public FileStore getFileStore(Path path) throws IOException {
         throw new UnsupportedOperationException();
@@ -208,16 +213,25 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
         }
     }
 
+    /**
+     * Unsupported
+     */
     @Override
     public boolean isHidden(Path path) throws IOException {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Unsupported
+     */
     @Override
     public boolean isSameFile(Path path, Path path2) throws IOException {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Unsupported
+     */
     @Override
     public void move(Path source, Path target, CopyOption... options) throws IOException {
         throw new UnsupportedOperationException();
@@ -230,6 +244,9 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
         return new SardineChannel((WebdavPath)path);
     }
 
+    /**
+     * Unsupported
+     */
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path arg0, Filter<? super Path> arg1) throws IOException {
         throw new UnsupportedOperationException();
@@ -248,7 +265,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     @Override
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
         WebdavFileSystem wfs = (WebdavFileSystem)path.getFileSystem();
-        List<DavResource> resources = wfs.getSardine().getResources(path.toUri().toString());
+        List<DavResource> resources = wfs.getSardine().list(path.toUri().toString());
         if (resources.size() != 1) {
             throw new IllegalArgumentException();
         }
@@ -261,11 +278,17 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
         return (A)new WebdavFileAttributes(res);
     }
 
+    /**
+     * Unsupported
+     */
     @Override
     public Map<String, Object> readAttributes(Path arg0, String arg1, LinkOption... arg2) throws IOException {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Unsupported
+     */
     @Override
     public void setAttribute(Path arg0, String arg1, Object arg2, LinkOption... arg3) throws IOException {
         throw new UnsupportedOperationException();

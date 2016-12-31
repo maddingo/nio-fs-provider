@@ -37,15 +37,18 @@ import com.github.sardine.SardineFactory;
 public class WebdavFileSystem extends FileSystem {
 
     private final FileSystemProvider provider;
-    private final URI serverUri;
     private final int port;
     private final String host;
     private final String password;
     private final String username;
 
+    /**
+     *
+     * @param provider an instance of a WebdavFileSystemProvided. This can be a shared instance.
+     * @param serverUri URI for the WEBDAV server, the scheme is ignored.
+     */
     public WebdavFileSystem(WebdavFileSystemProvider provider, URI serverUri) {
         this.provider = provider;
-        this.serverUri = serverUri;
         this.host = serverUri.getHost();
         this.port = serverUri.getPort();
         String[] ui = serverUri.getUserInfo().split(":");
@@ -58,15 +61,19 @@ public class WebdavFileSystem extends FileSystem {
         return provider;
     }
 
+    /**
+     * Not implemented
+     */
     @Override
     public void close() throws IOException {
-        // TODO Auto-generated method stub
-
     }
 
+    /**
+     * Not implemented
+     * @return null
+     */
     @Override
     public Iterable<FileStore> getFileStores() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -91,15 +98,21 @@ public class WebdavFileSystem extends FileSystem {
         return new WebdavPath(this, path);
     }
 
+    /**
+     * Not implemented
+     * @return null
+     */
     @Override
     public PathMatcher getPathMatcher(String syntaxAndPattern) {
-        // TODO Auto-generated method stub
         return null;
     }
 
+    /**
+     * Not implemented
+     * @return null
+     */
     @Override
     public Iterable<Path> getRootDirectories() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -108,33 +121,48 @@ public class WebdavFileSystem extends FileSystem {
         return "/";
     }
 
+    /**
+     * Not implemented
+     * @return null
+     */
     @Override
     public UserPrincipalLookupService getUserPrincipalLookupService() {
-        // TODO Auto-generated method stub
         return null;
     }
 
+    /**
+     * Not implemented
+     * @return false
+     */
     @Override
     public boolean isOpen() {
-        // TODO Auto-generated method stub
         return false;
     }
 
+    /**
+     * Not implemented
+     * @return false
+     */
     @Override
     public boolean isReadOnly() {
-        // TODO Auto-generated method stub
         return false;
     }
 
+    /**
+     * Not implemented
+     * @return null
+     */
     @Override
     public WatchService newWatchService() throws IOException {
-        // TODO Auto-generated method stub
         return null;
     }
 
+    /**
+     * Not implemented
+     * @return null
+     */
     @Override
     public Set<String> supportedFileAttributeViews() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -160,11 +188,11 @@ public class WebdavFileSystem extends FileSystem {
         return this.username;
     }
 
-    public String getHost() {
+    String getHost() {
         return this.host;
     }
 
-    public int getPort() {
+    int getPort() {
         return this.port;
     }
 
@@ -172,7 +200,7 @@ public class WebdavFileSystem extends FileSystem {
         return this.password;
     }
 
-    protected Sardine getSardine() throws IOException {
+    Sardine getSardine() throws IOException {
         return SardineFactory.begin(username, password, ProxySelector.getDefault());
     }
 }
