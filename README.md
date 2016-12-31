@@ -8,10 +8,10 @@ Dependency Status: [![Dependency Status](https://www.versioneye.com/user/project
 Maven Central: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.maddin.niofs/nio-fs/badge.svg?style=plastic)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22no.maddin.niofs%22)
 
 
-FileSystemProviders for java.nio in Java 7.
+FileSystemProviders for java.nio introduced in Java 7. The binary code is only tested and compiled on Java 8.
 
 It allows File system operation agnostic to the underlying implementation,
-much like Apache VFS, but now in standard Java 7.
+much like Apache VFS, but now in standard Java.
 
 __NB:__ The project has moved in Maven Central.
 This library was previously published with groupId `no.uis.nio` in Maven Central. Version 1.1.7 is the last version under this groupId.
