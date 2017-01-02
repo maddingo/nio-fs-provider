@@ -47,7 +47,7 @@ public class WebdavPath implements Path {
     private final String path;
     private final WebdavFileSystem host;
 
-    public WebdavPath(WebdavFileSystem webdavHost, String path) {
+    WebdavPath(WebdavFileSystem webdavHost, String path) {
         this.host = webdavHost;
         if (path == null) {
             this.path = DEFAULT_ROOT_PATH;
@@ -137,7 +137,7 @@ public class WebdavPath implements Path {
 
     @Override
     public Iterator<Path> iterator() {
-        List<Path> plist = new LinkedList<Path>();
+        List<Path> plist = new LinkedList<>();
 
         for (Path p = this; p != null; p = p.getParent()) {
             plist.add(0, p);
@@ -147,49 +147,11 @@ public class WebdavPath implements Path {
 
     @Override
     public Path normalize() {
-        String other = this.path;
-        if (other.contains(PARENT_PATH)) {
-            if ("".equals(this.path)) {
-                return new WebdavPath(this.host, this.path);
-            }
-            int leadingSlashes = 0;
-            for (; leadingSlashes < this.path.length() && this.path.charAt(leadingSlashes) == '/';) {
-                leadingSlashes++;
-            }
-            boolean isDir = this.path.charAt(this.path.length() - 1) == '/';
-            StringTokenizer st = new StringTokenizer(this.path, PATH_SEP);
-            Deque<String> clean = new LinkedList<>();
-            while (st.hasMoreTokens()) {
-                String token = st.nextToken();
-                if (PARENT_PATH.equals(token)) {
-                    if (!clean.isEmpty() && !PARENT_PATH.equals(clean.getLast())) {
-                        clean.removeLast();
-                        if (!st.hasMoreTokens()) {
-                            isDir = true;
-                        }
-                    } else {
-                        clean.add(PARENT_PATH);
-                    }
-                } else if (!".".equals(token) && !"".equals(token)) {
-                    clean.add(token);
-                }
-            }
-            StringBuilder sb = new StringBuilder();
-            while (leadingSlashes-- > 0) {
-                sb.append(PATH_SEP);
-            }
-            for (Iterator<?> it = clean.iterator(); it.hasNext();) {
-                sb.append(it.next());
-                if (it.hasNext()) {
-                    sb.append('/');
-                }
-            }
-            if (isDir && sb.length() > 0 && sb.charAt(sb.length() - 1) != '/') {
-                sb.append('/');
-            }
-            return new WebdavPath(this.host, sb.toString());
-        } else {
-            return this;
+        try {
+            URI normal = new URI(path).normalize();
+            return new WebdavPath(this.host, normal.getPath());
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(path, e);
         }
     }
 
