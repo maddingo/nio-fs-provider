@@ -37,6 +37,7 @@
             <groupId>org.apache.sshd</groupId>
             <artifactId>sshd</artifactId>
             <version>1.3.0</version>
+            <type>pom</type>
             <scope>test</scope>
         </dependency>
     </dependencies>
