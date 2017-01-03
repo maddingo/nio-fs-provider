@@ -7,10 +7,12 @@ import org.junit.rules.ExpectedException;
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeThat;
 
@@ -117,11 +119,7 @@ public class WebdavPathServerTest {
 
     @Test
     public void deleteFile() throws Exception {
-        File targetFile = new File(rootFolder.getAbsolutePath(), "webdav/test2/file.txt");
-        assertThat(targetFile.getParentFile().mkdirs(), is(true));
-        try (FileWriter fw = new FileWriter(targetFile)) {
-            fw.append("test test, delete file");
-        }
+        File targetFile = writeTestFile("webdav/test2/file.txt");
         URI uri = new URI("webdav", user + ':' + password,"localhost", webdavPort, "/webdav/test2/file.txt", null, null);
         Path path = Paths.get(uri);
         assumeThat("File should exist prior to deleting it", Files.exists(path), is(true));
@@ -139,5 +137,33 @@ public class WebdavPathServerTest {
         exception.expect(instanceOf(IOException.class));
         Path path = Paths.get(uri);
         Files.delete(path);
+    }
+
+    @Test
+    public void readFileAttributes() throws Exception {
+        File testFile = writeTestFile("testfile.txt");
+
+        URI uri = new URI("webdav", user + ':' + password, "localhost", webdavPort, "/testfile.txt", null, null);
+
+        BasicFileAttributes attrs = Files.readAttributes(Paths.get(uri), BasicFileAttributes.class);
+
+        assertThat(attrs, is(notNullValue()));
+        assertThat(attrs.size(), is(greaterThan(0L)));
+        assertThat(attrs.isDirectory(), is(false));
+        assertThat(attrs.isRegularFile(), is(true));
+        assertThat(attrs.isSymbolicLink(), is(false));
+        assertThat(attrs.isOther(), is(false));
+        assertThat(attrs.lastAccessTime(), is(notNullValue()));
+        assertThat(attrs.lastModifiedTime(), is(notNullValue()));
+        assertThat(attrs.creationTime(), is(notNullValue()));
+    }
+
+    private File writeTestFile(String filePath) throws IOException {
+        File targetFile = new File(rootFolder.getAbsolutePath(), filePath);
+        targetFile.getParentFile().mkdirs();
+        try (FileWriter fw = new FileWriter(targetFile)) {
+            fw.append("test test, delete file");
+        }
+        return targetFile;
     }
 }

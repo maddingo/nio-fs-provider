@@ -17,9 +17,7 @@
 package no.maddin.niofs.webdav;
 //CHECKSTYLE:OFF
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 
 import java.io.File;
@@ -38,6 +36,7 @@ import java.util.UUID;
 
 import no.maddin.niofs.commons.AbstractTest;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -53,20 +52,6 @@ public class WebdavPathTest {
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
-
-    @Test
-    public void nomalizeTest() throws Exception {
-        String relPath = "/webdav/../test/something";
-
-        // server uri, the scheme is ignored
-        URI serverUri = new URI(null, "username:password", "anyhost", webdavPort, null, null, null);
-
-        Path path = new WebdavPath(new WebdavFileSystem(new WebdavFileSystemProvider(), serverUri), relPath);
-        Path result = path.normalize();
-
-        assertThat(result, is(instanceOf(WebdavPath.class)));
-        assertThat(result.isAbsolute(), is(true));
-    }
 
     @Test
     public void newFileSystemWebdav() throws Exception {
@@ -93,5 +78,21 @@ public class WebdavPathTest {
         Path path = Paths.get(uri);
 
         assertThat(path, is(notNullValue()));
+    }
+
+    @Test
+    public void nomalize() throws Exception {
+        String dottedPath = "/webdav/../test/something";
+
+        URI uri = new URI("webdav", "username:password", "anyhost", webdavPort, dottedPath, null, null);
+
+        Path path = Paths.get(uri);
+        Path result = path.normalize();
+
+        assertThat(result, is(instanceOf(WebdavPath.class)));
+
+        String resultUri = result.toUri().toString();
+        assertThat(resultUri, not(containsString("..")));
+        assertThat(result.isAbsolute(), is(true));
     }
 }

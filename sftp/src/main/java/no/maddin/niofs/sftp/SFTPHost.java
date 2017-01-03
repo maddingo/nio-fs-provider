@@ -13,111 +13,115 @@ import java.util.Set;
 
 /**
  * Represents a host for the SFTP file system provider.
- *  
+ *
  */
 public class SFTPHost extends FileSystem {
 
-  private final FileSystemProvider provider;
-  private final URI serverUri;
-  private final int port;
-  private final String host;
-  private final String password;
-  private final String username;
-  
-  public SFTPHost(FileSystemProvider provider, URI serverUri) {
-    this.provider = provider;
-    this.serverUri = serverUri;
-    this.host = serverUri.getHost();
-    this.port = serverUri.getPort();
-    String[] ui = serverUri.getUserInfo().split(":");
-    this.username = ui[0];
-    this.password = ui[1];
-  }
-  
-  @Override
-  public FileSystemProvider provider() {
-    return provider;
-  }
+    private final FileSystemProvider provider;
+    private final int port;
+    private final String host;
+    private final String password;
+    private final String username;
 
-  @Override
-  public void close() throws IOException {
-    // TODO Auto-generated method stub
+    SFTPHost(FileSystemProvider provider, URI serverUri) {
+        this.provider = provider;
+        this.host = serverUri.getHost();
+        this.port = serverUri.getPort();
+        String userInfo = serverUri.getUserInfo();
+        if (userInfo != null) {
+            String[] ui = userInfo.split(":");
+            this.username = ui[0];
+            this.password = ui[1];
+        } else {
+            username = null;
+            password = null;
+        }
+    }
 
-  }
+    @Override
+    public FileSystemProvider provider() {
+        return provider;
+    }
 
-  @Override
-  public boolean isOpen() {
-    // TODO Auto-generated method stub
-    return false;
-  }
+    @Override
+    public void close() throws IOException {
+        // TODO Auto-generated method stub
 
-  @Override
-  public boolean isReadOnly() {
-    // TODO Auto-generated method stub
-    return false;
-  }
+    }
 
-  @Override
-  public String getSeparator() {
-    // TODO Auto-generated method stub
-    return null;
-  }
+    @Override
+    public boolean isOpen() {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
-  @Override
-  public Iterable<Path> getRootDirectories() {
-    // TODO Auto-generated method stub
-    return null;
-  }
+    @Override
+    public boolean isReadOnly() {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
-  @Override
-  public Iterable<FileStore> getFileStores() {
-    // TODO Auto-generated method stub
-    return null;
-  }
+    @Override
+    public String getSeparator() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-  @Override
-  public Set<String> supportedFileAttributeViews() {
-    // TODO Auto-generated method stub
-    return null;
-  }
+    @Override
+    public Iterable<Path> getRootDirectories() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-  @Override
-  public Path getPath(String first, String... more) {
-    // TODO Auto-generated method stub
-    return null;
-  }
+    @Override
+    public Iterable<FileStore> getFileStores() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-  @Override
-  public PathMatcher getPathMatcher(String syntaxAndPattern) {
-    // TODO Auto-generated method stub
-    return null;
-  }
+    @Override
+    public Set<String> supportedFileAttributeViews() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-  @Override
-  public UserPrincipalLookupService getUserPrincipalLookupService() {
-    // TODO Auto-generated method stub
-    return null;
-  }
+    @Override
+    public Path getPath(String first, String... more) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-  @Override
-  public WatchService newWatchService() throws IOException {
-    // TODO Auto-generated method stub
-    return null;
-  }
+    @Override
+    public PathMatcher getPathMatcher(String syntaxAndPattern) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-  public String getUserName() {
-    return this.username;
-  }
+    @Override
+    public UserPrincipalLookupService getUserPrincipalLookupService() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-  public String getPassword() {
-    return this.password;
-  }
-  
-  public String getHost() {
-    return this.host;
-  }
+    @Override
+    public WatchService newWatchService() throws IOException {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-  public int getPort() {
-    return this.port;
-  }
+    String getUserName() {
+        return this.username;
+    }
+
+    String getPassword() {
+        return this.password;
+    }
+
+    String getHost() {
+        return this.host;
+    }
+
+    int getPort() {
+        return this.port;
+    }
 }
