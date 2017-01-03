@@ -19,3 +19,5 @@ This library was previously published with groupId `no.uis.nio` in Maven Central
 Newer versions are published with groupId `no.maddin.niofs`.
 
 The Project Documentation is available on http://maddingo.github.io/nio-fs-provider.
+
+I use SonarQube to improve the code: https://sonarqube.com/dashboard?id=no.maddin.niofs%3Anio-fs.
