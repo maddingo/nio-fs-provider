@@ -121,12 +121,14 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
             sftp.connect();
 
-            SFTPPath sftpPath = (SFTPPath)dir;
-            String dirString = sftpPath.getPathString();
-            try {
-                sftp.mkdir(dirString);
-            } catch(SftpException e) {
-                throw new IOException(dirString, e);
+             // Implementation might not support recursive creation of directories
+            for (String subPath : ((SFTPPath) dir).getParts()) {
+                try {
+                    sftp.mkdir(subPath);
+                } catch(SftpException e) {
+                    throw new IOException(subPath, e);
+                }
+
             }
 
             sftp.quit();
