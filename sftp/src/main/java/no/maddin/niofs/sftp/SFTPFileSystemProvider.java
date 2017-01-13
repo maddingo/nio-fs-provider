@@ -124,7 +124,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
             List<String> parts = ((SFTPPath) dir).getParts();
             // remove the first part if it is the root directory (empty string)
-            if (!parts.isEmpty() && parts.get(0).equals("")) {
+            if (!parts.isEmpty() && "".equals(parts.get(0))) {
                 parts = parts.subList(1, parts.size()-1);
             }
             // Implementation might not support recursive creation of directories

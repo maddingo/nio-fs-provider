@@ -28,17 +28,25 @@ import jcifs.smb.SmbException;
  */
 public class SMBFileSystemProvider extends FileSystemProvider {
 
+    private static final Logger log = Logger.getLogger(SMBFileSystemProvider.class.getName());
+
     public SMBFileSystemProvider() throws IOException {
 
-        ByteArrayOutputStream outBuffer = new ByteArrayOutputStream();
-        Config.list(new PrintStream(outBuffer, true));
-        if (outBuffer.size() > 0) {
-            Logger.getLogger(getClass().getName()).warning("jcifs already configured with:\n"+outBuffer.toString());
+        if (hasConfig()) {
+            log.warning("jcifs already configured, reconfiguring it.");
         }
         try (InputStream config = getClass().getResourceAsStream("/jcifs-config.properties")) {
             if (config != null) {
                 Config.load(config);
             }
+        }
+    }
+
+    private boolean hasConfig() throws IOException {
+        try (ByteArrayOutputStream outBuffer = new ByteArrayOutputStream()) {
+            Config.list(new PrintStream(outBuffer, true));
+            String cfg = outBuffer.toString();
+            return cfg.contains("=");
         }
     }
 
