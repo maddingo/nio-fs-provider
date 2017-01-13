@@ -7,36 +7,41 @@ import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * A Path implementation for SFTP.
  */
 public class SFTPPath implements Path {
 
-    private static final String HOME_PREFIX = "/~/";
-    private static final int HOME_PREFIX_LEN = HOME_PREFIX.length();
-    private static final String DEFAULT_ROOT_PATH = "";
     private static final String PATH_SEP = "/";
     private final String path;
     private final SFTPHost host;
+    private final java.util.List<String> parts;
 
     SFTPPath(SFTPHost sftpHost, String path) {
         this.host = sftpHost;
+        this.path = path;
+        parts = splitParts(path);
+    }
 
-        // TODO split the path in ist components
-        if (path == null || path.trim().isEmpty()) {
-            this.path = DEFAULT_ROOT_PATH;
-        } else {
-            if (path.startsWith(HOME_PREFIX)) {
-                this.path = path.substring(HOME_PREFIX_LEN);
-            } else {
-                this.path = path;
-            }
+    private List<String> splitParts(String path) {
+        if (path == null) {
+            return Collections.emptyList();
         }
+        String[] parts = path.split(PATH_SEP, -1);
+        return Arrays.asList(parts);
+    }
+
+    private String combineParts(int startIdx, int endIdx) {
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts.subList(startIdx, endIdx)) {
+            if (sb.length() > 0) {
+                sb.append(PATH_SEP);
+            }
+            sb.append(part);
+        }
+        return sb.toString();
     }
 
     @Override
@@ -51,10 +56,10 @@ public class SFTPPath implements Path {
 
     @Override
     public Path getRoot() {
-        if (path.equals(DEFAULT_ROOT_PATH)) {
+        if (path ==  null) {
             return this;
         }
-        return new SFTPPath(this.host, DEFAULT_ROOT_PATH);
+        return new SFTPPath(this.host, null);
     }
 
     @Override
@@ -64,12 +69,17 @@ public class SFTPPath implements Path {
 
     @Override
     public Path getParent() {
-        throw new UnsupportedOperationException("Not Implemented");
+
+        if (path == null) {
+            return null;
+        }
+        return new SFTPPath(this.host, combineParts(0, getNameCount() - 1));
     }
 
     @Override
     public int getNameCount() {
-        throw new UnsupportedOperationException("Not Implemented");
+
+        return parts.size();
     }
 
     @Override
@@ -79,7 +89,7 @@ public class SFTPPath implements Path {
 
     @Override
     public Path subpath(int beginIndex, int endIndex) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return new SFTPPath(beginIndex == 0 ? host : null, combineParts(0, endIndex));
     }
 
     @Override
@@ -141,11 +151,14 @@ public class SFTPPath implements Path {
     public URI toUri() {
 
         try {
-            String userInfo;
+            String userInfo = null;
             if (host.getUserName() != null) {
-                userInfo = host.getUserName() + ':' + host.getPassword();
-            } else {
-                userInfo = null;
+                StringBuilder uinfoSb = new StringBuilder();
+                uinfoSb.append(host.getUserName());
+                if (host.getPassword() != null) {
+                    uinfoSb.append(':').append(host.getPassword());
+                }
+                userInfo = uinfoSb.toString();
             }
             return new URI("sftp", userInfo, host.getHost(), host.getPort(), this.path, null, null);
         } catch (URISyntaxException e) {
@@ -190,5 +203,9 @@ public class SFTPPath implements Path {
 
     String getPathString() {
         return this.path;
+    }
+
+    List<String> getParts() {
+        return Collections.unmodifiableList(parts);
     }
 }

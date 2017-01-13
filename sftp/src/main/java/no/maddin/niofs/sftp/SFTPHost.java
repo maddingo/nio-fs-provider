@@ -28,14 +28,17 @@ public class SFTPHost extends FileSystem {
         this.host = serverUri.getHost();
         this.port = serverUri.getPort();
         String userInfo = serverUri.getUserInfo();
+        String un = null;
+        String pw = null;
         if (userInfo != null) {
             String[] ui = userInfo.split(":");
-            this.username = ui[0];
-            this.password = ui[1];
-        } else {
-            username = null;
-            password = null;
+            un = ui[0];
+            if (ui.length > 1) {
+                pw = ui[1];
+            }
         }
+        username = un;
+        password = pw;
     }
 
     @Override
