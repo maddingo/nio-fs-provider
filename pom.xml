@@ -22,6 +22,7 @@
         <module>smb</module>
         <module>test-util</module>
         <module>util</module>
+        <module>integration-tests</module>
     </modules>
 
     <ciManagement>

@@ -1,7 +1,5 @@
 package no.maddin.niofs.sftp;
 
-import sun.nio.fs.UnixFileSystemProvider;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -28,6 +26,9 @@ public class SFTPPath implements Path {
     }
 
     private List<String> splitParts(String path) {
+        if (path == null) {
+            return Collections.emptyList();
+        }
         String[] parts = path.split(PATH_SEP, -1);
         return Arrays.asList(parts);
     }

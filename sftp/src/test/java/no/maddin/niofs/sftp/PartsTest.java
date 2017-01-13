@@ -24,14 +24,16 @@ public class PartsTest {
     public static List<Object[]> data() {
 
         return Arrays.asList(
-                new Object[] {".", Arrays.asList(".")},
-                new Object[] {"", Arrays.asList("")},
+                new Object[] {".", Collections.singletonList(".")},
+                new Object[] {"", Collections.singletonList("")},
+                new Object[] {null, Collections.emptyList()},
                 new Object[] {"/", Arrays.asList("", "")},
                 new Object[] {"./", Arrays.asList(".", "")},
                 new Object[] {"/~", Arrays.asList("", "~")},
-                new Object[] {"aa", Arrays.asList("aa")},
+                new Object[] {"aa", Collections.singletonList("aa")},
                 new Object[] {"/aa/bb", Arrays.asList("", "aa", "bb")},
                 new Object[] {"/aa/../bb", Arrays.asList("", "aa", "..", "bb")},
+                new Object[] {"/aa/../bb.txt", Arrays.asList("", "aa", "..", "bb.txt")},
                 new Object[] {"../", Arrays.asList("..", "")}
         );
     }
@@ -48,9 +50,5 @@ public class PartsTest {
         List<String> parts = path.getParts();
 
         assertThat(parts, is(equalTo(this.result)));
-//        assertThat(parts, hasSize(1));
-//        assertThat(parts, hasItem(equalTo(".")));
     }
-
-
 }

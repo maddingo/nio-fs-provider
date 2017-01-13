@@ -12,9 +12,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * FileSystemProvider for Secure FTP.
@@ -72,6 +70,9 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
      */
     private SFTPHost getSFTPHost(URI uri, boolean create) throws URISyntaxException {
         String host = uri.getHost();
+        if (host == null) {
+            throw new IllegalArgumentException(uri.toString());
+        }
         int port = uri.getPort();
         if (port == -1) {
             port = DEFAULT_PORT;
@@ -121,8 +122,13 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
             sftp.connect();
 
-             // Implementation might not support recursive creation of directories
-            for (String subPath : ((SFTPPath) dir).getParts()) {
+            List<String> parts = ((SFTPPath) dir).getParts();
+            // remove the first part if it is the root directory (empty string)
+            if (!parts.isEmpty() && parts.get(0).equals("")) {
+                parts = parts.subList(1, parts.size()-1);
+            }
+            // Implementation might not support recursive creation of directories
+            for (String subPath : parts) {
                 try {
                     sftp.mkdir(subPath);
                 } catch(SftpException e) {
