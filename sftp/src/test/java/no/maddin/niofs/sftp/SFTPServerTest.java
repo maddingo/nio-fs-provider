@@ -14,6 +14,7 @@ import org.apache.sshd.server.subsystem.sftp.SftpSubsystem;
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -73,6 +74,7 @@ public class SFTPServerTest {
         sshd.stop();
     }
 
+    @Ignore
     @Test
     public void createDirectories() throws Exception {
         URI uri = new URI("sftp", sftpUserame + ':' + sftpPassword, "localhost", port, "/~/a/b/", null, null);
