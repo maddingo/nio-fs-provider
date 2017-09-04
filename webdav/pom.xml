@@ -44,7 +44,7 @@
         <dependency>
             <groupId>com.github.lookfirst</groupId>
             <artifactId>sardine</artifactId>
-            <version>5.7</version>
+            <version>5.8</version>
         </dependency>
         <dependency>
             <groupId>no.maddin.niofs</groupId>
