@@ -3,8 +3,6 @@ nio-fs-provider
 
 Build status on travis.org: [![Build Status](https://travis-ci.org/maddingo/nio-fs-provider.svg?branch=master)](https://travis-ci.org/maddingo/nio-fs-provider)
 
-Dependency Status: [![Dependency Status](https://www.versioneye.com/user/projects/57b60e1a14b4120012c0fc3a/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/57b60e1a14b4120012c0fc3a)
-
 Maven Central: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.maddin.niofs/nio-fs/badge.svg?style=plastic)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22no.maddin.niofs%22)
 
 
