@@ -5,6 +5,7 @@ Build status on travis.org: [![Build Status](https://travis-ci.org/maddingo/nio-
 
 Maven Central: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.maddin.niofs/nio-fs/badge.svg?style=plastic)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22no.maddin.niofs%22)
 
+Snyk Status: [![Known Vulnerabilities](https://snyk.io/test/github/maddingo/nio-fs-provider/61f838dea1f59aff09699575f7dc95989a3836f3/badge.svg)](https://snyk.io/test/github/maddingo/nio-fs-provider/61f838dea1f59aff09699575f7dc95989a3836f3)
 
 FileSystemProviders for java.nio introduced in Java 7. The binary code is only tested and compiled on Java 8.
 
