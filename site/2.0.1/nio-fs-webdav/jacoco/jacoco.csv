@@ -1,0 +1,7 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+nio-fs-webdav,no.maddin.niofs.webdav,WebdavFileSystem,114,45,16,0,28,12,23,5,15,5
+nio-fs-webdav,no.maddin.niofs.webdav,WebdavFileSystemProvider,134,229,13,15,33,58,21,15,10,12
+nio-fs-webdav,no.maddin.niofs.webdav,WebdavsFileSystemProvider,0,5,0,0,0,2,0,2,0,2
+nio-fs-webdav,no.maddin.niofs.webdav,WebdavPath,292,119,36,10,62,25,43,8,22,6
+nio-fs-webdav,no.maddin.niofs.webdav,SardineChannel,88,102,12,6,16,30,14,5,6,4
+nio-fs-webdav,no.maddin.niofs.webdav,WebdavFileAttributes,3,41,1,1,1,11,2,9,1,9
