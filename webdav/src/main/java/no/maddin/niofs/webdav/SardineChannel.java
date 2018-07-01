@@ -34,6 +34,7 @@ public class SardineChannel implements SeekableByteChannel {
   private WebdavPath path;
   private InputStream in;
   private ByteArrayOutputStream out;
+  private int position = 0;
 
   public SardineChannel(WebdavPath webdavPath) throws IOException {
     this.sardine = ((WebdavFileSystem)webdavPath.getFileSystem()).getSardine();
@@ -69,7 +70,9 @@ public class SardineChannel implements SeekableByteChannel {
         in = sardine.get(path.toUri().toString());
       }
       if (dst.hasArray()) {
-        return in.read(dst.array());
+    	int numBytesToRead = in.read(dst.array());
+    	position += numBytesToRead;
+		return numBytesToRead;
       }
     }
     throw new UnsupportedOperationException();
@@ -85,7 +88,8 @@ public class SardineChannel implements SeekableByteChannel {
       src.get(buf);
       os.write(buf);
     }
-
+    
+    position += len;
     return len;
   }
 
@@ -105,7 +109,7 @@ public class SardineChannel implements SeekableByteChannel {
 
   @Override
   public long position() throws IOException {
-    throw new UnsupportedOperationException();
+	  return position;
   }
 
   @Override
