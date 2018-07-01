@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SMBPath.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">nio-fs-smb</a> &gt; <a href="index.source.html" class="el_package">no.maddin.niofs.smb</a> &gt; <span class="el_source">SMBPath.java</span></div><h1>SMBPath.java</h1><pre class="source lang-java linenums">package no.maddin.niofs.smb;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
+
+import jcifs.smb.SmbFile;
+
+/**
+ * Denotes a path in an SMB share.
+ */
+public class SMBPath extends SMBBasePath {
+
+    private static final int MIN_COMMON_LEVEL = 4;
+    private static final String REGEX_BACKSLASH = &quot;\\\\&quot;;
+    private final SmbFile file;
+    private final SMBShare fileSystem;
+    private final SMBFileSystemProvider provider;
+    private final URI uri;
+
+    public SMBPath(SMBFileSystemProvider provider, URI uri) throws IOException, URISyntaxException {
+<span class="nc" id="L25">        super(uri.toString());</span>
+<span class="nc bnc" id="L26" title="All 2 branches missed.">        if (!&quot;smb&quot;.equals(uri.getScheme())) {</span>
+<span class="nc" id="L27">            throw new IllegalArgumentException(uri.toString());</span>
+        }
+<span class="nc" id="L29">        String hostContext = &quot;smb://&quot; + uri.getAuthority();</span>
+<span class="nc" id="L30">        SmbFile f = new SmbFile(hostContext, uri.getPath());</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        if (f.getShare() == null) {</span>
+<span class="nc" id="L32">            throw new IllegalArgumentException(uri.toString());</span>
+        }
+<span class="nc" id="L34">        this.file = f;</span>
+<span class="nc" id="L35">        this.provider = provider;</span>
+<span class="nc" id="L36">        this.uri = uri;</span>
+<span class="nc" id="L37">        this.fileSystem = new SMBShare(provider, file.getServer(), file.getShare(), file.getPrincipal());</span>
+<span class="nc" id="L38">    }</span>
+
+    @Override
+    public FileSystem getFileSystem() {
+<span class="nc" id="L42">        return fileSystem;</span>
+    }
+
+    @Override
+    public boolean isAbsolute() {
+<span class="nc" id="L47">        return true;</span>
+    }
+
+    @Override
+    public Path getParent() {
+<span class="nc" id="L52">        String parent = file.getParent();</span>
+        try {
+<span class="nc" id="L54">            URI parentUri = new URI(parent);</span>
+<span class="nc" id="L55">            return new SMBPath(provider, parentUri);</span>
+<span class="nc" id="L56">        } catch(IOException | URISyntaxException e) {</span>
+<span class="nc" id="L57">            throw new IllegalStateException(e);</span>
+        }
+    }
+
+    @Override
+    public Path toAbsolutePath() {
+<span class="nc" id="L63">        return this;</span>
+    }
+
+    @Override
+    public File toFile() {
+<span class="nc" id="L68">        return new File(file.getUncPath());</span>
+    }
+
+    @Override
+    public URI toUri() {
+<span class="nc" id="L73">        return this.uri;</span>
+    }
+
+    @Override
+    public Path relativize(Path other) {
+<span class="nc" id="L78">        SMBBasePath otherSmbPath = SMBFileSystemProvider.toSMBPath(other);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (!other.isAbsolute()) {</span>
+<span class="nc" id="L80">            throw new IllegalArgumentException(other.toString());</span>
+        }
+
+<span class="nc" id="L83">        String thisUNC = file.getUncPath();</span>
+<span class="nc" id="L84">        String otherUNC = otherSmbPath.getSmbFile().getUncPath();</span>
+
+<span class="nc" id="L86">        String[] thisParts = thisUNC.split(REGEX_BACKSLASH);</span>
+<span class="nc" id="L87">        String[] otherParts = otherUNC.split(REGEX_BACKSLASH);</span>
+
+        // find common root
+<span class="nc" id="L90">        int commonLevel = 0;</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        for (; commonLevel &lt; Math.min(thisParts.length, otherParts.length); commonLevel++) {</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if (!otherParts[commonLevel].equals(thisParts[commonLevel])) {</span>
+<span class="nc" id="L93">                break;</span>
+            }
+        }
+
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (commonLevel &lt; MIN_COMMON_LEVEL) {</span>
+            // the share and server are not equal
+<span class="nc" id="L99">            throw new IllegalArgumentException(other.toString());</span>
+        }
+
+<span class="nc" id="L102">        StringBuilder sb = new StringBuilder();</span>
+
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (int i = 0; i &lt; (thisParts.length - commonLevel); i++) {</span>
+<span class="nc" id="L105">            sb.append(&quot;..\\&quot;);</span>
+        }
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        for (int i = commonLevel; i &lt; otherParts.length; i++) {</span>
+<span class="nc" id="L108">            sb.append(otherParts[i]);</span>
+<span class="nc" id="L109">            sb.append(&quot;\\&quot;);</span>
+        }
+
+<span class="nc" id="L112">        return new SMBBasePath(sb.toString());</span>
+    }
+
+    @Override
+    public Path resolve(String other) {
+<span class="nc" id="L117">        URI otherUri = this.uri.resolve(other);</span>
+        try {
+<span class="nc" id="L119">            return new SMBPath(provider, otherUri);</span>
+<span class="nc" id="L120">        } catch(IOException | URISyntaxException e) {</span>
+<span class="nc" id="L121">            throw new IllegalArgumentException(other, e);</span>
+        }
+    }
+
+    @Override
+    public Path resolve(Path other) {
+<span class="nc" id="L127">        SMBBasePath otherPath = SMBFileSystemProvider.toSMBPath(other);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (otherPath.isAbsolute()) {</span>
+<span class="nc" id="L129">            throw new IllegalArgumentException();</span>
+        }
+<span class="nc" id="L131">        return resolve(otherPath.toString());</span>
+    }
+
+    @Override
+    public SmbFile getSmbFile() {
+<span class="nc" id="L136">        return file;</span>
+    }
+
+    @Override
+    public SMBFileAttributes getAttributes() throws IOException {
+<span class="nc" id="L141">        return new SMBFileAttributes(file.getUncPath(), file.getAttributes());</span>
+    }
+
+    private static String toPublicString(URI uri) throws URISyntaxException {
+<span class="nc" id="L145">        return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment()).toString();</span>
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
