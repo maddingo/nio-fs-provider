@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SFTPHost.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">nio-fs-sftp</a> &gt; <a href="index.source.html" class="el_package">no.maddin.niofs.sftp</a> &gt; <span class="el_source">SFTPHost.java</span></div><h1>SFTPHost.java</h1><pre class="source lang-java linenums">package no.maddin.niofs.sftp;
+
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileStore;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.WatchService;
+import java.nio.file.attribute.UserPrincipalLookupService;
+import java.nio.file.spi.FileSystemProvider;
+import java.util.Set;
+
+/**
+ * Represents a host for the SFTP file system provider.
+ *
+ */
+public class SFTPHost extends FileSystem {
+
+    private final FileSystemProvider provider;
+    private final int port;
+    private final String host;
+    private final String password;
+    private final String username;
+
+<span class="fc" id="L26">    SFTPHost(FileSystemProvider provider, URI serverUri) {</span>
+<span class="fc" id="L27">        this.provider = provider;</span>
+<span class="fc" id="L28">        this.host = serverUri.getHost();</span>
+<span class="fc" id="L29">        this.port = serverUri.getPort();</span>
+<span class="fc" id="L30">        String userInfo = serverUri.getUserInfo();</span>
+<span class="fc" id="L31">        String un = null;</span>
+<span class="fc" id="L32">        String pw = null;</span>
+<span class="pc bpc" id="L33" title="1 of 2 branches missed.">        if (userInfo != null) {</span>
+<span class="nc" id="L34">            String[] ui = userInfo.split(&quot;:&quot;);</span>
+<span class="nc" id="L35">            un = ui[0];</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">            if (ui.length &gt; 1) {</span>
+<span class="nc" id="L37">                pw = ui[1];</span>
+            }
+        }
+<span class="fc" id="L40">        username = un;</span>
+<span class="fc" id="L41">        password = pw;</span>
+<span class="fc" id="L42">    }</span>
+
+    @Override
+    public FileSystemProvider provider() {
+<span class="nc" id="L46">        return provider;</span>
+    }
+
+    @Override
+    public void close() throws IOException {
+        // TODO Auto-generated method stub
+
+<span class="nc" id="L53">    }</span>
+
+    @Override
+    public boolean isOpen() {
+        // TODO Auto-generated method stub
+<span class="nc" id="L58">        return false;</span>
+    }
+
+    @Override
+    public boolean isReadOnly() {
+        // TODO Auto-generated method stub
+<span class="nc" id="L64">        return false;</span>
+    }
+
+    @Override
+    public String getSeparator() {
+        // TODO Auto-generated method stub
+<span class="nc" id="L70">        return null;</span>
+    }
+
+    @Override
+    public Iterable&lt;Path&gt; getRootDirectories() {
+        // TODO Auto-generated method stub
+<span class="nc" id="L76">        return null;</span>
+    }
+
+    @Override
+    public Iterable&lt;FileStore&gt; getFileStores() {
+        // TODO Auto-generated method stub
+<span class="nc" id="L82">        return null;</span>
+    }
+
+    @Override
+    public Set&lt;String&gt; supportedFileAttributeViews() {
+        // TODO Auto-generated method stub
+<span class="nc" id="L88">        return null;</span>
+    }
+
+    @Override
+    public Path getPath(String first, String... more) {
+        // TODO Auto-generated method stub
+<span class="nc" id="L94">        return null;</span>
+    }
+
+    @Override
+    public PathMatcher getPathMatcher(String syntaxAndPattern) {
+        // TODO Auto-generated method stub
+<span class="nc" id="L100">        return null;</span>
+    }
+
+    @Override
+    public UserPrincipalLookupService getUserPrincipalLookupService() {
+        // TODO Auto-generated method stub
+<span class="nc" id="L106">        return null;</span>
+    }
+
+    @Override
+    public WatchService newWatchService() throws IOException {
+        // TODO Auto-generated method stub
+<span class="nc" id="L112">        return null;</span>
+    }
+
+    String getUserName() {
+<span class="fc" id="L116">        return this.username;</span>
+    }
+
+    String getPassword() {
+<span class="nc" id="L120">        return this.password;</span>
+    }
+
+    String getHost() {
+<span class="fc" id="L124">        return this.host;</span>
+    }
+
+    int getPort() {
+<span class="fc" id="L128">        return this.port;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
