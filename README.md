@@ -21,3 +21,6 @@ __NB:__ The project has moved in Maven Central.
 This library was previously published with groupId `no.uis.nio` in Maven Central. Version 1.1.7 is the last version under this groupId.
 
 Newer versions are published with groupId `no.maddin.niofs`.
+
+-----------
+[![](https://codescene.io/projects/3651/status.svg) Get more details at **codescene.io**.](https://codescene.io/projects/3651/jobs/latest-successful/results)
