@@ -1,6 +1,13 @@
-dist: trusty
+dist: xenial
 language: java
-jdk:
-  - oraclejdk8
 
-script: mvn clean verify
+addons:
+  sonarcloud:
+    organization: "maddingo-github"
+
+matrix:
+  include:
+    - jdk: openjdk11
+      script: MAVEN_OPTS="--add-modules ALL-SYSTEM" mvn clean install sonar:sonar
+    - jdk: openjdk8
+      script: mvn clean test

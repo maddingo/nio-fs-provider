@@ -8,4 +8,5 @@ target/
 /*.ipr
 /*.iws
 *.iml
+.idea
 nio-test.xml
