@@ -68,7 +68,7 @@
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-webdav-jackrabbit</artifactId>
-                <version>2.4</version>
+                <version>3.5.2</version>
             </extension>
         </extensions>
 
