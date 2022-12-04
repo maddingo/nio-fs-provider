@@ -12,7 +12,8 @@ nio-fs-provider
 
 - Documentation: http://maddingo.github.io/nio-fs-provider
 
-FileSystemProviders for java.nio introduced in Java 7. The binary code is only tested and compiled on Java 8.
+FileSystemProviders for java.nio introduced in Java 7. 
+From version 3.0.0, only Java 17 is supported.
 
 It allows File system operation agnostic to the underlying implementation,
 much like Apache VFS, but now in standard Java.

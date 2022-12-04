@@ -3,18 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.maddin.niofs</groupId>
     <artifactId>nio-fs</artifactId>
-    <version>2.0.2-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <name>nio-fs</name>
     <description>Java FileSystemProviders</description>
     <packaging>pom</packaging>
     <url>https://github.com/maddingo/nio-fs-provider</url>
     <inceptionYear>2012</inceptionYear>
-
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>9</version>
-    </parent>
 
     <modules>
         <module>sftp</module>
@@ -22,30 +16,30 @@
         <module>smb</module>
         <module>test-util</module>
         <module>util</module>
-        <module>integration-tests</module>
+<!--        <module>integration-tests</module>-->
     </modules>
 
     <ciManagement>
-        <system>Travis CI</system>
-        <url>http://travis-ci.org/maddingo/nio-fs-provider</url>
+        <system>Github Actions</system>
+        <url>https://github.com/maddingo/nio-fs-provider/actions</url>
     </ciManagement>
 
     <issueManagement>
         <system>Github</system>
-        <url>http://github.com/maddingo/nio-fs-provider/issues</url>
+        <url>https://github.com/maddingo/nio-fs-provider/issues</url>
     </issueManagement>
 
     <scm>
         <url>https://github.com/maddingo/nio-fs-provider</url>
         <connection>scm:git:git://github.com/maddingo/nio-fs-provider.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/maddingo/nio-fs-provider.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <developerConnection>scm:git:git@github.com:maddingo/nio-fs-provider.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
 
@@ -64,8 +58,8 @@
 
     <properties>
         <checkstyle.dir>.</checkstyle.dir>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -82,25 +76,40 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.10.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.0.0-M7</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>3.0.0-M7</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.2.4</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.3</version>
+                    <version>3.0.0-M6</version>
                     <dependencies>
                         <dependency>
                             <groupId>org.apache.maven.scm</groupId>
                             <artifactId>maven-scm-provider-gitexe</artifactId>
-                            <version>1.9.5</version>
+                            <version>1.13.0</version>
                         </dependency>
                     </dependencies>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>2.17</version>
+                    <version>3.1.0</version>
                     <configuration>
                         <configLocation>${checkstyle.dir}/checkstyle/checkstyle.xml</configLocation>
                         <propertyExpansion>basedir=${checkstyle.dir}</propertyExpansion>
@@ -119,32 +128,32 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.0.2</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jxr-plugin</artifactId>
-                    <version>2.5</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>3.0.1</version>
+                    <version>3.2.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
-                    <version>3.6</version>
+                    <version>3.12.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.5</version>
+                    <version>0.8.8</version>
                 </plugin>
                 <plugin>
                     <groupId>org.sonarsource.scanner.maven</groupId>
                     <artifactId>sonar-maven-plugin</artifactId>
-                    <version>3.4.0.905</version>
+                    <version>3.9.1.2184</version>
                 </plugin>
             </plugins>
         </pluginManagement>
