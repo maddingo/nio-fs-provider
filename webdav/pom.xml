@@ -53,12 +53,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>de.bitinsomnia</groupId>
-            <artifactId>webdav-embedded-server</artifactId>
-            <version>0.1.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-impl</artifactId>
             <version>2.1.2</version>
