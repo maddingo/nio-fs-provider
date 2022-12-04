@@ -92,22 +92,4 @@
             </plugin>
         </plugins>
     </build>
-    <repositories>
-        <repository>
-            <!-- for embedded Webdav server -->
-            <name>Bintray JCenter</name>
-            <id>jcenter</id>
-            <url>https://jcenter.bintray.com</url>
-            <releases><enabled>true</enabled></releases>
-            <snapshots><enabled>false</enabled></snapshots>
-        </repository>
-        <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray-milton-Milton</id>
-            <name>bintray</name>
-            <url>https://dl.bintray.com/milton/Milton</url>
-        </repository>
-    </repositories>
 </project>
