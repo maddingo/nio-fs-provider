@@ -1,25 +1,5 @@
-/*
- Copyright 2012-2013 University of Stavanger, Norway
-
- Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
-
 package no.maddin.niofs.webdav;
 //CHECKSTYLE:OFF
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.net.URI;
 import java.nio.file.FileSystem;
@@ -27,8 +7,9 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * These are the tests that don't require a running server.
@@ -36,9 +17,6 @@ import static org.junit.Assert.assertThat;
 public class WebdavPathTest {
 
     private int webdavPort = -1;
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @Test
     public void newFileSystemWebdav() throws Exception {
@@ -68,7 +46,7 @@ public class WebdavPathTest {
     }
 
     @Test
-    public void nomalize() throws Exception {
+    public void normalize() throws Exception {
         String dottedPath = "/webdav/../test/something";
 
         URI uri = new URI("webdav", "username:password", "anyhost", webdavPort, dottedPath, null, null);

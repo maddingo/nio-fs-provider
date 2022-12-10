@@ -3,12 +3,12 @@ package no.maddin.niofs.smb;
 import jcifs.Config;
 import jcifs.util.LogStream;
 import no.maddin.niofs.commons.AbstractTest;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 
 import java.io.InputStream;
 
 public abstract class AbstractSmbTest extends AbstractTest {
-    @BeforeClass
+    @BeforeAll
     public static void init() throws Exception {
         InputStream config = DirectoryStreamIteratorTest.class.getResourceAsStream("/jcifs-test-config.properties");
         if (config != null) {

@@ -1,9 +1,8 @@
 package no.maddin.niofs.sftp;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.nio.file.FileSystem;
@@ -11,8 +10,8 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 
 /**
@@ -20,12 +19,9 @@ import static org.junit.Assert.assertThat;
  */
 public class FileSystemsTest {
 
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
     private URI uri;
 
-    @Before
+    @BeforeEach
     public void createUri() throws Exception {
         uri = new URI("sftp", null, "localhost", -1, "/", null, null);
     }

@@ -168,7 +168,7 @@ public class SFTPPath implements Path {
 
     @Override
     public Path toAbsolutePath() {
-        throw new UnsupportedOperationException("Not Implemented");
+        return normalize();
     }
 
     @Override

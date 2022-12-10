@@ -1,95 +1,76 @@
 package no.maddin.niofs.smb;
 
 import no.maddin.niofs.commons.AbstractTest;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(Parameterized.class)
 public class RelativizeTest extends AbstractTest {
 
-    private final URI uriA;
-    private final URI uriB;
-    private final String expectedPathString;
-    private final int expectedParts;
-
-    @Parameterized.Parameters(name = "{index}: {0}")
-    public static Iterable<Object[]> data() throws Exception {
+    public static Stream<Arguments> data() throws Exception {
         List<Object[]> data = new ArrayList<>();
 
-        data.add(new Object[] {
+        return Stream.of(
+            Arguments.of(
                 "siblings",
                 new URI("smb://localhost/public/temp/a/"),
                 new URI("smb://localhost/public/temp/b/"),
                 "..\\b\\",
                 2
-        });
-
-        data.add(new Object[] {
+            ),
+            Arguments.of(
                 "child",
                 new URI("smb://localhost/public/temp/"),
                 new URI("smb://localhost/public/temp/b/"),
                 "b\\",
                 1
-        });
-
-        data.add(new Object[] {
+            ),
+            Arguments.of(
                 "cousins",
                 new URI("smb://localhost/public/temp/a/aa/"),
                 new URI("smb://localhost/public/temp/b/ba/"),
                 "..\\..\\b\\ba\\",
                 3 // successive parent directories are treated as one part
-        });
-
-        data.add(new Object[] {
+            ),
+            Arguments.of(
                 "sibling with spaces",
                 new URI("smb", "localhost", "/public/My Documents/Folder One/", null),
                 new URI("smb", "localhost", "/public/My Documents/Folder Two/", null),
                 "..\\Folder Two\\",
                 2
-        });
-
-        data.add(new Object[] {
+            ),
+            Arguments.of(
                 "sibling with username/password and encoded space",
                 new URI("smb://smbtest:test@localhost/public/My%20Documents/Folder%20One/"),
                 new URI("smb://smbtest:test@localhost/public/My%20Documents/Folder%20Two/"),
                 "..\\Folder Two\\",
                 2
-        });
-
-        data.add(new Object[] {
+            ),
+            Arguments.of(
                 "cousins with username/password",
                 new URI("smb://smbtest:test@localhost/public/temp/a/aa/"),
                 new URI("smb://smbtest:test@localhost/public/temp/b/ba/"),
                 "..\\..\\b\\ba\\",
                 3 // successive parent directories are treated as one part
-        });
+            )
+        );
 
-        return data;
     }
 
-    public RelativizeTest(String testName, URI uria, URI urib, String expectedPathString, int expectedParts) {
-
-        this.uriA = uria;
-        this.uriB = urib;
-        this.expectedPathString = expectedPathString;
-        this.expectedParts = expectedParts;
-    }
-
-    @Test
-    public void relativize() throws Exception {
+    @ParameterizedTest
+    @MethodSource("data")
+    public void relativize(String testName, URI uriA, URI uriB, String expectedPathString, int expectedParts) throws Exception {
         Path smbA = Paths.get(uriA);
 
         Path smbB = Paths.get(uriB);

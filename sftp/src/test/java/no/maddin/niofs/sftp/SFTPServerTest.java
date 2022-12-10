@@ -2,20 +2,18 @@ package no.maddin.niofs.sftp;
 
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
-import org.apache.sshd.server.Command;
+import org.apache.sshd.scp.server.ScpCommandFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.password.PasswordChangeRequiredException;
+import org.apache.sshd.server.command.Command;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.scp.ScpCommandFactory;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.shell.ProcessShellFactory;
-import org.apache.sshd.server.subsystem.sftp.SftpSubsystem;
-import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.ServerSocket;
@@ -23,13 +21,11 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 
 /**
@@ -45,14 +41,14 @@ public class SFTPServerTest {
     /**
      * https://mina.apache.org/sshd-project/embedding_ssh.html
      */
-    @Before
+    @BeforeEach
     public void setupSftpServer() throws Exception {
         try (ServerSocket serverSocket = new ServerSocket(0)) {
             sshd = SshServer.setUpDefaultServer();
             this.port = serverSocket.getLocalPort();
             serverSocket.close();
             sshd.setPort(this.port);
-            sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("target", "hostkey.ser")));
+            sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("target", "hostkey.ser").toPath()));
             sshd.setPasswordAuthenticator(new PasswordAuthenticator() {
                 @Override
                 public boolean authenticate(String username, String password, ServerSession session) throws PasswordChangeRequiredException {
@@ -61,7 +57,7 @@ public class SFTPServerTest {
             });
 
             sshd.setShellFactory(new ProcessShellFactory("/bin/sh", "-i", "-l"));
-            sshd.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystemFactory()));
+//            sshd.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystemFactory()));
             sshd.setFileSystemFactory(new VirtualFileSystemFactory(Paths.get(System.getProperty("user.dir"), "target")));
 
             sshd.setCommandFactory(new ScpCommandFactory());
@@ -69,12 +65,12 @@ public class SFTPServerTest {
         }
     }
 
-    @After
+    @AfterEach
     public void stopServer() throws Exception {
         sshd.stop();
     }
 
-    @Ignore
+    @Disabled
     @Test
     public void createDirectories() throws Exception {
         URI uri = new URI("sftp", sftpUserame + ':' + sftpPassword, "localhost", port, "/~/a/b/", null, null);

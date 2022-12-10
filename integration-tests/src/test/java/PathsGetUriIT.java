@@ -1,71 +1,58 @@
 import no.maddin.niofs.sftp.SFTPPath;
 import org.hamcrest.Matcher;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.stream.Stream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
-@RunWith(Parameterized.class)
 public class PathsGetUriIT {
 
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
-    private final String uriString;
-    private final Matcher<Path> testGetUriExpected;
-    private final Matcher<? extends Throwable> exceptionExpectation;
-
-    @Parameterized.Parameters(name="{index} {0} {1}")
-    public static java.util.List<Object[]> data() {
-        return Arrays.asList(
-            new Object[] {
+    public static Stream<Arguments> data() {
+        return Stream.of(
+            Arguments.of(
                     "sftp://localhost/",
                     null,
                     instanceOf(SFTPPath.class)
-            },
-            new Object[] {
+            ),
+            Arguments.of(
                     "sftp://localhost/testfile/",
                     null,
                     instanceOf(SFTPPath.class)
-            },
-            new Object[] {
+            ),
+            Arguments.of(
                     "sftp://localhost/../testfile/",
                     null,
                     instanceOf(SFTPPath.class)
-            },
-            new Object[] {
+            ),
+            Arguments.of(
                     "sftp:/localhost/../testfile/",
                     instanceOf(IllegalArgumentException.class),
                     instanceOf(SFTPPath.class)
-            }
-
+            )
         );
     }
 
-    public PathsGetUriIT(String uriString, Matcher<? extends Throwable> exceptionExpectation, Matcher<Path> testGetUriExpected) {
-        this.uriString = uriString;
-        this.exceptionExpectation = exceptionExpectation;
-        this.testGetUriExpected = testGetUriExpected;
-    }
+    @ParameterizedTest
+    @MethodSource("data")
+    public void getURI(String uriString, Matcher<? extends Throwable> exceptionExpectation, Matcher<Path> testGetUriExpected) throws Exception {
 
-    @Test
-    public void getURI() throws Exception {
-
-        if (exceptionExpectation != null) {
-            exception.expect(exceptionExpectation);
+        Throwable tr = null;
+        try {
+            Path p = Paths.get(URI.create(uriString));
+            assertThat(p, is(testGetUriExpected));
+        } catch (Exception ex) {
+            tr = ex;
         }
-        Path p = Paths.get(URI.create(this.uriString));
-
-        assertThat(p, is(testGetUriExpected));
+        if (exceptionExpectation != null) {
+            exceptionExpectation.matches(tr);
+        }
     }
 }
