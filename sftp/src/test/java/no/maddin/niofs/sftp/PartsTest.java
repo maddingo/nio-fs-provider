@@ -1,44 +1,63 @@
 package no.maddin.niofs.sftp;
 
+import org.hamcrest.Matcher;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Tests splitting Path parts.
  */
-public class PartsTest {
+class PartsTest {
 
-    public static List<Object[]> data() {
+    static Stream<Arguments> validPathsData() {
 
-        return Arrays.asList(
-                new Object[] {".", Collections.singletonList(".")},
-                new Object[] {"", Collections.singletonList("")},
-                new Object[] {null, Collections.emptyList()},
-                new Object[] {"/", Arrays.asList("", "")},
-                new Object[] {"./", Arrays.asList(".", "")},
-                new Object[] {"/~", Arrays.asList("", "~")},
-                new Object[] {"aa", Collections.singletonList("aa")},
-                new Object[] {"/aa/bb", Arrays.asList("", "aa", "bb")},
-                new Object[] {"/aa/../bb", Arrays.asList("", "aa", "..", "bb")},
-                new Object[] {"/aa/../bb.txt", Arrays.asList("", "aa", "..", "bb.txt")},
-                new Object[] {"../", Arrays.asList("..", "")}
+        return Stream.of(
+            Arguments.of("/", List.of()),
+            Arguments.of("/aa", List.of("aa")),
+            Arguments.of("/aa/bb", List.of("aa", "bb")),
+            Arguments.of("/aa/../bb", List.of("bb")),
+            Arguments.of("/aa/../bb", List.of("bb")),
+            Arguments.of("/aa/../bb/cc/../d.txt", List.of("bb", "d.txt"))
+        );
+    }
+
+    static Stream<Arguments> invalidPathsData() {
+        return Stream.of(
+            Arguments.of(".", instanceOf(IllegalArgumentException.class)),
+            Arguments.of("", instanceOf(IllegalArgumentException.class)),
+            Arguments.of(null, instanceOf(IllegalArgumentException.class)),
+            Arguments.of("./", instanceOf(IllegalArgumentException.class)),
+            Arguments.of("aa", instanceOf(IllegalArgumentException.class)),
+            Arguments.of("/aa/../../bb.txt", instanceOf(IllegalArgumentException.class)),
+            Arguments.of("../", instanceOf(IllegalArgumentException.class))
         );
     }
 
     @ParameterizedTest
-    @MethodSource({"data"})
-    public void splitDot(String input, List<String> result) {
+    @MethodSource({"validPathsData"})
+    void validPaths(String input, List<String> result) {
         SFTPPath path = new SFTPPath(null, input);
 
-        List<String> parts = path.getParts();
+        assertThat(path, hasProperty("parts", is(equalTo(result))));
+    }
 
-        assertThat(parts, is(equalTo(result)));
+    @ParameterizedTest
+    @MethodSource({"invalidPathsData"})
+    void invalidPaths(String input, Matcher<Exception> expectedException) {
+        try {
+            SFTPPath path = new SFTPPath(null, input);
+
+            fail("Call with '" + input + "' should have failed.");
+        } catch (Exception ex) {
+            assertThat(ex, is(expectedException));
+        }
     }
 }

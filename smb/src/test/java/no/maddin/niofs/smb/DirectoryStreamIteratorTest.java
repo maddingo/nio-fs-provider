@@ -1,67 +1,61 @@
 package no.maddin.niofs.smb;
 
-import jcifs.smb.SmbFile;
 import org.hamcrest.MatcherAssert;
-import org.junit.jupiter.api.Disabled;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-public class DirectoryStreamIteratorTest extends AbstractSmbTest {
+@Testcontainers
+public class DirectoryStreamIteratorTest {
 
-    public static Iterable<Object[]> data() {
-        List<Object[]> data = new ArrayList<>();
+    @Container
+    public static SambaContainer samba = new SambaContainer("target/test-classes/smb");
 
-        data.add(new Object[] {
-                "smb://127.0.0.1/public/My Documents/",
-                new String[] {"smb://127.0.0.1/public/My Documents/Folder One/", "smb://127.0.0.1/public/My Documents/Folder Two/"}
-        });
-        return data;
+    static Stream<Arguments> data() {
+
+        String sambaAddress = samba.getGuestIpAddress();
+//        int port139 = samba.getMappedPort(139);
+//        int port445 = samba.getMappedPort(445);
+
+        return Stream.of(
+            Arguments.of(
+                uri("smb://" + sambaAddress + "/public"),
+                Set.of(uri("smb://" + sambaAddress + "/public/My+Documents/Folder+One/"), uri("smb://" + sambaAddress + "/public/My+Documents/Folder+Two/")))
+        );
     }
 
-    @Disabled
     @ParameterizedTest
     @MethodSource("data")
-    public void directoryStreamIterator(String parentUrl, String[] childrenUrls) throws Exception {
+    void directoryStreamIterator(URI shareUrl, Set<URI> childrenUrls) throws Exception {
 
-        URL parent = new URL(parentUrl);
-        String parentUri = new URI(parent.getProtocol(), parent.getAuthority(), parent.getPath(), null).toString();
-        String[] childrenUris = new String[childrenUrls.length];
-        for (int i = 0; i < childrenUrls.length; i++) {
-            URL child = new URL(childrenUrls[i]);
-            childrenUris[i] = new URI(child.getProtocol(), child.getAuthority(), child.getPath(), null).toString();
-        }
-        // ignore the test if the expected test file system does not exist
-        for (String child : childrenUrls) {
-            SmbFile smbf = new SmbFile(child);
-            MatcherAssert.assertThat(smbf.canRead(), is(true));
-        }
-
-        Path remotePath = Paths.get(new URI(parentUri));
-        List<String> fileNames = new ArrayList<>();
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(remotePath, new DirectoryStream.Filter<Path>() {
-            @Override
-            public boolean accept(Path entry) throws IOException {
-                return !Files.isSymbolicLink(entry);
-            }
-        })) {
+        FileSystem fileSystem = FileSystems.newFileSystem(shareUrl, Map.of("USERNAME", "admin", "PASSWORD", "admin"));
+        assertThat(fileSystem, Matchers.is(notNullValue()));
+        Path remotePath = fileSystem.getPath("/My Documents");
+        Set<URI> fileNames = new HashSet<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(remotePath, entry -> !Files.isSymbolicLink(entry) && !entry.startsWith("."))) {
             for (Path path : directoryStream) {
-                fileNames.add(path.toString());
+                fileNames.add(path.toUri());
             }
         }
 
-        MatcherAssert.assertThat(fileNames, hasItems(childrenUris));
+        assertThat(fileNames, equalTo(childrenUrls));
+    }
+
+    private static URI uri(String url) {
+        return URI.create(url);
     }
 }

@@ -14,27 +14,40 @@ import java.util.*;
  */
 public class SFTPPath implements Path {
 
-    private static final String PATH_SEP = "/";
+    static final String PATH_SEP = "/";
     private final String path;
     private final SFTPHost host;
     private final java.util.List<String> parts;
 
     SFTPPath(SFTPHost sftpHost, String path) {
         this.host = sftpHost;
-        this.path = path;
         parts = splitParts(path);
+        this.path = "/" + String.join(PATH_SEP, parts);
     }
 
-    private List<String> splitParts(String path) {
-        if (path == null) {
-            return Collections.emptyList();
+    private static List<String> splitParts(String path) {
+        if (path == null || !path.startsWith(PATH_SEP)) {
+            throw new IllegalArgumentException("Path must start with " + PATH_SEP);
         }
-        String[] parts = path.split(PATH_SEP, -1);
-        return Arrays.asList(parts);
+        Deque<String> parts = new ArrayDeque<>();
+        try {
+            for (String p : path.substring(1).split(PATH_SEP, -1)) {
+                if (p.isEmpty() || p.equals(".")) {
+                    // ignore
+                } else if (p.equals("..")) {
+                    parts.removeLast();
+                } else {
+                    parts.add(p);
+                }
+            }
+        } catch (NoSuchElementException ex) {
+            throw new IllegalArgumentException(path, ex);
+        }
+        return List.copyOf(parts);
     }
 
     private String combineParts(int startIdx, int endIdx) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(PATH_SEP);
         for (String part : parts.subList(startIdx, endIdx)) {
             if (sb.length() > 0) {
                 sb.append(PATH_SEP);
@@ -94,12 +107,12 @@ public class SFTPPath implements Path {
 
     @Override
     public boolean startsWith(Path other) {
-        throw new UnsupportedOperationException("Not Implemented");
-    }
-
-    @Override
-    public boolean startsWith(String other) {
-        throw new UnsupportedOperationException("Not Implemented");
+        if (other.getFileSystem().equals(this.getFileSystem())) {
+            if (other instanceof SFTPPath otherPath) {
+                return Collections.indexOfSubList(this.parts, otherPath.getParts()) == 0;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -107,19 +120,12 @@ public class SFTPPath implements Path {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
-    @Override
-    public boolean endsWith(String other) {
-        throw new UnsupportedOperationException("Not Implemented");
-    }
-
+    /**
+     * SFTPPAths are normalized at creation time. This just returns itself.
+     */
     @Override
     public Path normalize() {
-        try {
-            URI pathURI = new URI(path);
-            return new SFTPPath(this.host, pathURI.normalize().toString());
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException(path, e);
-        }
+        return this;
     }
 
     @Override
@@ -152,9 +158,9 @@ public class SFTPPath implements Path {
 
         try {
             String userInfo = null;
-            if (host.getUserName() != null) {
+            if (host.getUsername() != null) {
                 StringBuilder uinfoSb = new StringBuilder();
-                uinfoSb.append(host.getUserName());
+                uinfoSb.append(host.getUsername());
                 if (host.getPassword() != null) {
                     uinfoSb.append(':').append(host.getPassword());
                 }
@@ -201,11 +207,11 @@ public class SFTPPath implements Path {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
-    String getPathString() {
+    public String getPathString() {
         return this.path;
     }
 
-    List<String> getParts() {
+    public List<String> getParts() {
         return Collections.unmodifiableList(parts);
     }
 }

@@ -1,6 +1,5 @@
 package no.maddin.niofs.smb;
 
-import no.maddin.niofs.commons.AbstractTest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -16,11 +15,9 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class RelativizeTest extends AbstractTest {
+public class RelativizeTest {
 
     public static Stream<Arguments> data() throws Exception {
-        List<Object[]> data = new ArrayList<>();
-
         return Stream.of(
             Arguments.of(
                 "siblings",
@@ -79,13 +76,13 @@ public class RelativizeTest extends AbstractTest {
 
         assertThat(relPath, is(notNullValue(Path.class)));
 
-        assertThat(relPath, is(instanceOf(SMBBasePath.class)));
+        assertThat(relPath, is(instanceOf(SMBPath.class)));
 
         assertThat(relPath.toString(), is(expectedPathString));
 
         int count = 0;
         for (Path path : relPath) {
-            assertThat(path, is(instanceOf(SMBBasePath.class)));
+            assertThat(path, is(instanceOf(SMBPath.class)));
             assertTrue(path.toString().endsWith("\\"));
             count++;
         }
