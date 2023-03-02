@@ -28,39 +28,97 @@ import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.StringTokenizer;
+
+import org.apache.commons.codec.digest.UnixCrypt;
 
 /**
  * Denotes a WebDAV Path.  
+ */
+/**
+ * @author andrew
+ *
  */
 public class WebdavPath implements Path {
 
     private static final String NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH = "Need to be an instance of WebdavPath";
     private static final String PARENT_PATH = "..";
-    private static final String PATH_SEP = "/";
-    private static final String DEFAULT_ROOT_PATH = PATH_SEP;
-    private final String path;
+    //private static final String PATH_SEP = "/";
+    final String PATH_SEP;
+    //private static final String DEFAULT_ROOT_PATH = PATH_SEP;
+    private final String DEFAULT_ROOT_PATH;
+    private ArrayList<String> elements;
     private final WebdavFileSystem host;
+    
+    private boolean isabsolute = false;
 
     WebdavPath(WebdavFileSystem webdavHost, String path) {
         this.host = webdavHost;
-        if (path == null) {
-            this.path = DEFAULT_ROOT_PATH;
-        } else {
-            String p = path.trim();
-            if (!p.startsWith(PATH_SEP)) {
-                this.path = PATH_SEP + p;
-            } else {
-                this.path = p;
-            }
-        }
+        this.elements = new ArrayList<String>();
+        PATH_SEP = webdavHost.getSeparator();
+        DEFAULT_ROOT_PATH = PATH_SEP;
+        parsePathStr(path);
     }
 
+    WebdavPath(WebdavFileSystem webdavHost, ArrayList<String> elements, boolean absolute) {
+        this.host = webdavHost;
+        PATH_SEP = webdavHost.getSeparator();
+        DEFAULT_ROOT_PATH = PATH_SEP;
+        this.elements = elements;
+        this.isabsolute = absolute;
+    }
+    
+    private void parsePathStr(String path) {
+        if (path == null) {            
+            //this.pathf.add(DEFAULT_ROOT_PATH);
+        	//empty path empty elements, not necessary absolute
+        } else if (path.equals(DEFAULT_ROOT_PATH)) {
+        	//this.elements.add(DEFAULT_ROOT_PATH);
+        	this.isabsolute = true;
+        	//empty path elements        	
+        } else {
+            String p = path.trim();
+            if(p.startsWith(PATH_SEP)) {
+            	this.isabsolute = true;
+            	p = p.substring(1);
+            }
+            if(p.endsWith(PATH_SEP)) 
+            	p = p.substring(0,p.length()-1); //omit trailing slash
+            String ps[] = p.split(PATH_SEP);
+            for (String s : ps)
+            	elements.add(s);
+        }    	
+    }
+    
+    public String getPathString() {
+    	StringBuilder sb = new StringBuilder(100);
+		if (isabsolute)
+			sb.append(PATH_SEP);
+    	    	
+    	boolean first = true;
+    	for(String f : elements) {
+    		if(first) {    			
+    			first = false;
+    		} else
+    			sb.append(PATH_SEP);
+    		sb.append(f);    		
+    	}
+        return sb.toString();
+    }
+    
+    @Override
+    public String toString() {    
+    	return getPathString();
+    }
+
+    
     @Override
     public FileSystem getFileSystem() {
         return this.host;
@@ -68,71 +126,159 @@ public class WebdavPath implements Path {
 
     @Override
     public Path getRoot() {
-        if (path.equals(DEFAULT_ROOT_PATH)) {
-            return this;
-        }
+    	Iterator<Path> iter = this.host.getRootDirectories().iterator();
+    	Path p = null;
+    	while(iter.hasNext()) {
+    		p = iter.next();
+    		return p; 
+    	}
+    	
         return new WebdavPath(this.host, DEFAULT_ROOT_PATH);
     }
 
     @Override
     public boolean isAbsolute() {
-        return path.length() > 0 && path.startsWith(PATH_SEP);
-    }
-
-    /**
-     * @deprecated will be removed in future releases
-     * @return the path as String
-     */
-    @Deprecated
-    public String getPathString() {
-        return this.path;
-    }
+        return isabsolute;
+    }    
 
     @Override
     public int compareTo(Path other) {
-        throw new UnsupportedOperationException();
+        //throw new UnsupportedOperationException();
+    	
+    	if(!(other instanceof WebdavPath))     		
+    		throw new ClassCastException();
+    	
+    	WebdavPath ow = (WebdavPath) other;
+    	
+    	if(elements.size() > ow.getElements().size())
+    		return 1;
+    	else if(elements.size() < ow.getElements().size())
+    		return -1;
+    	
+    	ArrayList<String> oe = ow.getElements();
+    	for(int i=0; i<elements.size(); i++) {
+    		if(elements.get(i).equals(oe.get(i)))
+    			continue;
+    		return elements.get(i).compareTo(oe.get(i));
+    	}
+    	
+    	return 0;
+    	    	
+    }
+    
+    @Override
+    public boolean equals(Object other) {
+    	
+    	if(!(other instanceof WebdavPath))     		
+    		return false;
+    	
+    	WebdavPath ow = (WebdavPath) other;
+
+    	if(ow.getElements().size() > elements.size() ||
+    		ow.getElements().size() < elements.size())
+    		return false;
+    	
+    	ArrayList<String> oe = ow.getElements();
+    	for(int i=0; i<elements.size(); i++) {
+    		if(elements.get(i).equals(oe.get(i)))
+    			continue;
+    		return false;
+    	}
+    	
+    	return true;
     }
 
     @Override
+    public boolean startsWith(Path other) {
+        //throw new UnsupportedOperationException();
+    	if(!(other instanceof WebdavPath))
+    		return false;
+    	
+    	if(other.getNameCount() > getNameCount())
+    		return false;
+    	    	
+    	WebdavPath wp = (WebdavPath) other;
+    	if (!((WebdavFileSystem) wp.getFileSystem()).equals(host))
+    		return false;
+    	
+    	ListIterator<String> io = wp.getElements().listIterator();    	
+    	while(io.hasNext()) {
+    		int i = io.nextIndex();
+    		if(io.next().equals(elements.get(i)))
+    			continue;    		
+    		return false;
+    	}
+    	
+    	return true;
+    }
+
+    @Override
+    public boolean startsWith(String other) {
+        //throw new UnsupportedOperationException();
+    	return startsWith(new WebdavPath(this.host, other));
+    }
+    
+    @Override
     public boolean endsWith(Path other) {
-        throw new UnsupportedOperationException();
+        //throw new UnsupportedOperationException();
+    	if(!(other instanceof WebdavPath))
+    		return false;
+    	
+    	if(other.getNameCount() > getNameCount())
+    		return false;
+    	    	
+    	WebdavPath wp = (WebdavPath) other;
+    	if (!((WebdavFileSystem) wp.getFileSystem()).equals(host))
+    		return false;
+    	
+    	int si = getNameCount() - other.getNameCount();
+    	ListIterator<String> io = wp.getElements().listIterator();
+    	for(int i=si; i<getNameCount(); i++) {
+    		if(io.hasNext())
+    			if(elements.get(i).equals(io.next()))
+    				continue;
+    		return false;
+    	}
+
+    	return true;
     }
 
     @Override
     public boolean endsWith(String other) {
-        throw new UnsupportedOperationException();
+        //throw new UnsupportedOperationException();
+    	return endsWith(new WebdavPath(this.host, other));
     }
 
     @Override
     public Path getFileName() {
-        throw new UnsupportedOperationException();
+    	if(elements.size()==0)
+    		return null;
+    	else
+    		return new WebdavPath(this.host, elements.get(elements.size()-1));
     }
 
     @Override
     public Path getName(int index) {
-        throw new UnsupportedOperationException();
+    	if(elements.size() == 0)
+    		throw new IllegalArgumentException();
+    	if(index >= elements.size() || index < 0)
+    		throw new IllegalArgumentException();
+    	return new WebdavPath(host, elements.get(index));
     }
 
     @Override
     public int getNameCount() {
-        return 0;
+        return elements.size();
     }
 
     @Override
     public Path getParent() {
-        if (path.equals(DEFAULT_ROOT_PATH)) {
-            return null;
-        }
-        String p1 = this.path;
-        if (p1.endsWith(PATH_SEP)) {
-            p1 = p1.substring(0, p1.length() - 1);
-        }
-        int lastSep = p1.lastIndexOf(PATH_SEP);
-        if (lastSep > 0) {
-            String parentString = p1.substring(0, lastSep + 1);
-            return new WebdavPath(this.host, parentString);
-        }
-        return null;
+        if (elements.size()<=1)
+        	return null;
+
+        ArrayList<String> elms = new ArrayList<>(elements.size()-1);
+        elms.addAll(elements.subList(0, elements.size()-1));
+        return new WebdavPath(host, elms, true );
     }
 
     @Override
@@ -148,10 +294,10 @@ public class WebdavPath implements Path {
     @Override
     public Path normalize() {
         try {
-            URI normal = new URI(path).normalize();
+            URI normal = new URI(getPathString()).normalize();
             return new WebdavPath(this.host, normal.getPath());
         } catch (URISyntaxException e) {
-            throw new IllegalArgumentException(path, e);
+            throw new IllegalArgumentException(getPathString(), e);
         }
     }
 
@@ -165,93 +311,145 @@ public class WebdavPath implements Path {
         throw new UnsupportedOperationException();
     }
 
+    /*
+     * Constructs a relative path between this path and a given path.
+     * 
+     * relativize() is the inverse of resolve().
+     * This method attempts to construct a relative path that is less this path as preceeding path
+     * e.g. this "a/b" , other "a/b/c/d" - relativize() = "c/d"
+     * 
+     * this and other path needs to be both relative
+     * or both absolute
+     * 
+     */
     @Override
     public Path relativize(Path other) {
-        if (!(other instanceof WebdavPath)) {
-            throw new IllegalArgumentException(NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH);
-        }
+    	if(!(other instanceof WebdavPath))
+    		throw new IllegalArgumentException(NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH);
+    		
+    	if( (isAbsolute() && !other.isAbsolute()) ||
+    		(!isAbsolute() && other.isAbsolute()))
+    		throw new IllegalArgumentException(
+    			"Both this path and the other path has to be both absolute or relative");
+    	
+    	if (other.getNameCount() < this.getNameCount())
+    		throw new IllegalArgumentException(
+        			"the other path is short than this path");
 
-        if (!other.getFileSystem().equals(this.getFileSystem())) {
-            throw new IllegalArgumentException("Wrong File System Type");
-        }
-
-        Path base = this;
-        WebdavPath current = (WebdavPath)other;
-
-        String[] bParts = this.path.split(PATH_SEP);
-        String[] cParts = current.path.split(PATH_SEP);
-
-        if (bParts.length > 0 && !base.toString().endsWith(PATH_SEP)) {
-            bParts = Arrays.copyOf(bParts, bParts.length - 1);
-        }
-
-        int i = 0;
-        while (i < bParts.length && i < cParts.length && bParts[i].equals(cParts[i])) {
-            i++;
-        }
-
-        StringBuilder sb = new StringBuilder();
-        for (int j = 0; j < (bParts.length - i); j++) {
-            sb.append(PATH_SEP);
-        }
-        for (int j = i; j < cParts.length; j++) {
-            if (j != i) {
-                sb.append(PATH_SEP);
-            }
-            sb.append(cParts[j]);
-        }
-        return new WebdavPath(this.host, sb.toString());
+    	WebdavPath wp = (WebdavPath) other;
+    	ListIterator<String> io = wp.getElements().listIterator(); 
+    	ListIterator<String> ia = elements.listIterator();
+    	while(ia.hasNext()) {
+    		String a = ia.next(); 
+    		if(io.hasNext()) {
+    			String so = io.next();
+    			if(!so.equals(a))
+    				break;    			
+    		}
+    	}
+    	ArrayList<String> re = new ArrayList<String>(wp.getElements().size() - elements.size());
+    	//copy remaining elements
+    	while(io.hasNext()) {
+    		re.add(io.next());
+    	}
+    	//returns a relative path
+        return new WebdavPath(host, re, false);        
     }
 
+    /*
+     * Resolve the given path against this path.
+	 * 
+	 * In the simplest case, this method joins the given path to this path 
+	 * and returns a resulting path that ends with the given path.
+	 * 
+	 * @param  other The other path to resolved against this
+	 * 
+	 * @return If the other parameter is an absolute path, returns other.
+	 *         If other is an empty path, returns this path.
+	 *         Otherwise this method considers this path to be a directory and
+	 *         resolves the given path against this path.           
+     */
     @Override
-    public Path resolve(Path other) {
-        if (other.isAbsolute()) {
-            return other;
-        }
-        throw new UnsupportedOperationException();
+    public Path resolve(Path other) {    	
+        if (other == null) {
+			return this;
+		}
+                
+        if (other.isAbsolute()) 
+            return other;        
+        
+    	if(!(other instanceof WebdavPath))
+    		throw new IllegalArgumentException(NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH);
+
+    	WebdavPath wp = (WebdavPath) other;
+    	ArrayList<String> ret = new ArrayList<String>(elements.size() + wp.getElements().size());
+    	ret.addAll(elements);
+    	ret.addAll(wp.getElements());
+        
+        return new WebdavPath(host, ret, isAbsolute());
     }
 
     @Override
     public Path resolve(String other) {
-        if (other.startsWith(PATH_SEP)) {
-            throw new IllegalArgumentException(other);
-        }
-        StringBuilder resolvedPath = new StringBuilder(this.path);
-        if (!this.path.endsWith(PATH_SEP)) {
-            resolvedPath.append(PATH_SEP);
-        }
-        resolvedPath.append(other);
-        return new WebdavPath(this.host, resolvedPath.toString());
+        return resolve(new WebdavPath(this.host, other));
     }
 
+    /*
+     * Resolves the given path against this path's parent path. 
+     */
     @Override
     public Path resolveSibling(Path other) {
-        throw new UnsupportedOperationException();
+        //throw new UnsupportedOperationException();
+    	if(!(other instanceof WebdavPath))
+    		throw new IllegalArgumentException(NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH);
+
+    	if(getParent()==null)
+    		return null;
+    	else
+    		return getParent().resolve(other);
+    	    	
     }
 
     @Override
     public Path resolveSibling(String other) {
-        throw new UnsupportedOperationException();
+        //throw new UnsupportedOperationException();
+    	return resolveSibling(new WebdavPath(this.host, other));
     }
 
+
+    /*
+     * Returns a relative Path that is a subsequence of the name elements of this path.
+     * 
+     * @param beginIndex begin index
+     * @param endIndex end index 
+     * @return a relative path with elements from elements[beingIndex] to elements[endIndex-1]
+     *         elements[endIndex-1] is included.
+     */
     @Override
-    public boolean startsWith(Path other) {
-        throw new UnsupportedOperationException();
+    public Path subpath(int beginIndex, int endIndex) {
+        //throw new UnsupportedOperationException();
+    	if(elements.size() == 0)
+    		throw new IllegalArgumentException();
+    	if( beginIndex < 0 || endIndex <= beginIndex || endIndex > elements.size() )
+    		throw new IllegalArgumentException();
+
+    	
+    	ArrayList<String> subp = new ArrayList<String>(elements.subList(beginIndex, endIndex));
+    	
+    	return new WebdavPath(this.host, 
+    		subp, false);
+    	
     }
 
-    @Override
-    public boolean startsWith(String other) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Path subpath(int beginIndex, int endindex) {
-        throw new UnsupportedOperationException();
-    }
-
+    /*
+     * if this is not absolute path, returns this path resolved (appended) on root path
+     */
     @Override
     public Path toAbsolutePath() {
-        return this;
+    	if(isAbsolute())
+    		return this;
+    	
+    	return getRoot().resolve(this);
     }
 
     @Override
@@ -272,10 +470,19 @@ public class WebdavPath implements Path {
 
         URI sardineUri;
         try {
-            sardineUri = new URI(scheme, null, server, port, path, null, null);
+            sardineUri = new URI(scheme, null, server, port, getPathString(), null, null);
             return sardineUri;
         } catch(URISyntaxException e) {
             throw new IOError(e);
         }
     }
+
+	public ArrayList<String> getElements() {
+		return elements;
+	}
+
+	public void setElements(ArrayList<String> elements) {
+		this.elements = elements;
+	}	    
+    
 }

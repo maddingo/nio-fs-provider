@@ -26,8 +26,13 @@ import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
 
@@ -41,6 +46,10 @@ public class WebdavFileSystem extends FileSystem {
     private final String host;
     private final String password;
     private final String username;
+    
+    private String rootpath;
+
+    Cache<Path, WebdavFileAttributes> attcache;
 
     /**
      *
@@ -51,9 +60,27 @@ public class WebdavFileSystem extends FileSystem {
         this.provider = provider;
         this.host = serverUri.getHost();
         this.port = serverUri.getPort();
-        String[] ui = serverUri.getUserInfo().split(":");
-        this.username = ui[0];
-        this.password = ui[1];
+        
+        if (serverUri.getUserInfo() != null) {
+        	String[] ui = serverUri.getUserInfo().split(":");
+        	this.username = ui[0];
+        	if(ui.length > 1)
+        		this.password = ui[1];
+        	else 
+        		this.password = null;
+        } else {
+        	this.username = null;
+        	this.password = null;
+        }
+        this.rootpath = getSeparator();
+        if( serverUri.getPath() != null && ! serverUri.getPath().equals(""))
+        	this.rootpath = serverUri.getPath();
+        
+		this.attcache = Caffeine.newBuilder()
+				   .expireAfterWrite(5, TimeUnit.MINUTES)
+				   .maximumSize(1000)
+				   .build();
+
     }
 
     @Override
@@ -113,7 +140,18 @@ public class WebdavFileSystem extends FileSystem {
      */
     @Override
     public Iterable<Path> getRootDirectories() {
-        return null;
+    	final Path rootp = new WebdavPath(this, rootpath);
+    	
+    	Iterable<Path> ret = new Iterable<Path>() {			
+			@Override
+			public Iterator<Path> iterator() {
+				ArrayList<Path> ap = new ArrayList<Path>(1);
+				ap.add(rootp);
+				return ap.iterator();
+			}
+		};
+    	
+        return ret;
     }
 
     @Override
@@ -201,6 +239,20 @@ public class WebdavFileSystem extends FileSystem {
     }
 
     Sardine getSardine() throws IOException {
-        return SardineFactory.begin(username, password, ProxySelector.getDefault());
+    	if(!(username == null && password == null))
+    		return SardineFactory.begin(username, password, ProxySelector.getDefault());
+    	else
+    		return SardineFactory.begin();     		    		
     }
+
+	public Cache<Path, WebdavFileAttributes> getAttcache() {
+		return attcache;
+	}
+
+	public void setAttcache(Cache<Path, WebdavFileAttributes> attcache) {
+		this.attcache = attcache;
+	}
+
+    
+    
 }
