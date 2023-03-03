@@ -76,10 +76,9 @@ public class WebdavPath implements Path {
     }
     
     private void parsePathStr(String path) {
-        if (path == null) {            
-            //this.pathf.add(DEFAULT_ROOT_PATH);
-        	//empty path empty elements, not necessary absolute
-        } else if (path.equals(DEFAULT_ROOT_PATH)) {
+        assert(path != null);
+        
+        if (path.equals(DEFAULT_ROOT_PATH)) {
         	//this.elements.add(DEFAULT_ROOT_PATH);
         	this.isabsolute = true;
         	//empty path elements        	
@@ -146,7 +145,7 @@ public class WebdavPath implements Path {
         //throw new UnsupportedOperationException();
     	
     	if(!(other instanceof WebdavPath))     		
-    		throw new ClassCastException();
+    		throw new ClassCastException(NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH);
     	
     	WebdavPath ow = (WebdavPath) other;
     	
@@ -324,6 +323,9 @@ public class WebdavPath implements Path {
      */
     @Override
     public Path relativize(Path other) {
+    	if (other == null)
+    		throw new NullPointerException();
+    	
     	if(!(other instanceof WebdavPath))
     		throw new IllegalArgumentException(NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH);
     		
@@ -335,7 +337,7 @@ public class WebdavPath implements Path {
     	if (other.getNameCount() < this.getNameCount())
     		throw new IllegalArgumentException(
         			"the other path is short than this path");
-
+    	
     	WebdavPath wp = (WebdavPath) other;
     	ListIterator<String> io = wp.getElements().listIterator(); 
     	ListIterator<String> ia = elements.listIterator();
@@ -344,10 +346,12 @@ public class WebdavPath implements Path {
     		if(io.hasNext()) {
     			String so = io.next();
     			if(!so.equals(a))
-    				break;    			
+   		    		throw new IllegalArgumentException(
+    		        	"the other path is short than this path");
     		}
     	}
-    	ArrayList<String> re = new ArrayList<String>(wp.getElements().size() - elements.size());
+
+    	ArrayList<String> re = new ArrayList<String>(other.getNameCount() - elements.size());
     	//copy remaining elements
     	while(io.hasNext()) {
     		re.add(io.next());
@@ -371,13 +375,16 @@ public class WebdavPath implements Path {
      */
     @Override
     public Path resolve(Path other) {    	
-        if (other == null) {
-			return this;
-		}
-                
+        if (other == null) 
+        	throw new NullPointerException();
+        
         if (other.isAbsolute()) 
             return other;        
-        
+
+        // empty path and not absolute
+        if (other.getNameCount() == 0)
+        	return this;            
+
     	if(!(other instanceof WebdavPath))
     		throw new IllegalArgumentException(NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH);
 
@@ -403,9 +410,12 @@ public class WebdavPath implements Path {
     	if(!(other instanceof WebdavPath))
     		throw new IllegalArgumentException(NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH);
 
-    	if(getParent()==null)
-    		return null;
-    	else
+		if(other.isAbsolute())
+			return other;
+
+    	if(getParent()==null) {
+    		return other;    			
+    	} else
     		return getParent().resolve(other);
     	    	
     }
