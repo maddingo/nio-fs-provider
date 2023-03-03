@@ -297,7 +297,7 @@ public class WebdavPathTest {
     		 * current implementation of relativivize requires the 
     		 * current path to start with and is a subset of the other path
     		 * 
-    		 * e.g. ""/a/b".relativize("/a/b/c/d") returns "c/d"
+    		 * e.g. "/a/b".relativize("/a/b/c/d") returns "c/d"
     		 * 
     		 * i.e. the current WebdavPath.relativize() returns the remaining subpath as a
     		 * relative path. This results conforms to JDK 1.8 javadoc spec
