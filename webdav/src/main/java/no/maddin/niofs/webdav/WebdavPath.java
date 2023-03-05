@@ -1,5 +1,7 @@
 /*
  Copyright 2012-2013 University of Stavanger, Norway
+ 
+ Portions contributed by Andrew Goh http://github.com/ag88
 
  Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -29,22 +31,13 @@ import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.StringTokenizer;
-
-import org.apache.commons.codec.digest.UnixCrypt;
 
 /**
  * Denotes a WebDAV Path.  
- */
-/**
- * @author andrew
- *
  */
 public class WebdavPath implements Path {
 
@@ -124,21 +117,100 @@ public class WebdavPath implements Path {
     }
 
     @Override
-    public Path getRoot() {
-    	Iterator<Path> iter = this.host.getRootDirectories().iterator();
-    	Path p = null;
-    	while(iter.hasNext()) {
-    		p = iter.next();
-    		return p; 
-    	}
+    public boolean isAbsolute() {
+        return isabsolute;
+    } 
+
+    
+    @Override
+    public Path toAbsolutePath() {
+    	if(isAbsolute())
+    		return this;
     	
-        return new WebdavPath(this.host, DEFAULT_ROOT_PATH);
+    	return new WebdavPath(this.host, DEFAULT_ROOT_PATH).resolve(this);
+    }
+
+
+    /**
+     * Gets the file name as a Path
+     *
+     * @return file name as a Path 
+     */
+    @Override
+    public Path getFileName() {
+    	if(elements.size()==0) {
+    		if (isabsolute)
+    			return null;
+    		else 
+    			return this;
+    	} else
+    		return new WebdavPath(this.host, elements.get(elements.size()-1));
     }
 
     @Override
-    public boolean isAbsolute() {
-        return isabsolute;
-    }    
+    public Path getName(int index) {     		
+    	if(elements.size() == 0 && index==0) {
+       		if (isabsolute)
+       				throw new IllegalArgumentException();
+        		else 
+        			return this; 
+    	} else if ( index < elements.size() && index >= 0 ) {
+    		return new WebdavPath(host, elements.get(index));
+    	} else //(index >= elements.size() || index < 0)
+    		throw new IllegalArgumentException();
+    }
+
+    @Override
+    public int getNameCount() {
+        return elements.size();
+    }
+
+    @Override
+    public Iterator<Path> iterator() {
+    	ArrayList<Path> ret = new ArrayList<>(elements.size());
+    	for(int i=0; i< elements.size(); i++) {
+    		Path p = getName(i);
+    		ret.add(p);
+    	}
+    	return ret.iterator();
+    }
+
+    
+    /**
+     * Gets the parent
+     * 
+     * Returns the parent path.
+     * Returns null if this path does not have a parent.
+     *
+     * @return parent path
+     */
+    @Override
+    public Path getParent() {
+        if (elements.size()==0)
+        	return null;
+
+        ArrayList<String> elms = new ArrayList<>(elements.size()-1);
+        elms.addAll(elements.subList(0, elements.size()-1));
+        return new WebdavPath(host, elms, true );
+    }
+
+    
+    /**
+     * Gets the root.
+     *
+     * Returns the root path, note that this simply returns "/" 
+     * it returns null for relative paths
+     * 
+     * @return rootpath
+     */
+    @Override
+    public Path getRoot() {
+    	if (isabsolute)
+    		return new WebdavPath(this.host, DEFAULT_ROOT_PATH);
+    	else
+    		return null;
+    }
+    
 
     @Override
     public int compareTo(Path other) {
@@ -246,48 +318,6 @@ public class WebdavPath implements Path {
     public boolean endsWith(String other) {
         //throw new UnsupportedOperationException();
     	return endsWith(new WebdavPath(this.host, other));
-    }
-
-    @Override
-    public Path getFileName() {
-    	if(elements.size()==0)
-    		return null;
-    	else
-    		return new WebdavPath(this.host, elements.get(elements.size()-1));
-    }
-
-    @Override
-    public Path getName(int index) {
-    	if(elements.size() == 0)
-    		throw new IllegalArgumentException();
-    	if(index >= elements.size() || index < 0)
-    		throw new IllegalArgumentException();
-    	return new WebdavPath(host, elements.get(index));
-    }
-
-    @Override
-    public int getNameCount() {
-        return elements.size();
-    }
-
-    @Override
-    public Path getParent() {
-        if (elements.size()<=1)
-        	return null;
-
-        ArrayList<String> elms = new ArrayList<>(elements.size()-1);
-        elms.addAll(elements.subList(0, elements.size()-1));
-        return new WebdavPath(host, elms, true );
-    }
-
-    @Override
-    public Iterator<Path> iterator() {
-        List<Path> plist = new LinkedList<>();
-
-        for (Path p = this; p != null; p = p.getParent()) {
-            plist.add(0, p);
-        }
-        return plist.iterator();
     }
 
     @Override
@@ -449,17 +479,6 @@ public class WebdavPath implements Path {
     	return new WebdavPath(this.host, 
     		subp, false);
     	
-    }
-
-    /*
-     * if this is not absolute path, returns this path resolved (appended) on root path
-     */
-    @Override
-    public Path toAbsolutePath() {
-    	if(isAbsolute())
-    		return this;
-    	
-    	return getRoot().resolve(this);
     }
 
     @Override
