@@ -123,12 +123,13 @@ public class WebdavPathTest {
     	// absolute paths simply return itself
     	Path a = Paths.get(makeURI("/a/b/c"));
     	assertThat(a.toAbsolutePath().toString().equals("/a/b/c"), is(true));
+    	Path root = Paths.get(makeURI("/"));
     	
     	Logger log = Logger.getLogger("test");
     	
     	//relative paths is resolved
-    	Path root = Paths.get(makeURI("/currentWorkPath"));
-    	Path relpath = root.relativize(root.resolve("relativepath")); 
+    	Path base = Paths.get(makeURI("/currentWorkPath"));
+    	Path relpath = base.relativize(base.resolve("relativepath")); 
     	assertThat(relpath.toString(), equalTo("relativepath"));
     	if(testwebdavclass) {
     		//relativize preserve current workpath
@@ -147,6 +148,13 @@ public class WebdavPathTest {
     		assertThat(fspath.toString(), equalTo("test"));
     		assertThat(fspath.toAbsolutePath().toString(), equalTo("/test"));
     		
+    		//if the base path is a relative path    
+    		//current work path is lost and hence toAbsolutePath() resolve against default root
+    		Path rabc = root.relativize(a);
+    		assertThat(rabc.toString(), equalTo("a/b/c"));
+    		Path rab = root.relativize(a.getParent());
+    		assertThat(rab.toString(), equalTo("a/b"));
+    		assertThat(rab.relativize(rabc).toAbsolutePath().toString(), equalTo("/c"));
     		
     	} else {
     		// it is different in "file://" (UnixPath) implementation

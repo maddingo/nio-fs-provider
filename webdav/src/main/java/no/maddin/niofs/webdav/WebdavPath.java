@@ -54,7 +54,7 @@ import java.util.ListIterator;
  * This implementation attempts to be similar with 'file://' implementation for Unix (e.g. UnixPath).
  * However, as WebDAV is after all different from a normal (unix) filesystem, there are various differences.
  * 
- * <b><em>{@link WebdavPath#toAbsolutePath()}</em></b>
+ * <h2>{@link WebdavPath#toAbsolutePath()}</h2>
  * 
  * For {@link WebdavPath#toAbsolutePath()}, for paths that are absolute paths, it simply return itself.<p>
  * 
@@ -76,15 +76,15 @@ import java.util.ListIterator;
  * To get predictable behavior e.g. that it would be resolved against "current work path"
  * it is necessary that the <b><em>relative path</em></b> is derived by calling the above methods against
  * base objects that are absolute paths. e.g.<p>
- * '/a/b/c'.relativize('/a/b') = 'c', '/a/b' preserved as "current work path", 
+ * '/a/b'.relativize('/a/b/c') = 'c', '/a/b' preserved as "current work path", 
  * 'c'.toAbsolutePath() returns '/a/b/c' <br>
  * '/a/b/c'.getFileName() = 'c', '/a/b' preserved as "current work path",
  * 'c'.toAbsolutePath() returns '/a/b/c' <br>
  * '/a/b/c'.getName(1) = 'b', '/a' preserved as "current work path", 
  * 'b'.toAbsolutePath() returns '/a/b'<p>
  *  
- * However, it is not saved in the cases as relative paths are used<p>
- * 'a/b/c'.relativize('a/b') = 'c', current work path is not saved as 'a/b/c' is a relative path<p>
+ * However, it is not saved in the cases where relative paths are used as base path<p>
+ * 'a/b'.relativize('a/b/c') = 'c', current work path is not saved as 'a/b' is a relative path<p>
  * hence, 'c'.toAbsolutePath() returns '/c'<p>
  * 
  * the current work path can be retrieved and set using the methods<br>
@@ -96,7 +96,7 @@ import java.util.ListIterator;
  * However, the currentworkpath needs to be set before calling toAbsolutePath()
  * and the currentworkpath must not be null to have it resolved that way deterministically
  * 
- * <b><em>Normalized paths only</em></b>
+ * <h2>Normalized paths only</h2>
  * 
  * Current implementation of {@link WebdavPath} requires that paths are normalized.
  * i.e. that they do not contain ".." or "." that needs to be resolved.<br>
@@ -243,7 +243,7 @@ public class WebdavPath implements Path {
 	 * work path" it is necessary that the relative path is derived by calling the
 	 * above methods against base objects that are absolute paths. e.g.
 	 * <p>
-	 * '/a/b/c'.relativize('/a/b') = 'c', '/a/b' preserved as "current work path",
+	 * '/a/b'.relativize('/a/b/c') = 'c', '/a/b' preserved as "current work path",
 	 * 'c'.toAbsolutePath() returns '/a/b/c' <br>
 	 * '/a/b/c'.getFileName() = 'c', '/a/b' preserved as "current work path",
 	 * 'c'.toAbsolutePath() returns '/a/b/c' <br>
@@ -251,9 +251,9 @@ public class WebdavPath implements Path {
 	 * 'b'.toAbsolutePath() returns '/a/b'
 	 * <p>
 	 * 
-	 * However, it is not saved in the cases as relative paths are used<p>
+	 * However, it is not saved in the cases where relative paths are used as the base<p>
 	 * 
-	 * 'a/b/c'.relativize('a/b') = 'c', current work path is not saved as 'a/b/c' is
+	 * 'a/b'.relativize('a/b/c') = 'c', current work path is not saved as 'a/b/c' is
 	 * a relative path<p>
 	 * 
 	 * hence, 'c'.toAbsolutePath() returns '/c'<p>
@@ -733,7 +733,7 @@ public class WebdavPath implements Path {
 	 * If other is an empty path, returns this path.<p>
 	 * 
 	 * Otherwise this method considers this path to be a directory and
-	 * resolves the given path against this path.<p>
+	 * resolves the given path against this path.
 	 * 
 	 * @param  other The other path to resolved against this
 	 * 
@@ -929,7 +929,7 @@ public class WebdavPath implements Path {
 	/**
 	 * Gets the current work path.<p>
 	 *
-	 * Specific to WebdavPath, not in {@link Path} api<p>
+	 * Specific to WebdavPath, not in {@link Path} api
 	 * 
 	 * @return the current work path
 	 * @see WebdavPath#toAbsolutePath()
@@ -943,7 +943,7 @@ public class WebdavPath implements Path {
 	 * 
 	 * Makes it an absolute path even if it isn't.<p>
 	 * 
-	 * Specific to WebdavPath, not in {@link Path} api<p>
+	 * Specific to WebdavPath, not in {@link Path} api
 	 *
 	 * @param currentWorkPath the new current work path
 	 * @see WebdavPath#toAbsolutePath()
