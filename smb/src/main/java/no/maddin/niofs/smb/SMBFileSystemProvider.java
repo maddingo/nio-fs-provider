@@ -58,7 +58,7 @@ public class SMBFileSystemProvider extends FileSystemProvider {
     @Override
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
         SMBParts parts = splitURI(uri);
-        if (parts.path != null) {
+        if (!parts.path.isEmpty()) {
             throw new IllegalArgumentException("The uri should be smb://" + parts.host + parts.share + " optional user info");
         }
         URI shareUri = shareUri(parts);
@@ -127,7 +127,7 @@ public class SMBFileSystemProvider extends FileSystemProvider {
 
     private URI shareUri(SMBParts parts) throws IOException {
         try {
-            return new URI(this.getScheme(), parts.userinfo, parts.host, parts.port, parts.path, null, null);
+            return new URI(this.getScheme(), parts.userinfo, parts.host, parts.port, '/' + parts.share, null, null);
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }

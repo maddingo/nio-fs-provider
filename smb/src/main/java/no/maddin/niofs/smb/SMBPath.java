@@ -149,7 +149,17 @@ public class SMBPath implements Path {
 
     @Override
     public Path relativize(Path other) {
-        throw new UnsupportedOperationException();
+        if (other instanceof SMBPath otherPath) {
+            if (!this.getFileSystem().equals(other.getFileSystem())) {
+                throw new IllegalArgumentException("Filesystems are different");
+            }
+
+            URI relativeUri = URI.create(this.path).relativize(URI.create(otherPath.path));
+            // if the path starts with '/' it is an absolute Path
+            return new SMBPath(relativeUri.getRawPath().startsWith("/") ? share : null, relativeUri.getPath());
+        } else {
+            throw new IllegalArgumentException("path is not a smb path");
+        }
     }
 
     @Override
