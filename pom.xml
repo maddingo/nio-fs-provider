@@ -109,7 +109,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.2.1</version>
                     <configuration>
                         <configLocation>${checkstyle.dir}/checkstyle/checkstyle.xml</configLocation>
                         <propertyExpansion>basedir=${checkstyle.dir}</propertyExpansion>
