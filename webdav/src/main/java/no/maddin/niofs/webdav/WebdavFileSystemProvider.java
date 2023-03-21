@@ -48,13 +48,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -69,11 +65,12 @@ import com.github.sardine.model.Propfind;
  */
 public class WebdavFileSystemProvider extends FileSystemProvider {
 
-	Logger log = LogManager.getLogger(WebdavFileSystemProvider.class);
+	Logger log = Logger.getLogger(WebdavFileSystemProvider.class.getName());
 	
 	private static final String NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH = "Need to be an instance of WebdavPath";
     private static final int DEFAULT_PORT = 80;
-    private final Map<URI, WebdavFileSystem> hosts = new HashMap<>();       
+    private final Map<URI, WebdavFileSystem> hosts = new HashMap<>();
+    final String newline = System.lineSeparator();
 
     public WebdavFileSystemProvider() {
 		super();
@@ -81,8 +78,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
 	@Override
     public void copy(Path fileFrom, Path fileTo, CopyOption... options) throws IOException {
-    	Marker marker = MarkerManager.getMarker("copy(file from, file to)");
-    	log.debug(marker, "");
+		log.fine("copy(file from, file to)");
 
         if (!(fileFrom instanceof WebdavPath)) {
             throw new IllegalArgumentException(fileFrom.toString());
@@ -103,8 +99,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-    	Marker marker = MarkerManager.getMarker("createDIrectory");
-    	log.debug(marker, "");
+    	log.fine("createDIrectory");
 
         if (!(dir instanceof WebdavPath)) {
             throw new IllegalArgumentException(dir.toString());
@@ -121,8 +116,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     private void createDirectoryRecursive(Sardine webdav, WebdavPath wDir, FileAttribute<?>[] attrs) throws IOException {
 
-    	Marker marker = MarkerManager.getMarker("createDirectoryRecursive");
-    	log.debug(marker, "");
+    	log.fine("createDirectoryRecursive");
     	
         if (webdav.exists(wDir.toUri().toString())) {
             return;
@@ -136,9 +130,8 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public void delete(Path dir) throws IOException {
-    	Marker marker = MarkerManager.getMarker("delete");
-    	log.debug(marker, "");
+    public void delete(Path dir) throws IOException {    	
+    	log.fine("delete");
 
         if (!(dir instanceof WebdavPath)) {
             throw new IllegalArgumentException(dir.toString());
@@ -172,9 +165,8 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
      * even if the path points to nowhere.
      */
     @Override
-    public boolean deleteIfExists(Path path) throws IOException {
-    	Marker marker = MarkerManager.getMarker("deleteIfExists");
-    	log.debug(marker, "");
+    public boolean deleteIfExists(Path path) throws IOException {    	
+    	log.fine("deleteIfExists");
         WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
         final String s = path.toUri().toString();
         return webdavFs.getSardine().exists(s);
@@ -182,8 +174,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     @Override
     public FileSystem getFileSystem(URI uri) {
-    	Marker marker = MarkerManager.getMarker("getFileSystem");
-    	log.debug(marker, "");
+    	log.fine("getFileSystem");
         try {
             return getWebdavHost(uri, true);
         } catch(URISyntaxException ex) {
@@ -193,8 +184,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     @Override
     public Path getPath(URI uri) {
-    	Marker marker = MarkerManager.getMarker("getPath");
-    	log.debug(marker, "");
+    	log.fine("getPath");
         try {
             WebdavFileSystem host = getWebdavHost(uri, true);
             return new WebdavPath(host, uri.getPath());
@@ -204,8 +194,8 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     }
 
     private WebdavFileSystem getWebdavHost(URI uri, boolean create) throws URISyntaxException {
-    	Marker marker = MarkerManager.getMarker("getWebdavHost");
-    	log.debug(marker, "");
+
+    	log.fine("getWebdavHost");
     	
         String host = uri.getHost();
         int port = uri.getPort();
@@ -227,8 +217,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     @Override
     public String getScheme() {
-    	Marker marker = MarkerManager.getMarker("getScheme");
-    	log.debug(marker, "");
+    	log.fine("getScheme");
         return "webdav";
     }
 
@@ -237,8 +226,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
-    	Marker marker = MarkerManager.getMarker("getFileAttributeView");
-    	log.debug(marker, "");
+    	log.fine("getFileAttributeView");
         throw new UnsupportedOperationException();
     }
 
@@ -247,15 +235,13 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public FileStore getFileStore(Path path) throws IOException {
-    	Marker marker = MarkerManager.getMarker("getFileAttributeView");
-    	log.debug(marker, "");
+    	log.fine("getFileAttributeView");
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void checkAccess(Path path, AccessMode... modes) throws IOException {
-    	Marker marker = MarkerManager.getMarker("checkAccess");
-    	log.debug(marker, "");
+    	log.fine("checkAccess");
         try {
 			WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
 			final String s = path.toUri().toString();
@@ -264,12 +250,12 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 			    throw new NoSuchFileException(s);
 			}
 		} catch (NoSuchFileException e) {
-			log.error(marker, "path: {}", path.toString());
-			log.error(e);
+			log.warning("checkAccess: path:" + path.toString());
+			log.warning(e.getMessage() + newline + e.getStackTrace());
 			throw e;
 		} catch (IOException e) {
-			log.error(marker, "path: {}", path.toString());
-			log.error(e);
+			log.warning("checkAccess: path:" + path.toString());
+			log.warning(e.getMessage() + newline + e.getStackTrace());
 			throw e;
 		}
     }
@@ -279,8 +265,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public boolean isHidden(Path path) throws IOException {
-    	Marker marker = MarkerManager.getMarker("isHidden");
-    	log.debug(marker, "");
+    	log.fine("isHidden");
         throw new UnsupportedOperationException();
     }
 
@@ -289,8 +274,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public boolean isSameFile(Path path, Path path2) throws IOException {
-    	Marker marker = MarkerManager.getMarker("isSameFile");
-    	log.debug(marker, "");
+    	log.fine("isSameFile");
         throw new UnsupportedOperationException();
     }
 
@@ -299,8 +283,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public void move(Path source, Path target, CopyOption... options) throws IOException {
-    	Marker marker = MarkerManager.getMarker("move");
-    	log.debug(marker, "");
+    	log.fine("move");
         throw new UnsupportedOperationException();
     }
 
@@ -308,8 +291,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)
             throws IOException
     {
-    	Marker marker = MarkerManager.getMarker("newByteChannel");
-    	log.debug(marker, "");
+    	log.fine("newByteChannel");
         return new SardineChannel((WebdavPath)path);
     }
 
@@ -335,15 +317,14 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     
     @Override
 	public DirectoryStream<Path> newDirectoryStream(Path path, Filter<? super Path> filter) throws IOException {
-		// throw new UnsupportedOperationException();
-		Marker marker = MarkerManager.getMarker("newDirectoryStream");
-		log.debug(marker, "");
+		// throw new UnsupportedOperationException();		
+		log.fine("newDirectoryStream");
 
 		try {
 			if (!(path instanceof WebdavPath)) {
 				IOException e = new IOException(NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH);
-				log.error(marker, "path {}", path.toString());
-				log.error(e);
+				log.warning("newDirectoryStream: path:" + path.toString());
+				log.warning(e.getMessage() + newline + e.getStackTrace());
 				throw e;
 			}
 
@@ -384,16 +365,15 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
 			return dirstream;
 		} catch (IOException e) {
-			log.error(marker, "path {}", path.toString());
-			log.error(e);
+			log.warning("newDirectoryStream: path:" + path.toString());
+			log.warning(e.getMessage() + newline + e.getStackTrace());
 			throw e;
 		}
 	}
 
     @Override
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
-    	Marker marker = MarkerManager.getMarker("newFileSystem");
-    	log.debug(marker, "");
+    	log.fine("newFileSystem");
         try {
             return getWebdavHost(uri, true);
         } catch(URISyntaxException e) {
@@ -405,10 +385,9 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     @Override
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) 
     		throws IOException {
-    	Marker marker = MarkerManager.getMarker("readAttributes(path,type)");
-    	log.debug(marker, "");
+    	log.fine("readAttributes(path,type)");
     	if(!(path.getFileSystem() instanceof WebdavFileSystem)) {
-    		log.error(marker, "Invalid filesystem");
+    		log.warning("readAttributes(path,type): Invalid filesystem");
     		throw new FileSystemException("Invalid filesystem");
     	}    		
     	
@@ -438,8 +417,8 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 	        return (A) attr;
 
 		} catch (IOException e) {
-			log.warn(marker, "error connecting: {}", path.toUri().toString());
-			log.error(e);
+			log.warning("readAttributes(path,type): error connecting: {}" + path.toUri().toString());
+			log.warning(e.getMessage() + newline + e.getStackTrace());
 			throw e;
 		}
     }
@@ -447,12 +426,11 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     @Override
     public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... arg2) throws IOException {
         //throw new UnsupportedOperationException();
-    	Marker marker = MarkerManager.getMarker("readAttributes(path,sattr)");    	
-    	log.debug(marker, "");
+    	log.fine("readAttributes(path,sattr)");
     	
     	WebdavFileAttributes wattr;
     	if(!(path.getFileSystem() instanceof WebdavFileSystem)) {
-    		log.error(marker, "Invalid filesystem");
+    		log.warning("readAttributes(path,sattr): Invalid filesystem");
     		throw new FileSystemException("Invalid filesystem");
     	}    		
     	
@@ -514,8 +492,9 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public void setAttribute(Path arg0, String arg1, Object arg2, LinkOption... arg3) throws IOException {
-    	Marker marker = MarkerManager.getMarker("setAttribute");    	
-    	log.debug(marker, "");
-        throw new UnsupportedOperationException();
+    	log.fine("setAttribute");
+    	Exception e = new UnsupportedOperationException();
+    	log.warning(e.getMessage() + newline + e.getStackTrace());
+        throw new IOException(e);
     }
 }
