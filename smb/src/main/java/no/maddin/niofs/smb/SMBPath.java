@@ -6,7 +6,10 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Denotes a path in an SMB share.
@@ -16,9 +19,16 @@ public class SMBPath implements Path {
     private final SMBShare share;
     private final String path;
 
+    private final String[] parts;
+
     SMBPath(SMBShare share, String path) {
         this.share = share;
         this.path = path;
+        parts = Optional.ofNullable(path)
+            .map(p -> p.split("/")).stream()
+            .flatMap(Arrays::stream)
+            .filter(Predicate.not(String::isBlank))
+            .toArray(String[]::new);
     }
 
     @Override
@@ -41,7 +51,7 @@ public class SMBPath implements Path {
 
     @Override
     public Path getRoot() {
-        return null;
+        return new SMBPath(share, "/");
     }
 
     @Override
@@ -56,46 +66,45 @@ public class SMBPath implements Path {
 
     @Override
     public int getNameCount() {
-        return 0;
+        return parts.length;
     }
 
-    
     @Override
     public Path getName(int index) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     
     @Override
     public Path subpath(int beginIndex, int endIndex) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean startsWith(Path other) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean endsWith(Path other) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
-    
+
     @Override
     public Path normalize() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Path toAbsolutePath() {
-        return this;
+        throw new UnsupportedOperationException();
     }
 
     
     @Override
-    public Path toRealPath(LinkOption... options) throws IOException {
-        return null;
+    public Path toRealPath(LinkOption... options) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -105,7 +114,7 @@ public class SMBPath implements Path {
 
     
     @Override
-    public WatchKey register(WatchService watcher,  WatchEvent.Kind<?>[] events, WatchEvent.Modifier... modifiers) throws IOException {
+    public WatchKey register(WatchService watcher,  WatchEvent.Kind<?>[] events, WatchEvent.Modifier... modifiers) {
         throw new UnsupportedOperationException();
     }
 
@@ -117,7 +126,7 @@ public class SMBPath implements Path {
                 String p1 = smbPath.path == null ? "" : smbPath.path;
                 return p0.compareTo(p1);
             } else {
-                this.share.toString().compareTo(smbPath.share.toString());
+                return this.share.toString().compareTo(smbPath.share.toString());
             }
         }
         throw new IllegalArgumentException();

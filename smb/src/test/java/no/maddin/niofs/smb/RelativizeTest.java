@@ -1,6 +1,6 @@
 package no.maddin.niofs.smb;
 
-import org.hamcrest.Matchers;
+import org.hamcrest.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -12,8 +12,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -36,7 +34,7 @@ public class RelativizeTest {
                 new URI("smb://" + sambaAddress + "/public"),
                 new URI("smb://" + sambaAddress + "/public/temp/a/"),
                 new URI("smb://" + sambaAddress + "/public/temp/b/"),
-                "..\\b\\",
+                "smb://" + sambaAddress + "/public/temp/b/",
                 2
             ),
             Arguments.of(
@@ -98,7 +96,7 @@ public class RelativizeTest {
 
         assertThat(relPath, is(instanceOf(SMBPath.class)));
 
-        assertThat(relPath.toString(), is(expectedPathString));
+        assertThat(relPath, hasStringValue(is(expectedPathString)));
 
         int count = 0;
         for (Path path : relPath) {
@@ -107,5 +105,25 @@ public class RelativizeTest {
             count++;
         }
         assertThat(count, is(expectedParts));
+    }
+
+    private static <T> TypeSafeDiagnosingMatcher<T> hasStringValue(Matcher<String> stringMatcher) {
+        return new TypeSafeDiagnosingMatcher<>() {
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("has string value that ").appendDescriptionOf(stringMatcher);
+            }
+
+            @Override
+            protected boolean matchesSafely(T item, Description description) {
+                return isNonNull(item, description)
+                    .matching(stringMatcher);
+            }
+
+            private Condition<String> isNonNull(T item, Description description) {
+                return item == null ? Condition.notMatched() : Condition.matched(item.toString(), description);
+            }
+        };
     }
 }

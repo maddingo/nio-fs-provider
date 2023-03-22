@@ -17,6 +17,7 @@ import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -59,8 +60,7 @@ public class SMBShare extends FileSystem {
 
   @Override
   public boolean isReadOnly() {
-    // TODO find out how to check this
-    return true;
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -70,19 +70,17 @@ public class SMBShare extends FileSystem {
 
   @Override
   public Iterable<Path> getRootDirectories() {
-    return List.of();
+    return List.of(new SMBPath(this, getSeparator()));
   }
 
   @Override
   public Iterable<FileStore> getFileStores() {
-    // TODO Auto-generated method stub
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public Set<String> supportedFileAttributeViews() {
-    // TODO Auto-generated method stub
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -93,20 +91,17 @@ public class SMBShare extends FileSystem {
 
   @Override
   public PathMatcher getPathMatcher(String syntaxAndPattern) {
-    // TODO Auto-generated method stub
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public UserPrincipalLookupService getUserPrincipalLookupService() {
-    // TODO Auto-generated method stub
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public WatchService newWatchService() throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+  public WatchService newWatchService() {
+    throw new UnsupportedOperationException();
   }
 
   public DiskShare getDiskShare() {
@@ -117,17 +112,39 @@ public class SMBShare extends FileSystem {
     try {
       String share = Optional.ofNullable(diskShare.getSmbPath().getShareName())
           .map(s -> {
-            if (s.startsWith("/")) {
+            if (s.startsWith(getSeparator())) {
               return s;
             } else {
-              return "/" + s;
+              return getSeparator() + s;
             }
           })
-          .orElse("/");
+          .orElse(getSeparator());
       return new URI("smb", diskShare.getSmbPath().getHostname(), share, null);
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    SMBShare smbShare = (SMBShare) o;
+    return Objects.equals(provider, smbShare.provider) && Objects.equals(diskShare, smbShare.diskShare);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(provider, diskShare);
+  }
+
+  @Override
+  public String toString() {
+    return "smb:" + diskShare.getSmbPath().toString().replace('\\', '/');
   }
 
   public record UsernamePassword(String username, String password, String domain){}
