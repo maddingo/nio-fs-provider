@@ -1,7 +1,6 @@
 package no.maddin.niofs.smb;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -71,10 +70,9 @@ public class SMBPath implements Path {
 
     @Override
     public Path getName(int index) {
-        throw new UnsupportedOperationException();
+        return new SMBPath(share, '/' + parts[index]);
     }
 
-    
     @Override
     public Path subpath(int beginIndex, int endIndex) {
         throw new UnsupportedOperationException();

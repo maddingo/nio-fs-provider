@@ -1,6 +1,6 @@
 package no.maddin.niofs.smb;
 
-import org.hamcrest.*;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -15,9 +15,9 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.*;
+import static no.maddin.niofs.testutil.Matchers.hasStringValue;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 public class RelativizeTest {
@@ -101,29 +101,9 @@ public class RelativizeTest {
         int count = 0;
         for (Path path : relPath) {
             assertThat(path, is(instanceOf(SMBPath.class)));
-            assertTrue(path.toString().endsWith("\\"));
+            assertThat(path, hasStringValue(endsWith("\\")));
             count++;
         }
         assertThat(count, is(expectedParts));
-    }
-
-    private static <T> TypeSafeDiagnosingMatcher<T> hasStringValue(Matcher<String> stringMatcher) {
-        return new TypeSafeDiagnosingMatcher<>() {
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("has string value that ").appendDescriptionOf(stringMatcher);
-            }
-
-            @Override
-            protected boolean matchesSafely(T item, Description description) {
-                return isNonNull(item, description)
-                    .matching(stringMatcher);
-            }
-
-            private Condition<String> isNonNull(T item, Description description) {
-                return item == null ? Condition.notMatched() : Condition.matched(item.toString(), description);
-            }
-        };
     }
 }
