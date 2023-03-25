@@ -146,7 +146,7 @@ public class SMBPath implements Path {
     
     @Override
     public String toString() {
-        return share.toString() + path;
+        return Optional.ofNullable(share).flatMap(o -> Optional.of(o.toString())).orElse("") + path;
     }
 
     @Override
@@ -160,10 +160,9 @@ public class SMBPath implements Path {
             if (!this.getFileSystem().equals(other.getFileSystem())) {
                 throw new IllegalArgumentException("Filesystems are different");
             }
-
-            URI relativeUri = URI.create(this.path).relativize(URI.create(otherPath.path));
+            Path relPath = Paths.get(this.path).relativize(Paths.get(otherPath.path));
             // if the path starts with '/' it is an absolute Path
-            return new SMBPath(relativeUri.getRawPath().startsWith("/") ? share : null, relativeUri.getPath());
+            return new SMBPath(relPath.isAbsolute() ? share : null, relPath.toString());
         } else {
             throw new IllegalArgumentException("path is not a smb path");
         }

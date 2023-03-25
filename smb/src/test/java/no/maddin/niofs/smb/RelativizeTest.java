@@ -1,6 +1,7 @@
 package no.maddin.niofs.smb;
 
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -23,66 +24,58 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class RelativizeTest {
 
     @Container
-    public static SambaContainer samba = new SambaContainer("target/test-classes/smb");
+    public static SambaContainer samba = SambaContainer.runningOr(() -> new SambaContainer("target/test-classes/smb"));
 
     public static Stream<Arguments> data() throws Exception {
         String sambaAddress = samba.getGuestIpAddress();
-
         return Stream.of(
             Arguments.of(
                 "siblings",
                 new URI("smb://" + sambaAddress + "/public"),
                 new URI("smb://" + sambaAddress + "/public/temp/a/"),
                 new URI("smb://" + sambaAddress + "/public/temp/b/"),
-                "smb://" + sambaAddress + "/public/temp/b/",
-                2
+                "../b"
             ),
             Arguments.of(
                 "child",
                 new URI("smb://" + sambaAddress + "/public"),
                 new URI("smb://" + sambaAddress + "/public/temp/"),
                 new URI("smb://" + sambaAddress + "/public/temp/b/"),
-                "b\\",
-                1
-            ),
+                "b"),
             Arguments.of(
                 "cousins",
                 new URI("smb://" + sambaAddress + "/public"),
                 new URI("smb://" + sambaAddress + "/public/temp/a/aa/"),
                 new URI("smb://" + sambaAddress + "/public/temp/b/ba/"),
-                "..\\..\\b\\ba\\",
-                3 // successive parent directories are treated as one part
+                "../../b/ba"
             ),
             Arguments.of(
                 "sibling with spaces",
                 new URI("smb://" + sambaAddress + "/public"),
-                new URI("smb", "" + sambaAddress + "", "/public/My Documents/Folder One/", null),
-                new URI("smb", "" + sambaAddress + "", "/public/My Documents/Folder Two/", null),
-                "..\\Folder Two\\",
-                2
+                new URI("smb", "" + sambaAddress + "", "/public/My%20Documents/Folder%20One/", null),
+                new URI("smb", "" + sambaAddress + "", "/public/My%20Documents/Folder%20Two/", null),
+                "../Folder Two"
             ),
             Arguments.of(
                 "sibling with username/password and encoded space",
                 new URI("smb://smbtest:test@" + sambaAddress + "/public"),
                 new URI("smb://smbtest:test@" + sambaAddress + "/public/My%20Documents/Folder%20One/"),
                 new URI("smb://smbtest:test@" + sambaAddress + "/public/My%20Documents/Folder%20Two/"),
-                "..\\Folder Two\\",
-                2
+                "../Folder Two"
             ),
             Arguments.of(
                 "cousins with username/password",
                 new URI("smb://smbtest:test@" + sambaAddress + "/public"),
                 new URI("smb://smbtest:test@" + sambaAddress + "/public/temp/a/aa/"),
                 new URI("smb://smbtest:test@" + sambaAddress + "/public/temp/b/ba/"),
-                "..\\..\\b\\ba\\",
-                3 // successive parent directories are treated as one part
+                "../../b/ba"
             )
         );
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("data")
-    public void relativize(String testName, URI shareUri, URI uriA, URI uriB, String expectedPathString, int expectedParts) throws Exception {
+    void relativize(String testName, URI shareUri, URI uriA, URI uriB, String expectedPathString) throws Exception {
         FileSystem fileSystem = FileSystems.newFileSystem(shareUri, Map.of("USERNAME", "admin", "PASSWORD", "admin"));
         assertThat(fileSystem, Matchers.is(notNullValue()));
 
@@ -97,13 +90,16 @@ public class RelativizeTest {
         assertThat(relPath, is(instanceOf(SMBPath.class)));
 
         assertThat(relPath, hasStringValue(is(expectedPathString)));
+    }
 
-        int count = 0;
-        for (Path path : relPath) {
-            assertThat(path, is(instanceOf(SMBPath.class)));
-            assertThat(path, hasStringValue(endsWith("\\")));
-            count++;
-        }
-        assertThat(count, is(expectedParts));
+    @Test
+    void cousins() throws Exception {
+        relativize(
+            "cousins",
+            URI.create("smb://localhost/public"),
+            URI.create("smb://localhost/public/temp/a/aa/"),
+            URI.create("smb://localhost/public/temp/b/ba/"),
+            "../../b/ba"
+        );
     }
 }

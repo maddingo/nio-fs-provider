@@ -15,6 +15,7 @@
         <module>webdav</module>
         <module>smb</module>
         <module>test-util</module>
+        <module>integration-tests</module>
     </modules>
 
     <ciManagement>

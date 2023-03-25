@@ -3,7 +3,6 @@ package no.maddin.niofs.smb;
 import com.hierynomus.msfscc.fileinformation.FileAllInformation;
 import com.hierynomus.smbj.SMBClient;
 import com.hierynomus.smbj.SmbConfig;
-import com.hierynomus.smbj.auth.AuthenticationContext;
 
 import java.io.IOException;
 import java.net.URI;
@@ -22,7 +21,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,10 +29,11 @@ import java.util.regex.Pattern;
  */
 public class SMBFileSystemProvider extends FileSystemProvider {
 
-    private static final Logger log = Logger.getLogger(SMBFileSystemProvider.class.getName());
     private final SMBClient client;
 
     private final Map<URI, SMBShare> fileSystems = new WeakHashMap<>();
+
+    private static final Pattern USERINFO_PATTERN = Pattern.compile("^((?<domain>[^\\\\]+)\\\\)?(?<user>[^:]+):(?<pwd>.+)$");
 
     public SMBFileSystemProvider() {
 
@@ -67,12 +66,14 @@ public class SMBFileSystemProvider extends FileSystemProvider {
         return smbShare;
     }
 
-    private SMBShare.UsernamePassword principal(String userInfo, Map<String, ?> env) {
+    /**
+     * package private for testing purposes
+     */
+    static SMBShare.UsernamePassword principal(String userInfo, Map<String, ?> env) {
 
         return Optional.ofNullable(userInfo)
             .flatMap(upwd -> {
-                Pattern userinfoPattern = Pattern.compile("((?<domain>\\w)\\)?(?<user>\\w)\\:(?<pwd>)");
-                Matcher matcher = userinfoPattern.matcher(upwd);
+                Matcher matcher = USERINFO_PATTERN.matcher(upwd);
                 if (matcher.matches()) {
                     String domain = matcher.group("domain");
                     String user = matcher.group("user");
@@ -86,7 +87,7 @@ public class SMBFileSystemProvider extends FileSystemProvider {
                 Optional.ofNullable(env)
                 .map(m -> {
                     String username = (String)m.get("USERNAME");
-                    String password = Optional.ofNullable((String) m.get("PASSWORD")).orElse(null);
+                    String password = (String) m.get("PASSWORD");
                     String domain = (String) m.get("DOMAIN");
                     return new SMBShare.UsernamePassword(username, password, domain);
                 })
@@ -149,13 +150,13 @@ public class SMBFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public DirectoryStream<Path> newDirectoryStream(Path dir, Filter<? super Path> filter) throws IOException {
+    public DirectoryStream<Path> newDirectoryStream(Path dir, Filter<? super Path> filter) {
         SMBPath smbFile = smbPath(dir);
         if (!smbFile.isAbsolute()) {
             throw new IllegalArgumentException(dir.toString());
         }
 
-        return new SMBDirectoryStream(this, (SMBPath)smbFile, filter);
+        return new SMBDirectoryStream(this, smbFile, filter);
     }
 
     @Override
@@ -184,22 +185,22 @@ public class SMBFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public boolean isSameFile(Path path, Path path2) throws IOException {
+    public boolean isSameFile(Path path, Path path2) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean isHidden(Path path) throws IOException {
+    public boolean isHidden(Path path) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public FileStore getFileStore(Path path) throws IOException {
+    public FileStore getFileStore(Path path) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void checkAccess(Path path, AccessMode... modes) throws IOException {
+    public void checkAccess(Path path, AccessMode... modes) {
         throw new UnsupportedOperationException();
     }
 
@@ -208,19 +209,18 @@ public class SMBFileSystemProvider extends FileSystemProvider {
         throw new UnsupportedOperationException();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
+    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
+    public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException {
+    public void setAttribute(Path path, String attribute, Object value, LinkOption... options) {
         throw new UnsupportedOperationException();
     }
 
