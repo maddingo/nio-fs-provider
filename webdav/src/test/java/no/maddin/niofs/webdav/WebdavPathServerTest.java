@@ -4,13 +4,21 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestReporter;
 
 import java.io.*;
 import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.FileTime;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -157,6 +165,49 @@ public class WebdavPathServerTest {
         assertThat(attrs.creationTime(), is(notNullValue()));
     }
 
+    /**
+     * Tests {@link newDirectoryStream(Path path, Filter<? super Path> filter)} 
+     * and {@link readAttributes(Path path, Class<A> type, LinkOption... options)}
+     * with WebDavPath
+     */
+    
+    @Test
+    public void testDirListing(TestReporter reporter) throws Exception {
+    	
+    	ArrayList<Path> files = new ArrayList<Path>(20);
+    	
+        URI uri = new URI("webdav", user + ':' + password,"localhost", webdavPort, "/", null, null);
+        
+        Path path = Paths.get(uri);
+        Stream<Path> paths = Files.list(path);
+		Iterator<Path> iter = paths.iterator();
+		while (iter.hasNext()) {
+			path = iter.next();			
+			files.add(path);
+		}
+		
+		paths.close();
+		Collections.sort(files);
+		
+		/* list the directory */
+		StringBuilder sb = new StringBuilder(1024);
+		for(Path p : files) {						
+			long size = Files.size(p);
+			FileTime modtime = (FileTime) Files.getAttribute(p, "lastModifiedTime");						
+			
+			sb.append(p.getFileName().toString());
+			sb.append('\t');
+			sb.append(size);			
+			if(modtime != null) {
+				sb.append('\t');
+				sb.append(LocalDate.ofInstant(modtime.toInstant(), ZoneId.systemDefault()));
+			}
+			sb.append(System.lineSeparator());
+		}
+		reporter.publishEntry("dir listing", sb.toString());        
+    }
+
+    
     private File writeTestFile(String filePath) throws IOException {
         File targetFile = new File(rootFolder.getAbsolutePath(), filePath);
         targetFile.getParentFile().mkdirs();

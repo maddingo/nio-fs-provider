@@ -2,6 +2,8 @@ package no.maddin.niofs.webdav;
 
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.time.LocalDate;
+import java.util.Date;
 
 import com.github.sardine.DavResource;
 
@@ -22,7 +24,11 @@ public class WebdavFileAttributes implements BasicFileAttributes {
 
     @Override
     public FileTime lastModifiedTime() {
-        return FileTime.fromMillis(res.getModified().getTime());
+    	Date d = res.getModified();
+    	if (d == null)
+    		return null;
+    	else 
+    		return FileTime.fromMillis(d.getTime());
     }
 
     @Override
