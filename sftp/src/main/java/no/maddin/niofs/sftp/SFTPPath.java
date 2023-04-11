@@ -1,5 +1,7 @@
 package no.maddin.niofs.sftp;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -8,6 +10,7 @@ import java.nio.file.*;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A Path implementation for SFTP.
@@ -43,7 +46,7 @@ public class SFTPPath implements Path {
         } catch (NoSuchElementException ex) {
             throw new IllegalArgumentException(path, ex);
         }
-        return List.copyOf(parts);
+        return new ArrayList<>(parts);
     }
 
     private String combineParts(int startIdx, int endIdx) {
@@ -108,7 +111,8 @@ public class SFTPPath implements Path {
     @Override
     public boolean startsWith(Path other) {
         if (other.getFileSystem().equals(this.getFileSystem())) {
-            if (other instanceof SFTPPath otherPath) {
+            if (other instanceof SFTPPath) {
+                SFTPPath otherPath = (SFTPPath) other;
                 return Collections.indexOfSubList(this.parts, otherPath.getParts()) == 0;
             }
         }
@@ -116,8 +120,18 @@ public class SFTPPath implements Path {
     }
 
     @Override
+    public boolean startsWith(@NotNull String other) {
+        return false;
+    }
+
+    @Override
     public boolean endsWith(Path other) {
         throw new UnsupportedOperationException("Not Implemented");
+    }
+
+    @Override
+    public boolean endsWith(@NotNull String other) {
+        return false;
     }
 
     /**

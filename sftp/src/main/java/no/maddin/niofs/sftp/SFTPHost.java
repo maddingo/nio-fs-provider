@@ -194,5 +194,13 @@ public class SFTPHost extends FileSystem {
         return serverUri;
     }
 
-    public record UserInfo(String username, String password){}
+    public static class UserInfo{
+        private final String username;
+        private final String password;
+
+        public UserInfo(String username, String password) {
+            this.username = username;
+            this.password = password;
+        }
+    }
 }

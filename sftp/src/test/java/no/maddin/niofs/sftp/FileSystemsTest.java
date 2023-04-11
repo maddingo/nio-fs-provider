@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.*;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -142,7 +143,7 @@ class FileSystemsTest {
     @ParameterizedTest
     @MethodSource("uriData")
     void fileSystemFromURI(URI uri, Matcher<FileSystem> expectedResult) throws IOException {
-        try (FileSystem fileSystem = FileSystems.newFileSystem(uri, Map.of())) {
+        try (FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
             assertThat(fileSystem, expectedResult);
         }
     }
@@ -153,7 +154,7 @@ class FileSystemsTest {
     @ParameterizedTest
     @MethodSource("invalidFsUriData")
     void failingSystemFromURI(URI uri, Matcher<Throwable> expectedResult) {
-        try (FileSystem fileSystem = FileSystems.newFileSystem(uri, Map.of())) {
+        try (FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
             fail("getFileSystem from " + uri + " should fail");
         } catch (Throwable tr) {
             assertThat(tr, expectedResult);
@@ -164,7 +165,7 @@ class FileSystemsTest {
     @MethodSource("validGet")
     void validGetFileSystem(URI uriNew, URI uriGet) throws IOException {
         FileSystem fsCheck;
-        try (FileSystem fsNew = FileSystems.newFileSystem(uriNew, Map.of())) {
+        try (FileSystem fsNew = FileSystems.newFileSystem(uriNew, Collections.emptyMap())) {
             fsCheck = fsNew;
             assertThat(fsNew, hasProperty("open", equalTo(true)));
             FileSystem fsGet = FileSystems.getFileSystem(uriGet);
@@ -178,7 +179,7 @@ class FileSystemsTest {
     @MethodSource("validGet")
     void validGetUriOnClosedFileSystem(URI uriNew, URI uriGet) {
         FileSystem fsCheck = null;
-        try (FileSystem fsNew = FileSystems.newFileSystem(uriNew, Map.of())) {
+        try (FileSystem fsNew = FileSystems.newFileSystem(uriNew, Collections.emptyMap())) {
             fsCheck = fsNew;
             assertThat(fsNew, hasProperty("open", equalTo(true)));
             fsNew.close();
@@ -194,7 +195,7 @@ class FileSystemsTest {
     @MethodSource("differentUserInfoData")
     void getFsWithDifferentUserInfo(URI uriNew, URI uriGet) {
         FileSystem fsCheck = null;
-        try (FileSystem fsNew = FileSystems.newFileSystem(uriNew, Map.of())) {
+        try (FileSystem fsNew = FileSystems.newFileSystem(uriNew, Collections.emptyMap())) {
             fsCheck = fsNew;
             assertThat(fsNew, hasProperty("open", equalTo(true)));
             FileSystem fsGet = FileSystems.getFileSystem(uriGet);

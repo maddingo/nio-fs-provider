@@ -16,6 +16,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -92,7 +93,7 @@ class PathTest {
     @ParameterizedTest
     @MethodSource("validPathData")
     public void validPath(URI uri, Matcher<Path> expectedResult) throws IOException {
-        try (FileSystem fs = FileSystems.newFileSystem(serverUri(uri), Map.of())) {
+        try (FileSystem fs = FileSystems.newFileSystem(serverUri(uri), Collections.emptyMap())) {
             assertThat(fs, hasProperty("open", equalTo(true)));
             Path path = Paths.get(uri);
             assertThat(path, is(expectedResult));
@@ -102,7 +103,7 @@ class PathTest {
     @ParameterizedTest
     @MethodSource("normalizeData")
     void normalize(URI uri, Matcher<Path> normalizedResult, Matcher<Path> parentMatcher) throws IOException {
-        try (FileSystem fs = FileSystems.newFileSystem(serverUri(uri), Map.of())) {
+        try (FileSystem fs = FileSystems.newFileSystem(serverUri(uri), Collections.emptyMap())) {
             assertThat(fs, hasProperty("open", equalTo(true)));
             Path path = Paths.get(uri);
             Path normalizedPath = path.normalize();
@@ -115,7 +116,7 @@ class PathTest {
     @ParameterizedTest
     @MethodSource("invalidPathData")
     void invalidPaths(URI uri, Matcher<Exception> expectedException) {
-        try (FileSystem fs = FileSystems.newFileSystem(serverUri(uri), Map.of())) {
+        try (FileSystem fs = FileSystems.newFileSystem(serverUri(uri), Collections.emptyMap())) {
             assertThat(fs, hasProperty("open", equalTo(true)));
             Path path = Paths.get(uri);
             fail("Path " + path + " should be invalid for " + uri);

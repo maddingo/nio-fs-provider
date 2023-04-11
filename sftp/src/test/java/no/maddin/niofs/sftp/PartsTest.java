@@ -5,6 +5,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -20,12 +22,12 @@ class PartsTest {
     static Stream<Arguments> validPathsData() {
 
         return Stream.of(
-            Arguments.of("/", List.of()),
-            Arguments.of("/aa", List.of("aa")),
-            Arguments.of("/aa/bb", List.of("aa", "bb")),
-            Arguments.of("/aa/../bb", List.of("bb")),
-            Arguments.of("/aa/../bb", List.of("bb")),
-            Arguments.of("/aa/../bb/cc/../d.txt", List.of("bb", "d.txt"))
+            Arguments.of("/", Collections.emptyList()),
+            Arguments.of("/aa", Collections.singletonList("aa")),
+            Arguments.of("/aa/bb", Arrays.asList("aa", "bb")),
+            Arguments.of("/aa/../bb", Collections.singletonList("bb")),
+            Arguments.of("/aa/../bb", Collections.singletonList("bb")),
+            Arguments.of("/aa/../bb/cc/../d.txt", Arrays.asList("bb", "d.txt"))
         );
     }
 
