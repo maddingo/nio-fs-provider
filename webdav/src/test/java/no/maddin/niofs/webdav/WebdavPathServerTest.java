@@ -166,8 +166,8 @@ public class WebdavPathServerTest {
     }
 
     /**
-     * Tests {@link newDirectoryStream(Path path, Filter<? super Path> filter)} 
-     * and {@link readAttributes(Path path, Class<A> type, LinkOption... options)}
+     * Tests {@link java.nio.file.spi.FileSystemProvider#newDirectoryStream(Path, DirectoryStream.Filter)}
+     * and {@link java.nio.file.spi.FileSystemProvider#readAttributes(Path, String, LinkOption...)}
      * with WebDavPath
      */
     
@@ -200,7 +200,7 @@ public class WebdavPathServerTest {
 			sb.append(size);			
 			if(modtime != null) {
 				sb.append('\t');
-				sb.append(LocalDate.ofInstant(modtime.toInstant(), ZoneId.systemDefault()));
+				sb.append(LocalDate.from(modtime.toInstant()));
 			}
 			sb.append(System.lineSeparator());
 		}
