@@ -1,5 +1,6 @@
 package no.maddin.niofs.smb;
 
+import com.github.dockerjava.api.model.ContainerNetwork;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
@@ -43,6 +44,13 @@ public class SambaContainer extends GenericContainer<SambaContainer> {
     }
 
     public String getGuestIpAddress() {
-        return getContainerInfo().getNetworkSettings().getIpAddress();
+        return getContainerInfo()
+            .getNetworkSettings()
+            .getNetworks()
+            .values()
+            .stream()
+            .findFirst()
+            .map(ContainerNetwork::getIpAddress)
+            .orElseThrow(() -> new RuntimeException("no network found"));
     }
 }

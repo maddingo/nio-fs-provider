@@ -8,11 +8,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -75,8 +77,11 @@ public class RelativizeTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("data")
-    void relativize(String testName, URI shareUri, URI uriA, URI uriB, String expectedPathString) throws Exception {
-        FileSystem fileSystem = FileSystems.newFileSystem(shareUri, Map.of("USERNAME", "admin", "PASSWORD", "admin"));
+    void relativize(String testName, URI shareUri, URI uriA, URI uriB, String expectedPathString) throws IOException {
+        Map<String, String> env = new HashMap<>();
+        env.put("USERNAME", "admin");
+        env.put("PASSWORD", "admin");
+        FileSystem fileSystem = FileSystems.newFileSystem(shareUri, env);
         assertThat(fileSystem, Matchers.is(notNullValue()));
 
         Path smbA = Paths.get(uriA);

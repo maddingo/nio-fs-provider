@@ -7,12 +7,11 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.org.bouncycastle.crypto.commitments.GeneralHashCommitter;
 
 import java.net.URI;
 import java.nio.file.*;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -31,10 +30,13 @@ public class DirectoryStreamIteratorTest {
 //        int port139 = samba.getMappedPort(139);
 //        int port445 = samba.getMappedPort(445);
 
+        Set<URI> args = new HashSet<>();
+        args.add(uri("smb://" + sambaAddress + "/public/My+Documents/Folder+One/"));
+        args.add(uri("smb://" + sambaAddress + "/public/My+Documents/Folder+Two/"));
         return Stream.of(
             Arguments.of(
                 uri("smb://" + sambaAddress + "/public"),
-                Set.of(uri("smb://" + sambaAddress + "/public/My+Documents/Folder+One/"), uri("smb://" + sambaAddress + "/public/My+Documents/Folder+Two/")))
+                args)
         );
     }
 
@@ -42,7 +44,10 @@ public class DirectoryStreamIteratorTest {
     @MethodSource("data")
     void directoryStreamIterator(URI shareUrl, Set<URI> childrenUrls) throws Exception {
 
-        FileSystem fileSystem = FileSystems.newFileSystem(shareUrl, Map.of("USERNAME", "admin", "PASSWORD", "admin"));
+        Map<String, String> env = new HashMap<>();
+        env.put("USERNAME", "admin");
+        env.put("PASSWORD", "admin");
+        FileSystem fileSystem = FileSystems.newFileSystem(shareUrl, env);
         assertThat(fileSystem, Matchers.is(notNullValue()));
         Path remotePath = fileSystem.getPath("/My Documents");
         Set<URI> fileNames = new HashSet<>();

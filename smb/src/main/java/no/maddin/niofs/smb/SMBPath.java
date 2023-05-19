@@ -1,13 +1,13 @@
 package no.maddin.niofs.smb;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -23,11 +23,17 @@ public class SMBPath implements Path {
     SMBPath(SMBShare share, String path) {
         this.share = share;
         this.path = path;
-        parts = Optional.ofNullable(path)
-            .map(p -> p.split("/")).stream()
-            .flatMap(Arrays::stream)
-            .filter(Predicate.not(String::isBlank))
-            .toArray(String[]::new);
+        if (path == null) {
+            throw new IllegalArgumentException("Path must not be null");
+        }
+        String[] parts = path.split("/");
+        List<String> partsList = new ArrayList<>(parts.length);
+        for (String part : parts) {
+            if (part.trim().length() > 0) {
+                partsList.add(part);
+            }
+        }
+        this.parts = partsList.toArray(new String[0]);
     }
 
     @Override
@@ -84,8 +90,18 @@ public class SMBPath implements Path {
     }
 
     @Override
+    public boolean startsWith(String other) {
+        return false;
+    }
+
+    @Override
     public boolean endsWith(Path other) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean endsWith(String other) {
+        return false;
     }
 
 
@@ -117,8 +133,19 @@ public class SMBPath implements Path {
     }
 
     @Override
+    public WatchKey register(WatchService watcher, WatchEvent.Kind<?>... events) throws IOException {
+        return null;
+    }
+
+    @Override
+    public Iterator<Path> iterator() {
+        return null;
+    }
+
+    @Override
     public int compareTo(Path other) {
-        if (other instanceof SMBPath smbPath) {
+        if (other instanceof SMBPath) {
+            SMBPath smbPath = (SMBPath) other;
             if (Objects.equals(this.share, smbPath.share)) {
                 String p0 = this.path == null ? "" : this.path;
                 String p1 = smbPath.path == null ? "" : smbPath.path;
@@ -132,7 +159,8 @@ public class SMBPath implements Path {
 
     @Override
     public boolean equals(Object other) {
-        if (other instanceof SMBPath smbPath) {
+        if (other instanceof SMBPath) {
+            SMBPath smbPath = (SMBPath) other;
             return this.compareTo(smbPath) == 0;
         }
         throw new IllegalArgumentException();
@@ -151,12 +179,17 @@ public class SMBPath implements Path {
 
     @Override
     public URI toUri() {
-        return share.toUri().resolve(URLEncoder.encode(path, StandardCharsets.UTF_8));
+        try {
+            return share.toUri().resolve(URLEncoder.encode(path, StandardCharsets.UTF_8.name()));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Path relativize(Path other) {
-        if (other instanceof SMBPath otherPath) {
+        if (other instanceof SMBPath) {
+            SMBPath otherPath = (SMBPath) other;
             if (!this.getFileSystem().equals(other.getFileSystem())) {
                 throw new IllegalArgumentException("Filesystems are different");
             }
@@ -174,8 +207,17 @@ public class SMBPath implements Path {
     }
 
     @Override
+    public Path resolveSibling(Path other) {
+        return null;
+    }
+
+    @Override
+    public Path resolveSibling(String other) {
+        return null;
+    }
+
+    @Override
     public Path resolve(Path other) {
         throw new UnsupportedOperationException();
     }
 }
-

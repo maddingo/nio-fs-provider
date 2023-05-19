@@ -121,7 +121,8 @@ public class SFTPPath implements Path {
 
     @Override
     public boolean startsWith(@NotNull String other) {
-        return false;
+        Path p = Paths.get(URI.create(other));
+        return this.startsWith(p);
     }
 
     @Override

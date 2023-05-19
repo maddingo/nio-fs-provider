@@ -16,10 +16,7 @@ import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Denotes a Windows share.
@@ -70,7 +67,7 @@ public class SMBShare extends FileSystem {
 
   @Override
   public Iterable<Path> getRootDirectories() {
-    return List.of(new SMBPath(this, getSeparator()));
+    return Collections.singletonList(new SMBPath(this, getSeparator()));
   }
 
   @Override
@@ -147,5 +144,15 @@ public class SMBShare extends FileSystem {
     return "smb:" + diskShare.getSmbPath().toString().replace('\\', '/');
   }
 
-  public record UsernamePassword(String username, String password, String domain){}
+  public static class UsernamePassword {
+    private final String username;
+    private final String password;
+    private final String domain;
+
+    public UsernamePassword(String username, String password, String domain) {
+      this.username = username;
+      this.password = password;
+      this.domain = domain;
+    }
+  }
 }

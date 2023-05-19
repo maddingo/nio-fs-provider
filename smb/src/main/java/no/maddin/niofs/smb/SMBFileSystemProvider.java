@@ -5,6 +5,7 @@ import com.hierynomus.smbj.SMBClient;
 import com.hierynomus.smbj.SmbConfig;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
@@ -83,16 +84,15 @@ public class SMBFileSystemProvider extends FileSystemProvider {
                     return Optional.empty();
                 }
             })
-            .or(() ->
+            .orElseGet(() ->
                 Optional.ofNullable(env)
                 .map(m -> {
                     String username = (String)m.get("USERNAME");
                     String password = (String) m.get("PASSWORD");
                     String domain = (String) m.get("DOMAIN");
                     return new SMBShare.UsernamePassword(username, password, domain);
-                })
-            )
-            .orElse(null);
+                }).orElse(null)
+            );
     }
 
     SMBParts splitURI(URI uri) {
@@ -104,10 +104,14 @@ public class SMBFileSystemProvider extends FileSystemProvider {
         if  (shareEndPos == -1) {
             shareEndPos = path.length();
         }
-        String share = URLDecoder.decode(path.substring(1, shareEndPos), StandardCharsets.UTF_8);
-        String file = URLDecoder.decode(path.substring(shareEndPos), StandardCharsets.UTF_8);
-
-        return new SMBParts(uri.getHost(), uri.getPort(), uri.getUserInfo(), share, file);
+        String share = null;
+        try {
+            share = URLDecoder.decode(path.substring(1, shareEndPos), StandardCharsets.UTF_8.name());
+            String file = URLDecoder.decode(path.substring(shareEndPos), StandardCharsets.UTF_8.name());
+            return new SMBParts(uri.getHost(), uri.getPort(), uri.getUserInfo(), share, file);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -224,13 +228,26 @@ public class SMBFileSystemProvider extends FileSystemProvider {
         throw new UnsupportedOperationException();
     }
 
-    public static SMBPath  smbPath(Path path) {
-        if (path instanceof SMBPath sp) {
-            return sp;
+    public static SMBPath smbPath(Path path) {
+        if (path instanceof SMBPath) {
+            return (SMBPath) path;
         }
         throw new ProviderMismatchException();
     }
 
-    public record SMBParts(String host, int port, String userinfo, String share, String path) {
+    public static class SMBParts {
+        public final String host;
+        public final int port;
+        public final String userinfo;
+        public final String share;
+        public final String path;
+
+        public SMBParts(String host, int port, String userinfo, String share, String path) {
+            this.host = host;
+            this.port = port;
+            this.userinfo = userinfo;
+            this.share = share;
+            this.path = path;
+        }
     }
 }

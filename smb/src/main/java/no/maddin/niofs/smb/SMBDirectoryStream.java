@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Iterates over SMB entries in an SMB directory. 
@@ -36,6 +37,7 @@ public class SMBDirectoryStream implements DirectoryStream<Path> {
         return share.getDiskShare().list(smbFile.getSmbPath()).stream()
             .map(finf -> new SMBPath(share, finf.getFileName()))
             .map(Path.class::cast)
-            .toList().iterator();
+            .collect(Collectors.toList())
+            .iterator();
     }
 }
