@@ -38,15 +38,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -249,13 +241,9 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 			if (!exists) {
 			    throw new NoSuchFileException(s);
 			}
-		} catch (NoSuchFileException e) {
-			log.warning("checkAccess: path:" + path.toString());
-			log.warning(e.getMessage() + newline + e.getStackTrace());
-			throw e;
 		} catch (IOException e) {
-			log.warning("checkAccess: path:" + path.toString());
-			log.warning(e.getMessage() + newline + e.getStackTrace());
+			log.warning(() -> "checkAccess: path: " + path);
+			log.warning(() ->  e.getMessage() + newline + Arrays.toString(e.getStackTrace()));
 			throw e;
 		}
     }
@@ -296,7 +284,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     }
 
     
-    class DirStream implements DirectoryStream<Path> {
+    static class DirStream implements DirectoryStream<Path> {
     	
     	ArrayList<Path> paths;
     	

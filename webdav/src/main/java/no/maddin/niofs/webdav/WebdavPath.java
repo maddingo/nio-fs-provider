@@ -30,11 +30,7 @@ import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 
 /**
@@ -156,9 +152,8 @@ public class WebdavPath implements Path {
             }
             if(p.endsWith(PATH_SEP)) 
             	p = p.substring(0,p.length()-1); //omit trailing slash
-            String ps[] = p.split(PATH_SEP);
-            for (String s : ps)
-            	elements.add(s);
+            String[] ps = p.split(PATH_SEP);
+            Collections.addAll(elements, ps);
         }    	
     }
     
