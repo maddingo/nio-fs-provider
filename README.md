@@ -8,8 +8,14 @@ nio-fs-provider
 
 - Snyk Status: [![Known Vulnerabilities](https://snyk.io/test/github/maddingo/nio-fs-provider/61f838dea1f59aff09699575f7dc95989a3836f3/badge.svg)](https://snyk.io/test/github/maddingo/nio-fs-provider/61f838dea1f59aff09699575f7dc95989a3836f3)
 
-- SonarCloud Status: [![SonarCloud Status](https://sonarcloud.io/api/project_badges/measure?project=no.maddin.niofs%3Anio-fs&metric=alert_status)](https://sonarcloud.io/dashboard?id=no.maddin.niofs%3Anio-fs)
+- Quality Gate Status: [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=maddingo_nio-fs-provider&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=maddingo_nio-fs-provider)
 
+- Vulnerabilities: [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=maddingo_nio-fs-provider&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=maddingo_nio-fs-provider)
+
+- Reliability Rating: [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=maddingo_nio-fs-provider&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=maddingo_nio-fs-provider)
+
+- Maintainability Rating: [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=maddingo_nio-fs-provider&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=maddingo_nio-fs-provider)
+  
 - Documentation: http://maddingo.github.io/nio-fs-provider
 
 FileSystemProviders for java.nio introduced in Java 7. 
