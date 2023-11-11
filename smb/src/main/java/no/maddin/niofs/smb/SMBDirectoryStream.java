@@ -34,10 +34,23 @@ public class SMBDirectoryStream implements DirectoryStream<Path> {
     @Override
     public Iterator<Path> iterator() {
         SMBShare share = smbFile.getShare();
-        return share.getDiskShare().list(smbFile.getSmbPath()).stream()
-            .map(finf -> new SMBPath(share, finf.getFileName()))
+        List<FileIdBothDirectoryInformation> list = share.getDiskShare().list(smbFile.getSmbPath());
+        return list.stream()
+            .map(finf -> new SMBPath(share, smbFile.getSmbPath() + share.getSeparator() + finf.getFileName()))
             .map(Path.class::cast)
+            .filter(this::accept)
             .collect(Collectors.toList())
             .iterator();
+    }
+
+    /**
+     * handle null filter and IOException
+     */
+    private boolean accept(Path path) {
+        try {
+            return filter == null || filter.accept(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

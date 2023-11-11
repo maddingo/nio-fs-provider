@@ -91,7 +91,7 @@ public class SMBPath implements Path {
 
     @Override
     public boolean startsWith(String other) {
-        return false;
+        return Objects.equals(this.parts[0], other);
     }
 
     @Override
@@ -101,7 +101,7 @@ public class SMBPath implements Path {
 
     @Override
     public boolean endsWith(String other) {
-        return false;
+        return Objects.equals(this.parts[this.parts.length - 1], other);
     }
 
 
@@ -179,11 +179,7 @@ public class SMBPath implements Path {
 
     @Override
     public URI toUri() {
-        try {
-            return share.toUri().resolve(URLEncoder.encode(path, StandardCharsets.UTF_8.name()));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        return URI.create(Optional.ofNullable(share).flatMap(o -> Optional.of(o.toString())).orElse("") + encodedPath());
     }
 
     @Override
@@ -219,5 +215,20 @@ public class SMBPath implements Path {
     @Override
     public Path resolve(Path other) {
         throw new UnsupportedOperationException();
+    }
+
+    private String encodedPath() {
+        StringBuilder sb = new StringBuilder();
+        try {
+            for (String part : parts) {
+                if (sb.length() > 0 || share != null) {
+                    sb.append(SMBShare.SMBFS_SEPARATOR);
+                }
+                sb.append(URLEncoder.encode(part, StandardCharsets.UTF_8.name()));
+            }
+            return sb.toString();
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

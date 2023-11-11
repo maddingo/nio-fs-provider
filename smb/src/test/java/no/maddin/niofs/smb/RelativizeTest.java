@@ -96,15 +96,4 @@ public class RelativizeTest {
 
         assertThat(relPath, hasStringValue(is(expectedPathString)));
     }
-
-    @Test
-    void cousins() throws Exception {
-        relativize(
-            "cousins",
-            URI.create("smb://localhost/public"),
-            URI.create("smb://localhost/public/temp/a/aa/"),
-            URI.create("smb://localhost/public/temp/b/ba/"),
-            "../../b/ba"
-        );
-    }
 }

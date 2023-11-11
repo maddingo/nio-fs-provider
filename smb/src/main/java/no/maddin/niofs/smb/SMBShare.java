@@ -23,6 +23,7 @@ import java.util.*;
  */
 public class SMBShare extends FileSystem {
 
+  public static final String SMBFS_SEPARATOR = "/";
   private final SMBFileSystemProvider provider;
 
   private final DiskShare diskShare;
@@ -62,7 +63,7 @@ public class SMBShare extends FileSystem {
 
   @Override
   public String getSeparator() {
-    return "/";
+    return SMBFS_SEPARATOR;
   }
 
   @Override
@@ -144,6 +145,7 @@ public class SMBShare extends FileSystem {
     return "smb:" + diskShare.getSmbPath().toString().replace('\\', '/');
   }
 
+  @SuppressWarnings("unused")
   public static class UsernamePassword {
     private final String username;
     private final String password;
@@ -153,6 +155,18 @@ public class SMBShare extends FileSystem {
       this.username = username;
       this.password = password;
       this.domain = domain;
+    }
+
+    public String getUsername() {
+      return username;
+    }
+
+    public String getPassword() {
+      return password;
+    }
+
+    public String getDomain() {
+      return domain;
     }
   }
 }

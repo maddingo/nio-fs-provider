@@ -1,13 +1,11 @@
 package no.maddin.niofs.smb;
 
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.org.bouncycastle.crypto.commitments.GeneralHashCommitter;
 
 import java.net.URI;
 import java.nio.file.*;
@@ -27,12 +25,10 @@ public class DirectoryStreamIteratorTest {
     static Stream<Arguments> data() {
 
         String sambaAddress = samba.getGuestIpAddress();
-//        int port139 = samba.getMappedPort(139);
-//        int port445 = samba.getMappedPort(445);
 
-        Set<URI> args = new HashSet<>();
-        args.add(uri("smb://" + sambaAddress + "/public/My+Documents/Folder+One/"));
-        args.add(uri("smb://" + sambaAddress + "/public/My+Documents/Folder+Two/"));
+        Set<URI> args = new TreeSet<>(Comparator.comparing(URI::toString));
+        args.add(uri("smb://" + sambaAddress + "/public/My+Documents/Folder+One"));
+        args.add(uri("smb://" + sambaAddress + "/public/My+Documents/Folder+Two"));
         return Stream.of(
             Arguments.of(
                 uri("smb://" + sambaAddress + "/public"),
@@ -42,7 +38,7 @@ public class DirectoryStreamIteratorTest {
 
     @ParameterizedTest
     @MethodSource("data")
-    void directoryStreamIterator(URI shareUrl, Set<URI> childrenUrls) throws Exception {
+    void directoryStreamIterator(URI shareUrl, SortedSet<URI> childrenUrls) throws Exception {
 
         Map<String, String> env = new HashMap<>();
         env.put("USERNAME", "admin");
@@ -50,8 +46,8 @@ public class DirectoryStreamIteratorTest {
         FileSystem fileSystem = FileSystems.newFileSystem(shareUrl, env);
         assertThat(fileSystem, Matchers.is(notNullValue()));
         Path remotePath = fileSystem.getPath("/My Documents");
-        Set<URI> fileNames = new HashSet<>();
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(remotePath, entry -> !Files.isSymbolicLink(entry) && !entry.startsWith("."))) {
+        SortedSet<URI> fileNames = new TreeSet<>(Comparator.comparing(URI::toString));
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(remotePath, entry -> !entry.endsWith(".") && !entry.endsWith(".."))) {
             for (Path path : directoryStream) {
                 fileNames.add(path.toUri());
             }
