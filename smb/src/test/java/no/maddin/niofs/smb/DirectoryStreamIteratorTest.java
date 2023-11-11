@@ -1,11 +1,11 @@
 package no.maddin.niofs.smb;
 
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.net.URI;
 import java.nio.file.*;
@@ -16,24 +16,15 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+@Testcontainers
 public class DirectoryStreamIteratorTest {
 
-    public static SambaContainer samba;
-
-    @BeforeAll
-    static void startContainer() {
-        samba = new SambaContainer("target/test-classes/smb");
-    }
-
-    @AfterAll
-    static void stopContainer() {
-        samba.stop();
-    }
+    @Container
+    public static SambaContainer samba = new SambaContainer("target/test-classes/smb");
 
     static Stream<Arguments> data() {
 
         String sambaAddress = samba.getGuestIpAddress();
-        Integer sambaPort = samba.getMappedPort(445);
 
         Set<URI> args = new TreeSet<>(Comparator.comparing(URI::toString));
         args.add(uri("smb://" + sambaAddress + "/public/My+Documents/Folder+One"));
