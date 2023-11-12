@@ -39,8 +39,8 @@ public class SMBFileSystemProvider extends FileSystemProvider {
     public SMBFileSystemProvider() {
 
         SmbConfig config = SmbConfig.builder()
-            .withTimeout(120, TimeUnit.SECONDS) // Timeout sets Read, Write, and Transact timeouts (default is 60 seconds)
-            .withSoTimeout(180, TimeUnit.SECONDS) // Socket Timeout (default is 0 seconds, blocks forever)
+            .withTimeout(3, TimeUnit.MINUTES) // Timeout sets Read, Write, and Transact timeouts (default is 60 seconds)
+            .withSoTimeout(0, TimeUnit.MINUTES) // Socket Timeout (default is 0 seconds, blocks forever)
             .build();
 
         client = new SMBClient(config);

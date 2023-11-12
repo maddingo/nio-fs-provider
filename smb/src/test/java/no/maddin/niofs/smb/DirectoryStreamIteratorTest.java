@@ -40,6 +40,7 @@ public class DirectoryStreamIteratorTest {
     @MethodSource("data")
     void directoryStreamIterator(URI shareUrl, SortedSet<URI> childrenUrls) throws Exception {
 
+        Thread.sleep(30_000L); // seems like the container is not ready, even though the health check is ok
         Map<String, String> env = new HashMap<>();
         env.put("USERNAME", "admin");
         env.put("PASSWORD", "admin");
