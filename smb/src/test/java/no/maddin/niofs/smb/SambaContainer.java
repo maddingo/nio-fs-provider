@@ -4,6 +4,7 @@ import com.github.dockerjava.api.model.ContainerNetwork;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
+import java.net.Socket;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.function.Supplier;
@@ -41,6 +42,17 @@ public class SambaContainer extends GenericContainer<SambaContainer> {
         } else{
             return supplier.get();
         }
+    }
+
+    @Override
+    public void start() {
+        super.start();
+        try {
+            Thread.sleep(30_000L); // seems like the container is not ready, even though the health check is ok
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     public String getGuestIpAddress() {

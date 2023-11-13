@@ -1,6 +1,7 @@
 package no.maddin.niofs.smb;
 
 import com.hierynomus.smbj.auth.AuthenticationContext;
+import com.hierynomus.smbj.common.SmbPath;
 import com.hierynomus.smbj.connection.Connection;
 import com.hierynomus.smbj.session.Session;
 import com.hierynomus.smbj.share.DiskShare;
@@ -38,7 +39,12 @@ public class SMBShare extends FileSystem {
     // Connect to Share
     diskShare = (DiskShare) session.connectShare(share);
   }
-  
+
+  SMBShare() {
+    this.provider = null;
+    this.diskShare = null;
+  }
+
   @Override
   public FileSystemProvider provider() {
     return provider;
@@ -142,6 +148,9 @@ public class SMBShare extends FileSystem {
 
   @Override
   public String toString() {
+    if (diskShare == null) {
+      return "";
+    }
     return "smb:" + diskShare.getSmbPath().toString().replace('\\', '/');
   }
 

@@ -1,6 +1,7 @@
 package no.maddin.niofs.smb;
 
 import org.hamcrest.Matchers;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -27,28 +28,49 @@ public class DirectoryStreamIteratorTest {
         String sambaAddress = samba.getGuestIpAddress();
 
         Set<URI> args = new TreeSet<>(Comparator.comparing(URI::toString));
-        args.add(uri("smb://" + sambaAddress + "/public/My+Documents/Folder+One"));
-        args.add(uri("smb://" + sambaAddress + "/public/My+Documents/Folder+Two"));
         return Stream.of(
             Arguments.of(
                 uri("smb://" + sambaAddress + "/public"),
-                args)
+                "/My Documents",
+                set(
+                    uri("smb://" + sambaAddress + "/public/My+Documents/Folder+One"),
+                    uri("smb://" + sambaAddress + "/public/My+Documents/Folder+Two")
+                ),
+                (DirectoryStream.Filter<Path>) (entry) -> !entry.endsWith(".") && !entry.endsWith("..")
+            ),
+            Arguments.of(
+                uri("smb://" + sambaAddress + "/public"),
+                "/My Documents/Folder One",
+                set(
+                    uri("smb://" + sambaAddress + "/public/My+Documents/Folder+One/README.txt"),
+                    uri("smb://" + sambaAddress + "/public/My+Documents/Folder+One/file1.txt")
+                ),
+                fileNameEndsWith(".txt")
+            )
+
         );
+    }
+
+    @NotNull
+    private static DirectoryStream.Filter<Path> fileNameEndsWith(String suffix) {
+        return (entry) -> Optional.ofNullable(entry.getFileName())
+            .map(Path::toString)
+            .filter(f -> f.endsWith(suffix))
+            .isPresent();
     }
 
     @ParameterizedTest
     @MethodSource("data")
-    void directoryStreamIterator(URI shareUrl, SortedSet<URI> childrenUrls) throws Exception {
+    void directoryStreamIterator(URI shareUrl, String parentPath, SortedSet<URI> childrenUrls, DirectoryStream.Filter<Path> filter) throws Exception {
 
-        Thread.sleep(30_000L); // seems like the container is not ready, even though the health check is ok
         Map<String, String> env = new HashMap<>();
         env.put("USERNAME", "admin");
         env.put("PASSWORD", "admin");
         FileSystem fileSystem = FileSystems.newFileSystem(shareUrl, env);
         assertThat(fileSystem, Matchers.is(notNullValue()));
-        Path remotePath = fileSystem.getPath("/My Documents");
+        Path remotePath = fileSystem.getPath(parentPath);
         SortedSet<URI> fileNames = new TreeSet<>(Comparator.comparing(URI::toString));
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(remotePath, entry -> !entry.endsWith(".") && !entry.endsWith(".."))) {
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(remotePath, filter)) {
             for (Path path : directoryStream) {
                 fileNames.add(path.toUri());
             }
@@ -60,4 +82,12 @@ public class DirectoryStreamIteratorTest {
     private static URI uri(String url) {
         return URI.create(url);
     }
+
+    @SafeVarargs
+    private static <T> SortedSet<T> set(T... elements) {
+        SortedSet<T> set = new TreeSet<>(Comparator.comparing(Object::toString));
+        Collections.addAll(set, elements);
+        return set;
+    }
+
 }

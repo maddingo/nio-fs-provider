@@ -8,7 +8,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
-import java.util.function.Predicate;
 
 /**
  * Denotes a path in an SMB share.
@@ -20,16 +19,19 @@ public class SMBPath implements Path {
 
     private final String[] parts;
 
+    private static final SMBShare EMPTY_SHARE = new SMBShare();
+
     SMBPath(SMBShare share, String path) {
-        this.share = share;
-        this.path = path;
-        if (path == null) {
-            throw new IllegalArgumentException("Path must not be null");
+        this.path = Objects.requireNonNull(path, "path must not be null");
+        if (!path.startsWith(SMBShare.SMBFS_SEPARATOR)) {
+            this.share = EMPTY_SHARE;
+        } else {
+            this.share = Objects.requireNonNull(share, "share must not be null");
         }
-        String[] parts = path.split("/");
+        String[] parts = path.split(SMBShare.SMBFS_SEPARATOR);
         List<String> partsList = new ArrayList<>(parts.length);
         for (String part : parts) {
-            if (part.trim().length() > 0) {
+            if (!part.trim().isEmpty()) {
                 partsList.add(part);
             }
         }
@@ -51,17 +53,20 @@ public class SMBPath implements Path {
 
     @Override
     public boolean isAbsolute() {
-        return share != null;
+        return path.startsWith(SMBShare.SMBFS_SEPARATOR);
     }
 
     @Override
     public Path getRoot() {
-        return new SMBPath(share, "/");
+        return new SMBPath(share, SMBShare.SMBFS_SEPARATOR);
     }
 
     @Override
     public Path getFileName() {
-        return null;
+        if (parts == null || parts.length == 0) {
+            return null;
+        }
+        return new SMBPath(getShare(), parts[parts.length - 1]);
     }
 
     @Override
@@ -134,12 +139,12 @@ public class SMBPath implements Path {
 
     @Override
     public WatchKey register(WatchService watcher, WatchEvent.Kind<?>... events) throws IOException {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Iterator<Path> iterator() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -191,7 +196,7 @@ public class SMBPath implements Path {
             }
             Path relPath = Paths.get(this.path).relativize(Paths.get(otherPath.path));
             // if the path starts with '/' it is an absolute Path
-            return new SMBPath(relPath.isAbsolute() ? share : null, relPath.toString());
+            return new SMBPath(share, relPath.toString());
         } else {
             throw new IllegalArgumentException("path is not a smb path");
         }
@@ -204,12 +209,12 @@ public class SMBPath implements Path {
 
     @Override
     public Path resolveSibling(Path other) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Path resolveSibling(String other) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
