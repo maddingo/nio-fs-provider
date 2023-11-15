@@ -1,6 +1,15 @@
 package no.maddin.niofs.smb;
 
+import com.hierynomus.smbj.auth.AuthenticationContext;
+import com.hierynomus.smbj.common.SmbPath;
+import com.hierynomus.smbj.connection.Connection;
+import com.hierynomus.smbj.session.Session;
+import com.hierynomus.smbj.share.DiskShare;
+import com.hierynomus.smbj.share.Share;
+
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -8,20 +17,34 @@ import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
-import java.security.Principal;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Denotes a Windows share.
  */
 public class SMBShare extends FileSystem {
 
+  public static final String SMBFS_SEPARATOR = "/";
   private final SMBFileSystemProvider provider;
 
-  public SMBShare(SMBFileSystemProvider provider, String server, String share, Principal principal) {
+  private final DiskShare diskShare;
+
+  SMBShare(SMBFileSystemProvider provider, String server, String share, UsernamePassword usernamePassword) throws IOException {
     this.provider = provider;
+
+    Connection connection = provider.getClient().connect(server);
+    AuthenticationContext auth = new AuthenticationContext(usernamePassword.username, usernamePassword.password.toCharArray(), usernamePassword.domain);
+    Session session = connection.authenticate(auth);
+
+    // Connect to Share
+    diskShare = (DiskShare) session.connectShare(share);
   }
-  
+
+  SMBShare() {
+    this.provider = null;
+    this.diskShare = null;
+  }
+
   @Override
   public FileSystemProvider provider() {
     return provider;
@@ -29,66 +52,130 @@ public class SMBShare extends FileSystem {
 
   @Override
   public void close() throws IOException {
-    // TODO Auto-generated method stub
+    diskShare.close();
   }
 
   @Override
   public boolean isOpen() {
-    // TODO Auto-generated method stub
-    return false;
+    return Optional.ofNullable(diskShare)
+        .map(Share::isConnected)
+        .orElse(Boolean.FALSE);
   }
 
   @Override
   public boolean isReadOnly() {
-    // TODO Auto-generated method stub
-    return false;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public String getSeparator() {
-    // TODO Auto-generated method stub
-    return null;
+    return SMBFS_SEPARATOR;
   }
 
   @Override
   public Iterable<Path> getRootDirectories() {
-    // TODO Auto-generated method stub
-    return null;
+    return Collections.singletonList(new SMBPath(this, getSeparator()));
   }
 
   @Override
   public Iterable<FileStore> getFileStores() {
-    // TODO Auto-generated method stub
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public Set<String> supportedFileAttributeViews() {
-    // TODO Auto-generated method stub
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public Path getPath(String first, String... more) {
-    // TODO Auto-generated method stub
-    return null;
+    // TODO handle "more"
+    return new SMBPath(this, first);
   }
 
   @Override
   public PathMatcher getPathMatcher(String syntaxAndPattern) {
-    // TODO Auto-generated method stub
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public UserPrincipalLookupService getUserPrincipalLookupService() {
-    // TODO Auto-generated method stub
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public WatchService newWatchService() throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+  public WatchService newWatchService() {
+    throw new UnsupportedOperationException();
+  }
+
+  public DiskShare getDiskShare() {
+    return diskShare;
+  }
+
+  URI toUri() {
+    try {
+      String share = Optional.ofNullable(diskShare.getSmbPath().getShareName())
+          .map(s -> {
+            if (s.startsWith(getSeparator())) {
+              return s;
+            } else {
+              return getSeparator() + s;
+            }
+          })
+          .orElse(getSeparator());
+      return new URI("smb", diskShare.getSmbPath().getHostname(), share, null);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    SMBShare smbShare = (SMBShare) o;
+    return Objects.equals(provider, smbShare.provider) && Objects.equals(diskShare, smbShare.diskShare);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(provider, diskShare);
+  }
+
+  @Override
+  public String toString() {
+    if (diskShare == null) {
+      return "";
+    }
+    return "smb:" + diskShare.getSmbPath().toString().replace('\\', '/');
+  }
+
+  @SuppressWarnings("unused")
+  public static class UsernamePassword {
+    private final String username;
+    private final String password;
+    private final String domain;
+
+    public UsernamePassword(String username, String password, String domain) {
+      this.username = username;
+      this.password = password;
+      this.domain = domain;
+    }
+
+    public String getUsername() {
+      return username;
+    }
+
+    public String getPassword() {
+      return password;
+    }
+
+    public String getDomain() {
+      return domain;
+    }
   }
 }

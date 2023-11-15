@@ -15,7 +15,6 @@
         <module>webdav</module>
         <module>smb</module>
         <module>test-util</module>
-        <module>util</module>
         <module>integration-tests</module>
     </modules>
 
@@ -338,6 +337,20 @@
                 <artifactId>hamcrest</artifactId>
                 <version>2.2</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>1.17.5</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-parent</artifactId>
+                <version>2.0.5</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
