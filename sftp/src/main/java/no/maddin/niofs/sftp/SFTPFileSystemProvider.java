@@ -18,9 +18,8 @@ import java.util.*;
  * FileSystemProvider for Secure FTP.
  */
 public class SFTPFileSystemProvider extends FileSystemProvider {
-    private static final String SFTP = "sftp";
-    private static final int DEFAULT_PORT = 22;
-    private final Map<URI, SFTPHost> hosts = new HashMap<>();
+    static final String SFTP = "sftp";
+    private final Map<URI, SFTPHost> hosts = Collections.synchronizedMap(new HashMap<>());
 
     private JSch jsch = new JSch();
 
@@ -36,7 +35,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     @Override
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
         try {
-            return getSFTPHost(uri, true);
+            return getSFTPHost(uri, true, true);
         } catch(URISyntaxException e) {
             throw new FileSystemException(e.toString());
         }
@@ -45,7 +44,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     @Override
     public FileSystem getFileSystem(URI uri) {
         try {
-            return getSFTPHost(uri, true);
+            return getSFTPHost(uri, true, false);
         } catch(URISyntaxException ex) {
             throw new FileSystemNotFoundException(uri.toString());
         }
@@ -54,7 +53,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     @Override
     public Path getPath(URI uri) {
         try {
-            SFTPHost host = getSFTPHost(uri, true);
+            SFTPHost host = getSFTPHost(uri, false, false);
             return new SFTPPath(host, uri.getPath());
         } catch(URISyntaxException e) {
             throw new FileSystemNotFoundException(uri.toString());
@@ -68,26 +67,20 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
      * @param create
      *        if {@code true} a new SFTPHost is created if none is registered.
      */
-    private SFTPHost getSFTPHost(URI uri, boolean create) throws URISyntaxException {
-        String host = uri.getHost();
-        if (host == null) {
-            throw new IllegalArgumentException(uri.toString());
-        }
-        int port = uri.getPort();
-        if (port == -1) {
-            port = DEFAULT_PORT;
-        }
-        String userInfo = uri.getUserInfo();
-        URI serverUri = new URI(getScheme(), userInfo, host, port, null, null, null);
+    private SFTPHost getSFTPHost(URI uri, boolean requireEmptyPath, boolean create) throws URISyntaxException {
+        URI serverUri = SFTPHost.getServerUri(uri, requireEmptyPath);
 
-        synchronized (hosts) {
-            SFTPHost fs = hosts.get(serverUri);
-            if (fs == null && create) {
-                fs = new SFTPHost(this, serverUri);
-                hosts.put(serverUri, fs);
+        SFTPHost fs = hosts.computeIfAbsent(serverUri, u -> {
+            if (create) {
+                return new SFTPHost(this, u);
+            } else {
+                return null;
             }
-            return fs;
+        });
+        if (fs == null) {
+            throw new FileSystemNotFoundException(uri.toString());
         }
+        return fs;
     }
 
     @Override
@@ -108,7 +101,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
         SFTPHost sftpHost = (SFTPHost)dir.getFileSystem();
 
-        String username = sftpHost.getUserName();
+        String username = sftpHost.getUsername();
         String host = sftpHost.getHost();
         int port = sftpHost.getPort();
         Session session;
@@ -199,5 +192,9 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     @Override
     public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException {
         throw new UnsupportedOperationException();
+    }
+
+    void removeCacheEntry(URI serverUri) {
+        hosts.remove(serverUri);
     }
 }

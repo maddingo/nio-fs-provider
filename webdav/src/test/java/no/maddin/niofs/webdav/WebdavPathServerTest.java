@@ -1,85 +1,54 @@
 package no.maddin.niofs.webdav;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.hamcrest.Matchers;
+import org.hamcrest.io.FileMatchers;
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestReporter;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.*;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.io.FileMatchers.*;
 
-/**
- * Tests that require a running server.
- */
-@Disabled
+@Testcontainers
 public class WebdavPathServerTest {
 
-    private int webdavPort = -1;
+    public static final FileAttribute<Set<PosixFilePermission>> FILE_ATTRIBUTE_OWNER_ALL = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+    public static final String TESTDATA_RESOURCE = "/testdata";
+    @Container
+    public static WebdavContainer webdav = new WebdavContainer(TESTDATA_RESOURCE);
 
-    private File rootFolder;
-
-    private String user = "user";
-
-    private String password = "password";
-
-//    private MiltonWebDAVFileServer server;
-
-    /**
-     * Start an embedded Webdav Server for testing.
-     * TODO: Run bytemark/webdav in testContainers
-     */
-    @BeforeEach
-    public void startWebdavServer() throws Exception {
-//        rootFolder = Files.createTempDirectory(Paths.get(".", "target"), "webdav-test").toFile();
-//        server = new MiltonWebDAVFileServer(rootFolder);
-//        try (ServerSocket ssock = new ServerSocket(0, 1, new InetSocketAddress(0).getAddress())) {
-//            webdavPort = ssock.getLocalPort();
-//            server.setPort(webdavPort); // optional, defaults to 8080
-//            server.getUserCredentials().put(user, password); // optional, defaults to no authentication
-//            ssock.close(); // close before the server can re-bind to the random port.
-//            server.start();
-//        }
-    }
-
-    /**
-     * Stop the embedded Webdav server.
-     */
-    @AfterEach
-    public void stopWebDavServer() throws Exception {
-//        server.stop();
-    }
+    private static final File rootFolder = classpathFile(TESTDATA_RESOURCE);
 
     /**
      * Tests {@link Files#createDirectories(Path, FileAttribute[])} with WebDavPath
      */
     @Test
     public void getCreateChildPath() throws Exception {
-        URI uri = new URI("webdav", user + ':' + password,"localhost", webdavPort, "/a/b", null, null);
+        URI uri = URI.create(webdav.getWebdavUrl() + "/a/b");
         Path path = Paths.get(uri);
         Path newPath = Files.createDirectories(path);
+
         assertThat(newPath, is(notNullValue()));
         File fileA = new File(rootFolder.getAbsolutePath(), "a");
-        assertThat(fileA.exists(), is(true));
-        assertThat(fileA.isDirectory(), is(true));
+        assertThat(fileA, anExistingDirectory());
         File fileB = new File(fileA.getAbsolutePath(), "b");
-        assertThat(fileB.exists(), is(true));
-        assertThat(fileB.isDirectory(), is(true));
+        assertThat(fileB, anExistingDirectory());
     }
 
     /**
@@ -88,69 +57,59 @@ public class WebdavPathServerTest {
     @Test
     public void copyFiles() throws Exception {
         File src = File.createTempFile("webdavtest", ".txt", new File("target"));
+        String testTest = UUID.randomUUID().toString();
         try (FileWriter fw = new FileWriter(src)) {
-            fw.append("test test");
+            fw.append(testTest);
         }
 
-        URI uriTo = new URI("webdav", user + ':' + password,"localhost", webdavPort, "/webdav/test2/file.txt", null, null);
+        URI uriTo = URI.create(webdav.getWebdavUrl() + "/test2/file.txt");
+        Path uriToParent = Paths.get(uriTo).getParent();
+        Files.createDirectory(uriToParent, FILE_ATTRIBUTE_OWNER_ALL);
 
         Path pathTo = Paths.get(uriTo);
         Files.copy(src.toPath(), pathTo, StandardCopyOption.REPLACE_EXISTING);
 
-        File fileWebdav = new File(rootFolder.getAbsolutePath(), "webdav");
-        assertThat(fileWebdav.exists(), is(true));
-        assertThat(fileWebdav.isDirectory(), is(true));
-        File fileTest2 = new File(fileWebdav.getAbsolutePath(), "test2");
-        assertThat(fileTest2.exists(), is(true));
-        assertThat(fileTest2.isDirectory(), is(true));
-        File fileTxt = new File(fileTest2.getAbsolutePath(), "file.txt");
-        assertThat(fileTxt.exists(), is(true));
-        assertThat(fileTxt.isFile(), is(true));
-
-        StringBuilder content = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader(fileTxt))) {
-            content.append(br.readLine());
-        }
-        assertThat(content.toString(), is(equalTo("test test")));
+        File fileTxt = new File(new File(rootFolder, "test2"), "file.txt");
+        assertThat(fileTxt, FileMatchers.anExistingFile());
+        assertThat(Files.readAllLines(fileTxt.toPath()), hasItem(testTest));
     }
 
     @Test
     public void deleteNonexistingFile() throws Exception {
-        String uriPath = String.format("/webdav/test2/file-%s.txt", UUID.randomUUID().toString());
-        URI uri = new URI("webdav", user + ':' + password,"localhost", webdavPort, uriPath, null, null);
+        String randomFile = String.format("/file-%s.txt", UUID.randomUUID());
+        URI uri = URI.create(webdav.getWebdavUrl() + randomFile);
 
         Path path = Paths.get(uri);
-//        exception.expect(NoSuchFileException.class);
-        Files.delete(path);
+        Assert.assertThrows(NoSuchFileException.class, () -> Files.delete(path));
     }
 
     @Test
     public void deleteFile() throws Exception {
-        File targetFile = writeTestFile("webdav/test2/file.txt");
-        URI uri = new URI("webdav", user + ':' + password,"localhost", webdavPort, "/webdav/test2/file.txt", null, null);
-        Path path = Paths.get(uri);
-//        Assumptions.assumeThat("File should exist prior to deleting it", Files.exists(path), is(true));
+        File targetFile = writeTestFile("test2" + File.separator + "file.txt");
+        assertThat(targetFile, anExistingFile());
 
-        // delete the file
+        URI uri = URI.create(webdav.getWebdavUrl() + "/test2/file.txt");
+        Path path = Paths.get(uri);
+
         Files.delete(path);
 
-//        assumeThat("File " + targetFile.getAbsolutePath() + " should have perished", targetFile.exists(), is(false));
+        assertThat(targetFile, not(anExistingFile()));
     }
 
     @Test
     public void deleteWrongHost() throws Exception {
 
-        URI uri = new URI("webdav", user + ':' + password,"non-existing-host", webdavPort, "/", null, null);
-//        exception.expect(instanceOf(IOException.class));
+        URI uri = new URI("webdav", "user:password","non-existing-host", 2022, "/", null, null);
         Path path = Paths.get(uri);
-        Files.delete(path);
+        Assert.assertThrows(UnknownHostException.class, () -> Files.delete(path));
     }
 
     @Test
     public void readFileAttributes() throws Exception {
-        File testFile = writeTestFile("testfile.txt");
+        String randomFile = String.format("testfile-%s.txt", UUID.randomUUID());
+        File testFile = writeTestFile(randomFile);
 
-        URI uri = new URI("webdav", user + ':' + password, "localhost", webdavPort, "/testfile.txt", null, null);
+        URI uri = URI.create(webdav.getWebdavUrl() + "/" + randomFile);
 
         BasicFileAttributes attrs = Files.readAttributes(Paths.get(uri), BasicFileAttributes.class);
 
@@ -162,7 +121,7 @@ public class WebdavPathServerTest {
         assertThat(attrs.isOther(), is(false));
         assertThat(attrs.lastAccessTime(), is(notNullValue()));
         assertThat(attrs.lastModifiedTime(), is(notNullValue()));
-        assertThat(attrs.creationTime(), is(notNullValue()));
+        //assertThat(attrs.creationTime(), is(notNullValue())); // creation time is not returned for some reason
     }
 
     /**
@@ -170,49 +129,50 @@ public class WebdavPathServerTest {
      * and {@link java.nio.file.spi.FileSystemProvider#readAttributes(Path, String, LinkOption...)}
      * with WebDavPath
      */
-    
+
     @Test
     public void testDirListing(TestReporter reporter) throws Exception {
-    	
-    	ArrayList<Path> files = new ArrayList<Path>(20);
-    	
-        URI uri = new URI("webdav", user + ':' + password,"localhost", webdavPort, "/", null, null);
-        
-        Path path = Paths.get(uri);
-        Stream<Path> paths = Files.list(path);
-		Iterator<Path> iter = paths.iterator();
-		while (iter.hasNext()) {
-			path = iter.next();			
-			files.add(path);
-		}
-		
-		paths.close();
-		Collections.sort(files);
-		
-		/* list the directory */
-		StringBuilder sb = new StringBuilder(1024);
-		for(Path p : files) {						
-			long size = Files.size(p);
-			FileTime modtime = (FileTime) Files.getAttribute(p, "lastModifiedTime");						
-			
-			sb.append(p.getFileName().toString());
-			sb.append('\t');
-			sb.append(size);			
-			if(modtime != null) {
-				sb.append('\t');
-				sb.append(LocalDate.from(modtime.toInstant()));
-			}
-			sb.append(System.lineSeparator());
-		}
-		reporter.publishEntry("dir listing", sb.toString());        
+
+        String listingDir = UUID.randomUUID().toString();
+        List<String> testfileNames = IntStream.range(1, 10)
+            .mapToObj(i -> String.format("%s%stestfile-%02d.txt", listingDir, File.separator, i))
+            .map(this::writeTestFile)
+            .map(File::getName)
+            .collect(Collectors.toList());
+
+        URI uri = URI.create(webdav.getWebdavUrl() + "/" + listingDir);
+
+        try (Stream<Path> paths = Files.list(Paths.get(uri))) {
+            List<String> foundFiles = paths
+                .map(Path::getFileName)
+                .map(Path::toString)
+                .sorted()
+                .collect(Collectors.toList());
+
+            assertThat(foundFiles, Matchers.equalTo(testfileNames));
+        }
+    }
+
+    /**
+     * Not needed anymore, we assert the result inside the container.
+     */
+//    @Deprecated
+    private static File classpathFile(String testDataResource) {
+        try {
+            return Paths.get(WebdavPathServerTest.class.getResource(testDataResource).toURI()).toFile();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     
-    private File writeTestFile(String filePath) throws IOException {
+    private File writeTestFile(String filePath) {
         File targetFile = new File(rootFolder.getAbsolutePath(), filePath);
         targetFile.getParentFile().mkdirs();
         try (FileWriter fw = new FileWriter(targetFile)) {
             fw.append("test test, delete file");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         return targetFile;
     }

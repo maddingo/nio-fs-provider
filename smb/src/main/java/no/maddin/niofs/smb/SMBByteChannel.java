@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 
-import jcifs.smb.SmbFileOutputStream;
-
 /**
  * Implementation of {@link SeekableByteChannel} for writing SMB files.
  * 
@@ -14,21 +12,19 @@ import jcifs.smb.SmbFileOutputStream;
 public class SMBByteChannel implements SeekableByteChannel {
 
   private final SMBPath path;
-  private SmbFileOutputStream out;
 
-  public SMBByteChannel(SMBPath smbPath) throws IOException {
+  SMBByteChannel(SMBPath smbPath) throws IOException {
     this.path = smbPath;
-    out = new SmbFileOutputStream(path.getSmbFile());
   }
 
   @Override
   public boolean isOpen() {
-    return out.isOpen();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public void close() throws IOException {
-    out.close();
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -38,13 +34,7 @@ public class SMBByteChannel implements SeekableByteChannel {
 
   @Override
   public int write(ByteBuffer src) throws IOException {
-    int len = src.remaining();
-    byte[] buf = new byte[len];
-    while (src.hasRemaining()) {
-      src.get(buf);
-      out.write(buf);
-    }
-    return len;
+    throw new UnsupportedOperationException();
   }
 
   @Override

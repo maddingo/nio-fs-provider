@@ -12,3 +12,5 @@ target/
 nio-test.xml
 
 pom.xml.versionsBackup
+
+*.orig
