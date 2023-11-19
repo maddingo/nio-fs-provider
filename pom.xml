@@ -246,7 +246,7 @@
         <site>
             <id>github</id>
             <name>Deployment through GitHub's site deployment plugin</name>
-            <url>site/${project.version}</url>
+            <url>https://maddingo.github.io/nio-fs-provider/site/${project.version}</url>
         </site>
     </distributionManagement>
 
@@ -255,7 +255,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.6.2</version>
                 <reportSets>
                     <reportSet>
                         <id>aggregate</id>
@@ -298,10 +298,10 @@
                             <report>dependencies</report>
                             <report>dependency-convergence</report>
                             <report>dependency-info</report>
-                            <report>project-team</report>
-                            <report>cim</report>
+                            <report>team</report>
+                            <report>issue-management</report>
                             <report>scm</report>
-                            <report>license</report>
+                            <report>licenses</report>
                             <report>plugins</report>
                         </reports>
                     </reportSet>
