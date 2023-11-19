@@ -16,7 +16,7 @@ public class WebdavContainer extends GenericContainer<WebdavContainer> {
     public static final String USERNAME = "user";
     private static final String PASSWORD = "secret";
 
-    public WebdavContainer() {
+    public WebdavContainer(String testDataResource) {
         super("drakkan/sftpgo:v2.5.5");
         this
             .withCreateContainerCmdModifier(cmd -> cmd.withUser(userString()))
@@ -40,7 +40,7 @@ public class WebdavContainer extends GenericContainer<WebdavContainer> {
                 "--log-level",
                 "debug"
             )
-            .withClasspathResourceMapping("/testdata", "/srv/sftpgo", BindMode.READ_WRITE)
+            .withClasspathResourceMapping(testDataResource, "/srv/sftpgo", BindMode.READ_WRITE)
             .withClasspathResourceMapping("/sftpgo-config", "/var/lib/sftpgo", BindMode.READ_WRITE)
             .withExposedPorts(WEBDAV_PORT, SFTP_PORT)
             .waitingFor(Wait.forHttp("/").forPort(WEBDAV_PORT).withBasicCredentials(USERNAME, PASSWORD).forStatusCode(207));
