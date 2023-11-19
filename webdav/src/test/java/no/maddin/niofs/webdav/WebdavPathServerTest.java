@@ -21,10 +21,6 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 
-/**
- * Tests that require a running server.
- * If we map the host file, we get problems with the file permissions, so we keep everything in the container.
- */
 @Testcontainers
 public class WebdavPathServerTest {
 
@@ -42,8 +38,12 @@ public class WebdavPathServerTest {
         Path path = Paths.get(uri);
         Path newPath = Files.createDirectories(path);
         assertThat(newPath, is(notNullValue()));
-        ExecResult result = webdav.execInContainer("ls", "-1", "-R", "/tmp");
-        assertThat(result.getStdout(), equalTo("/tmp:\na\n\n/tmp/a:\nb\n\n/tmp/a/b:\n"));
+        File fileA = new File(rootFolder.getAbsolutePath(), "a");
+        assertThat(fileA.exists(), is(true));
+        assertThat(fileA.isDirectory(), is(true));
+        File fileB = new File(fileA.getAbsolutePath(), "b");
+        assertThat(fileB.exists(), is(true));
+        assertThat(fileB.isDirectory(), is(true));
     }
 
     /**
@@ -174,11 +174,12 @@ public class WebdavPathServerTest {
     /**
      * Not needed anymore, we assert the result inside the container.
      */
-    @Deprecated
+//    @Deprecated
     private static File classpathFile() {
         try {
-            return Files.createTempDirectory("test").toFile();
-        } catch (IOException e) {
+            return Paths.get(WebdavPathServerTest.class.getResource("/testdata").toURI()).toFile();
+//            return Files.createTempDirectory("test").toFile();
+        } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
