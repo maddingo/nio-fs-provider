@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.is;
 
-public class PathServerOperations {
+public class PathServerOperationsIT {
 
     public static Stream<Arguments> data() {
         return Stream.of(
@@ -18,7 +18,7 @@ public class PathServerOperations {
 
     @ParameterizedTest
     @MethodSource("data")
-    private void startSftpServer(String uriString, Matcher<?> expected) {
+    void startSftpServer(String uriString, Matcher<?> expected) {
 
     }
 }
