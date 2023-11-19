@@ -99,7 +99,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-    	log.fine("createDIrectory");
+    	log.fine("createDirectory");
 
         if (!(dir instanceof WebdavPath)) {
             throw new IllegalArgumentException(dir.toString());

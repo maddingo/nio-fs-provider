@@ -1,0 +1,21 @@
+# Use this file during development instead of the TestContainer
+version: '2.4'
+
+services:
+    smb:
+        image: dperson/samba
+        container_name: smb
+        restart: always
+        ports:
+        - '139:139'
+        - '445:445'
+        volumes:
+        - './target/test-classes/smb:/mount'
+        command:
+            - '-s'
+            - 'public;/mount'
+        environment:
+#        - USERID=1000
+#        - GROUPID=1000
+        - WORKGROUP=TEST
+        - TZ=Europe/Berlin
