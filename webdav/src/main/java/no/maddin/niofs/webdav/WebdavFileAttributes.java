@@ -4,6 +4,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.Optional;
 
 import com.github.sardine.DavResource;
 
@@ -63,6 +64,6 @@ public class WebdavFileAttributes implements BasicFileAttributes {
 
     @Override
     public FileTime creationTime() {
-        return FileTime.fromMillis(res.getCreation().getTime());
+        return Optional.ofNullable(res.getCreation()).map(Date::getTime).map(FileTime::fromMillis).orElse(null);
     }
 }
