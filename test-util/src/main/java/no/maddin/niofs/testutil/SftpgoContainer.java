@@ -15,6 +15,8 @@ public class SftpgoContainer extends GenericContainer<SftpgoContainer> implement
     private static final int WEBDAV_PORT = 8088;
     private static final int SFTP_PORT = 2022;
     public static final String USERNAME = "user";
+
+    @SuppressWarnings("java:S2068")
     private static final String PASSWORD = "secret";
 
     public SftpgoContainer(String testDataResource) {
