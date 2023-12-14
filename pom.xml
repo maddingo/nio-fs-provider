@@ -147,7 +147,7 @@
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.10</version>
+                    <version>0.8.11</version>
                 </plugin>
                 <plugin>
                     <groupId>org.sonarsource.scanner.maven</groupId>
@@ -246,7 +246,7 @@
         <site>
             <id>github</id>
             <name>Deployment through GitHub's site deployment plugin</name>
-            <url>site/${project.version}</url>
+            <url>https://maddingo.github.io/nio-fs-provider/site/${project.version}</url>
         </site>
     </distributionManagement>
 
@@ -255,7 +255,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.6.2</version>
                 <reportSets>
                     <reportSet>
                         <id>aggregate</id>
@@ -269,7 +269,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jxr-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.3.1</version>
                 <reportSets>
                     <reportSet>
                         <id>aggregate</id>
@@ -298,10 +298,10 @@
                             <report>dependencies</report>
                             <report>dependency-convergence</report>
                             <report>dependency-info</report>
-                            <report>project-team</report>
-                            <report>cim</report>
+                            <report>team</report>
+                            <report>issue-management</report>
                             <report>scm</report>
-                            <report>license</report>
+                            <report>licenses</report>
                             <report>plugins</report>
                         </reports>
                     </reportSet>
@@ -328,7 +328,7 @@
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>5.9.2</version>
+                <version>5.10.1</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -341,7 +341,7 @@
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers-bom</artifactId>
-                <version>1.17.5</version>
+                <version>1.19.3</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
