@@ -1,7 +1,5 @@
 package no.maddin.niofs.sftp;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -49,7 +47,6 @@ public class SFTPHost extends FileSystem {
         return new UserInfo(un, pw);
     }
 
-    @NotNull
     static URI getServerUri(URI uri, boolean requireEmptyPath) throws URISyntaxException {
         String host = uri.getHost();
         if (host == null) {

@@ -1,23 +1,21 @@
 package no.maddin.niofs.webdav;
 
+import no.maddin.niofs.testutil.FileUtils;
+import no.maddin.niofs.testutil.SftpgoContainer;
 import org.hamcrest.Matchers;
 import org.hamcrest.io.FileMatchers;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestReporter;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.*;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -31,9 +29,9 @@ public class WebdavPathServerTest {
     public static final FileAttribute<Set<PosixFilePermission>> FILE_ATTRIBUTE_OWNER_ALL = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
     public static final String TESTDATA_RESOURCE = "/testdata";
     @Container
-    public static WebdavContainer webdav = new WebdavContainer(TESTDATA_RESOURCE);
+    public static SftpgoContainer webdav = new SftpgoContainer(TESTDATA_RESOURCE);
 
-    private static final File rootFolder = classpathFile(TESTDATA_RESOURCE);
+    private static final File rootFolder = FileUtils.classpathFile(WebdavPathServerTest.class, TESTDATA_RESOURCE);
 
     /**
      * Tests {@link Files#createDirectories(Path, FileAttribute[])} with WebDavPath
@@ -85,7 +83,7 @@ public class WebdavPathServerTest {
 
     @Test
     public void deleteFile() throws Exception {
-        File targetFile = writeTestFile("test2" + File.separator + "file.txt");
+        File targetFile = FileUtils.writeTestFile(new File(rootFolder, "test2"), "file.txt");
         assertThat(targetFile, anExistingFile());
 
         URI uri = URI.create(webdav.getWebdavUrl() + "/test2/file.txt");
@@ -99,7 +97,7 @@ public class WebdavPathServerTest {
     @Test
     public void deleteWrongHost() throws Exception {
 
-        URI uri = new URI("webdav", "user:password","non-existing-host", 2022, "/", null, null);
+        URI uri = new URI("webdav", "user:password", "non-existing-host", 2022, "/", null, null);
         Path path = Paths.get(uri);
         Assert.assertThrows(UnknownHostException.class, () -> Files.delete(path));
     }
@@ -107,7 +105,7 @@ public class WebdavPathServerTest {
     @Test
     public void readFileAttributes() throws Exception {
         String randomFile = String.format("testfile-%s.txt", UUID.randomUUID());
-        File testFile = writeTestFile(randomFile);
+        File testFile = FileUtils.writeTestFile(rootFolder, randomFile);
 
         URI uri = URI.create(webdav.getWebdavUrl() + "/" + randomFile);
 
@@ -131,14 +129,10 @@ public class WebdavPathServerTest {
      */
 
     @Test
-    public void testDirListing(TestReporter reporter) throws Exception {
+    public void testDirListing() throws Exception {
 
         String listingDir = UUID.randomUUID().toString();
-        List<String> testfileNames = IntStream.range(1, 10)
-            .mapToObj(i -> String.format("%s%stestfile-%02d.txt", listingDir, File.separator, i))
-            .map(this::writeTestFile)
-            .map(File::getName)
-            .collect(Collectors.toList());
+        List<String> testfileNames = FileUtils.createFilesInDir(rootFolder, listingDir, 10);
 
         URI uri = URI.create(webdav.getWebdavUrl() + "/" + listingDir);
 
@@ -153,27 +147,4 @@ public class WebdavPathServerTest {
         }
     }
 
-    /**
-     * Not needed anymore, we assert the result inside the container.
-     */
-//    @Deprecated
-    private static File classpathFile(String testDataResource) {
-        try {
-            return Paths.get(WebdavPathServerTest.class.getResource(testDataResource).toURI()).toFile();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    
-    private File writeTestFile(String filePath) {
-        File targetFile = new File(rootFolder.getAbsolutePath(), filePath);
-        targetFile.getParentFile().mkdirs();
-        try (FileWriter fw = new FileWriter(targetFile)) {
-            fw.append("test test, delete file");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return targetFile;
-    }
 }

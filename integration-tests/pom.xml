@@ -25,6 +25,18 @@
             <groupId>no.maddin.niofs</groupId>
             <artifactId>nio-fs-sftp</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>no.maddin.niofs</groupId>
+            <artifactId>nio-fs-test-util</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

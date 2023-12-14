@@ -1,6 +1,6 @@
 package no.maddin.niofs.sftp;
 
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,7 +10,6 @@ import java.nio.file.*;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * A Path implementation for SFTP.
@@ -99,12 +98,12 @@ public class SFTPPath implements Path {
     }
 
     @Override
-    public Path getName(int index) {
+    public @NotNull Path getName(int index) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public Path subpath(int beginIndex, int endIndex) {
+    public @NotNull Path subpath(int beginIndex, int endIndex) {
         return new SFTPPath(beginIndex == 0 ? host : null, combineParts(0, endIndex));
     }
 
@@ -126,7 +125,7 @@ public class SFTPPath implements Path {
     }
 
     @Override
-    public boolean endsWith(Path other) {
+    public boolean endsWith(@NotNull Path other) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
@@ -139,37 +138,37 @@ public class SFTPPath implements Path {
      * SFTPPAths are normalized at creation time. This just returns itself.
      */
     @Override
-    public Path normalize() {
+    public @NotNull Path normalize() {
         return this;
     }
 
     @Override
-    public Path resolve(Path other) {
+    public @NotNull Path resolve(@NotNull Path other) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public Path resolve(String other) {
+    public @NotNull Path resolve(@NotNull String other) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public Path resolveSibling(Path other) {
+    public @NotNull Path resolveSibling(@NotNull Path other) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public Path resolveSibling(String other) {
+    public @NotNull Path resolveSibling(@NotNull String other) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public Path relativize(Path other) {
+    public @NotNull Path relativize(@NotNull Path other) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public URI toUri() {
+    public @NotNull URI toUri() {
 
         try {
             String userInfo = null;
@@ -188,37 +187,37 @@ public class SFTPPath implements Path {
     }
 
     @Override
-    public Path toAbsolutePath() {
+    public @NotNull Path toAbsolutePath() {
         return normalize();
     }
 
     @Override
-    public Path toRealPath(LinkOption... options) throws IOException {
+    public @NotNull Path toRealPath(LinkOption @NotNull ... options) throws IOException {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public File toFile() {
+    public @NotNull File toFile() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public WatchKey register(WatchService watcher, Kind<?>[] events, Modifier... modifiers) throws IOException {
+    public @NotNull WatchKey register(@NotNull WatchService watcher, Kind<?> @NotNull [] events, Modifier... modifiers) throws IOException {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public WatchKey register(WatchService watcher, Kind<?>... events) throws IOException {
+    public @NotNull WatchKey register(@NotNull WatchService watcher, Kind<?> @NotNull ... events) throws IOException {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public Iterator<Path> iterator() {
+    public @NotNull Iterator<Path> iterator() {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public int compareTo(Path other) {
+    public int compareTo(@NotNull Path other) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
