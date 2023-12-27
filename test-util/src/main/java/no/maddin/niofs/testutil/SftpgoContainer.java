@@ -47,9 +47,9 @@ public class SftpgoContainer extends GenericContainer<SftpgoContainer> implement
             .withClasspathResourceMapping("/sftpgo-config", "/var/lib/sftpgo", BindMode.READ_WRITE)
             .withExposedPorts(WEBDAV_PORT, SFTP_PORT)
             .waitingFor(Wait.forHttp("/").forPort(WEBDAV_PORT).withBasicCredentials(USERNAME, PASSWORD).forStatusCode(207));
-        ;
     }
 
+    @SuppressWarnings("java:S112")
     @NotNull
     private static String userString() {
         if (!System.getProperty("os.name").toLowerCase().contains("linux")) {

@@ -129,7 +129,7 @@ public class WebdavPathServerTest {
      */
 
     @Test
-    public void testDirListing() throws Exception {
+    void testDirListing() throws Exception {
 
         String listingDir = UUID.randomUUID().toString();
         List<String> testfileNames = FileUtils.createFilesInDir(rootFolder, listingDir, 10);
@@ -146,5 +146,4 @@ public class WebdavPathServerTest {
             assertThat(foundFiles, Matchers.equalTo(testfileNames));
         }
     }
-
 }

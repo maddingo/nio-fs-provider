@@ -17,6 +17,7 @@ public class FileUtils {
     private FileUtils() {
     }
 
+    @SuppressWarnings("java:S112")
     public static File classpathFile(Class<?> hostClass, String testDataResource) {
         try {
             return Paths.get(hostClass.getResource(testDataResource).toURI()).toFile();
@@ -25,6 +26,7 @@ public class FileUtils {
         }
     }
 
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "java:S112"})
     public static File writeTestFile(File parent, String fileName) {
         File targetFile = new File(parent, fileName);
         targetFile.getParentFile().mkdirs();
@@ -37,12 +39,11 @@ public class FileUtils {
     }
 
     public static List<String> createFilesInDir(File rootFolder, String listingDir, int count) {
-        List<String> testfileNames = IntStream.range(1, count + 1)
+        return IntStream.range(1, count + 1)
             .mapToObj(i -> String.format("%s%stestfile-%02d.txt", listingDir, File.separator, i))
             .map(s -> FileUtils.writeTestFile(rootFolder, s))
             .map(File::getName)
             .collect(Collectors.toList());
-        return testfileNames;
     }
 
 

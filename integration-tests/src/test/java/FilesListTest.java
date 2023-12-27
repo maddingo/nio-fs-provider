@@ -45,7 +45,7 @@ public class FilesListTest {
 
     @ParameterizedTest(name = "{index} {0}")
     @MethodSource("data")
-    public void listFiles(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+    void listFiles(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
 
         String dataSubDir = UUID.randomUUID().toString();
         List<String> createdFiles = FileUtils.createFilesInDir(localDataFileRoot, dataSubDir, 10);
