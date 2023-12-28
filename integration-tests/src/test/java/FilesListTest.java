@@ -11,8 +11,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,17 +46,17 @@ public class FilesListTest {
     @MethodSource("data")
     void listFiles(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
 
-        String dataSubDir = UUID.randomUUID().toString();
-        List<String> createdFiles = FileUtils.createFilesInDir(localDataFileRoot, dataSubDir, 10);
+        String dataSubDir = "/" + UUID.randomUUID();
+        SortedSet<String> createdFiles = FileUtils.createFilesInDir(localDataFileRoot, dataSubDir, 10);
         try (BasicTestContainer container = containerSupplier.get()) {
             container.start();
             URI uri = container.getBaseUri(protocol);
             Path path = Paths.get(uri.resolve(dataSubDir));
             try (Stream<Path> paths = Files.list(path)) {
-                List<String> foundFiles = paths
+                SortedSet<String> foundFiles = paths
                     .map(Path::getFileName)
                     .map(Path::toString)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toCollection(TreeSet::new));
 
                 assertThat(foundFiles, equalTo(createdFiles));
             }

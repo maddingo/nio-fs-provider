@@ -46,19 +46,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import javax.xml.namespace.QName;
-
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.impl.SardineException;
-import com.github.sardine.model.Allprop;
-import com.github.sardine.model.Propfind;
 
 /**
  * The WebDAV FileSystemProvider based on Sardine.
@@ -296,11 +289,11 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     }
 
     
-    class DirStream implements DirectoryStream<Path> {
+    static class WebdavDirStream implements DirectoryStream<Path> {
     	
     	ArrayList<Path> paths;
     	
-    	public DirStream(ArrayList<Path> paths) {
+    	public WebdavDirStream(ArrayList<Path> paths) {
     		this.paths = paths;
 		}
     	
@@ -317,7 +310,6 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     
     @Override
 	public DirectoryStream<Path> newDirectoryStream(Path path, Filter<? super Path> filter) throws IOException {
-		// throw new UnsupportedOperationException();		
 		log.fine("newDirectoryStream");
 
 		try {
@@ -361,9 +353,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 				paths.add(wpath);
 			}
 
-			DirStream dirstream = new DirStream(paths);
-
-			return dirstream;
+            return new WebdavDirStream(paths);
 		} catch (IOException e) {
 			log.warning("newDirectoryStream: path:" + path.toString());
 			log.warning(e.getMessage() + newline + e.getStackTrace());

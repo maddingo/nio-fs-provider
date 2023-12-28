@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -38,12 +40,12 @@ public class FileUtils {
         return targetFile;
     }
 
-    public static List<String> createFilesInDir(File rootFolder, String listingDir, int count) {
+    public static SortedSet<String> createFilesInDir(File rootFolder, String listingDir, int count) {
         return IntStream.range(1, count + 1)
             .mapToObj(i -> String.format("%s%stestfile-%02d.txt", listingDir, File.separator, i))
             .map(s -> FileUtils.writeTestFile(rootFolder, s))
             .map(File::getName)
-            .collect(Collectors.toList());
+            .collect(Collectors.toCollection(TreeSet::new));
     }
 
 

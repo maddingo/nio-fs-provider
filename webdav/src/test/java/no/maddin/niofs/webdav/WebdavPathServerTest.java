@@ -132,16 +132,16 @@ public class WebdavPathServerTest {
     void testDirListing() throws Exception {
 
         String listingDir = UUID.randomUUID().toString();
-        List<String> testfileNames = FileUtils.createFilesInDir(rootFolder, listingDir, 10);
+        SortedSet<String> testfileNames = FileUtils.createFilesInDir(rootFolder, listingDir, 10);
 
         URI uri = URI.create(webdav.getWebdavUrl() + "/" + listingDir);
 
         try (Stream<Path> paths = Files.list(Paths.get(uri))) {
-            List<String> foundFiles = paths
+            SortedSet<String> foundFiles = paths
                 .map(Path::getFileName)
                 .map(Path::toString)
                 .sorted()
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(TreeSet::new));
 
             assertThat(foundFiles, Matchers.equalTo(testfileNames));
         }
