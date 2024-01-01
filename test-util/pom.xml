@@ -10,6 +10,11 @@
     <artifactId>nio-fs-test-util</artifactId>
     <name>test-util</name>
     <description>Test Utilities</description>
+
+    <properties>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.hamcrest</groupId>
