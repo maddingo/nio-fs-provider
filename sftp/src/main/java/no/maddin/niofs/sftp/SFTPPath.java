@@ -19,21 +19,23 @@ public class SFTPPath implements Path {
     static final String PATH_SEP = "/";
     private final String path;
     private final SFTPHost host;
-    private final java.util.List<String> parts;
+    private final List<String> parts;
 
-    SFTPPath(SFTPHost sftpHost, String path) {
+    SFTPPath(@NotNull SFTPHost sftpHost, String path) {
         this.host = sftpHost;
-        parts = splitParts(path);
-        this.path = "/" + String.join(PATH_SEP, parts);
+        if (path == null) {
+            this.path = "";
+            this.parts = Collections.emptyList();
+        } else {
+            this.path = path;
+            this.parts = splitParts(path);
+        }
     }
 
-    private static List<String> splitParts(String path) {
-        if (path == null || !path.startsWith(PATH_SEP)) {
-            throw new IllegalArgumentException("Path must start with " + PATH_SEP);
-        }
+    private static List<String> splitParts(@NotNull String path) {
         Deque<String> parts = new ArrayDeque<>();
         try {
-            for (String p : path.substring(1).split(PATH_SEP, -1)) {
+            for (String p : path.split(PATH_SEP, -1)) {
                 if (p.isEmpty() || p.equals(".")) {
                     // ignore
                 } else if (p.equals("..")) {
@@ -48,63 +50,73 @@ public class SFTPPath implements Path {
         return new ArrayList<>(parts);
     }
 
-    private String combineParts(int startIdx, int endIdx) {
-        StringBuilder sb = new StringBuilder(PATH_SEP);
-        for (String part : parts.subList(startIdx, endIdx)) {
-            if (sb.length() > 0) {
+    private String combineParts(int endIdx) {
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        if (path.startsWith(PATH_SEP)) {
+            sb.append(PATH_SEP);
+        }
+        for (String part : parts.subList(0, endIdx)) {
+            if (!first) {
                 sb.append(PATH_SEP);
             }
             sb.append(part);
+            first = false;
         }
         return sb.toString();
     }
 
     @Override
-    public FileSystem getFileSystem() {
+    public @NotNull FileSystem getFileSystem() {
         return this.host;
     }
 
     @Override
     public boolean isAbsolute() {
-        return path.startsWith(PATH_SEP);
+        return path.startsWith(PATH_SEP) && host != null;
     }
 
     @Override
     public Path getRoot() {
-        if (path ==  null) {
-            return this;
+        if (host ==  null) {
+            return null;
         }
-        return new SFTPPath(this.host, null);
+        return new SFTPPath(this.host, PATH_SEP);
     }
 
     @Override
     public Path getFileName() {
-        throw new UnsupportedOperationException("Not Implemented");
+        if (path.isEmpty()) {
+            return null;
+        }
+        return new SFTPPath(this.host, parts.get(parts.size() - 1));
     }
 
     @Override
     public Path getParent() {
 
-        if (path == null) {
+        if (!path.startsWith(PATH_SEP)) {
             return null;
         }
-        return new SFTPPath(this.host, combineParts(0, getNameCount() - 1));
+        return new SFTPPath(this.host, combineParts(getNameCount() - 1));
     }
 
     @Override
     public int getNameCount() {
-
         return parts.size();
     }
 
     @Override
     public @NotNull Path getName(int index) {
-        throw new UnsupportedOperationException("Not Implemented");
+        if (index < 0 || index >= parts.size()) {
+            throw new IllegalArgumentException("index");
+        }
+        return new SFTPPath(this.host, parts.get(index - 1));
     }
 
     @Override
     public @NotNull Path subpath(int beginIndex, int endIndex) {
-        return new SFTPPath(beginIndex == 0 ? host : null, combineParts(0, endIndex));
+        return new SFTPPath(beginIndex == 0 ? host : null, combineParts(endIndex));
     }
 
     @Override
@@ -134,12 +146,9 @@ public class SFTPPath implements Path {
         return false;
     }
 
-    /**
-     * SFTPPAths are normalized at creation time. This just returns itself.
-     */
     @Override
     public @NotNull Path normalize() {
-        return this;
+        return new SFTPPath(this.host, combineParts(getNameCount()));
     }
 
     @Override
@@ -227,5 +236,29 @@ public class SFTPPath implements Path {
 
     public List<String> getParts() {
         return Collections.unmodifiableList(parts);
+    }
+
+    @Override
+    @NotNull
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (host != null && path.startsWith(PATH_SEP)) {
+            sb.append(host);
+        }
+        sb.append(path);
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof SFTPPath) {
+            SFTPPath other = (SFTPPath) obj;
+            return Objects.equals(this.host, other.host) && Objects.equals(this.path, other.path);
+        }
+        return false;
+    }
+
+    public int hashCode() {
+        return Objects.hash(this.host, this.path);
     }
 }

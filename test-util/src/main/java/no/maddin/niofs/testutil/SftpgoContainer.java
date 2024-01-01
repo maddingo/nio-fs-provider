@@ -46,7 +46,9 @@ public class SftpgoContainer extends GenericContainer<SftpgoContainer> implement
             .withClasspathResourceMapping(testDataResource, "/srv/sftpgo", BindMode.READ_WRITE)
             .withClasspathResourceMapping("/sftpgo-config", "/var/lib/sftpgo", BindMode.READ_WRITE)
             .withExposedPorts(WEBDAV_PORT, SFTP_PORT)
-            .waitingFor(Wait.forHttp("/").forPort(WEBDAV_PORT).withBasicCredentials(USERNAME, PASSWORD).forStatusCode(207));
+            .waitingFor(Wait.forHttp("/").forPort(WEBDAV_PORT).withBasicCredentials(USERNAME, PASSWORD).forStatusCode(207))
+            .waitingFor(Wait.forListeningPorts(SFTP_PORT))
+        ;
     }
 
     @SuppressWarnings("java:S112")

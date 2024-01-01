@@ -27,17 +27,22 @@ class PartsTest {
             Arguments.of("/aa/bb", Arrays.asList("aa", "bb")),
             Arguments.of("/aa/../bb", Collections.singletonList("bb")),
             Arguments.of("/aa/../bb", Collections.singletonList("bb")),
-            Arguments.of("/aa/../bb/cc/../d.txt", Arrays.asList("bb", "d.txt"))
+            Arguments.of("/aa/../bb/cc/../d.txt", Arrays.asList("bb", "d.txt")),
+            Arguments.of(".", Collections.emptyList()),
+            Arguments.of("./", Collections.emptyList()),
+            Arguments.of("", Collections.emptyList()),
+            Arguments.of("aa", Collections.singletonList("aa")),
+            Arguments.of(null, Collections.emptyList())
         );
     }
 
     static Stream<Arguments> invalidPathsData() {
         return Stream.of(
-            Arguments.of(".", instanceOf(IllegalArgumentException.class)),
-            Arguments.of("", instanceOf(IllegalArgumentException.class)),
-            Arguments.of(null, instanceOf(IllegalArgumentException.class)),
-            Arguments.of("./", instanceOf(IllegalArgumentException.class)),
-            Arguments.of("aa", instanceOf(IllegalArgumentException.class)),
+//            Arguments.of(".", instanceOf(IllegalArgumentException.class)),
+//            Arguments.of("", instanceOf(IllegalArgumentException.class)),
+//            Arguments.of(null, instanceOf(IllegalArgumentException.class)),
+//            Arguments.of("./", instanceOf(IllegalArgumentException.class)),
+//            Arguments.of("aa", instanceOf(IllegalArgumentException.class)),
             Arguments.of("/aa/../../bb.txt", instanceOf(IllegalArgumentException.class)),
             Arguments.of("../", instanceOf(IllegalArgumentException.class))
         );
@@ -46,7 +51,7 @@ class PartsTest {
     @ParameterizedTest
     @MethodSource({"validPathsData"})
     void validPaths(String input, List<String> result) {
-        SFTPPath path = new SFTPPath(null, input);
+        SFTPPath path = new SFTPPath(SFTPHost.SFTP_TEST_HOST, input);
 
         assertThat(path, hasProperty("parts", is(equalTo(result))));
     }
@@ -55,7 +60,7 @@ class PartsTest {
     @MethodSource({"invalidPathsData"})
     void invalidPaths(String input, Matcher<Exception> expectedException) {
         try {
-            SFTPPath path = new SFTPPath(null, input);
+            SFTPPath path = new SFTPPath(SFTPHost.SFTP_TEST_HOST, input);
 
             fail("Call with '" + input + "' should have failed.");
         } catch (Exception ex) {

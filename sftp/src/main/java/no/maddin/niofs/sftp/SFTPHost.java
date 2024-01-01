@@ -25,6 +25,8 @@ public class SFTPHost extends FileSystem {
 
     private final AtomicBoolean open = new AtomicBoolean();
 
+    static final SFTPHost SFTP_TEST_HOST = new SFTPHost();
+
     SFTPHost(SFTPFileSystemProvider provider, URI serverUri) {
         this.serverUri = serverUri;
         this.provider = provider;
@@ -32,6 +34,14 @@ public class SFTPHost extends FileSystem {
         this.port = serverUri.getPort();
         this.userInfo = userInfo(serverUri.getUserInfo());
         open.set(true);
+    }
+
+    private SFTPHost() {
+        this.provider = null;
+        this.host = null;
+        this.port = 0;
+        this.userInfo = null;
+        this.serverUri = null;
     }
 
     private static UserInfo userInfo(String userInfo) {
