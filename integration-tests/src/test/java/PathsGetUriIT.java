@@ -71,25 +71,21 @@ public class PathsGetUriIT {
                     pathMatch("endsWith", "testfile")
                 )
             ),
-//            Arguments.of(
-//                "sftp://localhost/dir1/../testfile/",
-//                null,
-//                allOf(
-//                    instanceOf(SFTPPath.class),
-//                    pathMatch("endsWith", "testfile"),
-//                    pathMatch("endsWith", sftpPath("testfile"))
-//                )
-//            ),
+            Arguments.of(
+                "sftp://localhost/dir1/../testfile/",
+                null,
+                allOf(
+                    instanceOf(SFTPPath.class),
+                    pathMatch("endsWith", "testfile"),
+                    pathMatch("endsWith", "testfile")
+                )
+            ),
             Arguments.of(
                 "sftp:/localhost/../testfile/",
                 instanceOf(IllegalArgumentException.class),
                 nullValue()
             )
         );
-    }
-
-    private static Path sftpPath(String testfile) {
-        return Paths.get(URI.create(testfile)).getFileName();
     }
 
     @ParameterizedTest (name = "{index} {0} {2}")
