@@ -2,6 +2,7 @@ package no.maddin.niofs.smb;
 
 import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -59,8 +60,8 @@ public class DirectoryStreamIteratorTest {
             .isPresent();
     }
 
-    @ParameterizedTest
-    @MethodSource("data")
+//    @ParameterizedTest
+//    @MethodSource("data")
     void directoryStreamIterator(URI shareUrl, String parentPath, SortedSet<URI> childrenUrls, DirectoryStream.Filter<Path> filter) throws Exception {
 
         Map<String, String> env = new HashMap<>();

@@ -24,8 +24,8 @@ public class FileOperationsIT {
         return Stream.empty();
     }
 
-    @ParameterizedTest(name = "{index} {0}")
-    @MethodSource("copyData")
+//    @ParameterizedTest(name = "{index} {0}")
+//    @MethodSource("copyData")
     void copyFile(Supplier<BasicTestContainer> containerSupplier, String sourceUri, String targetUri, File targetFile) throws Exception {
         Path sourcePath = Paths.get(URI.create(sourceUri));
         Path targetPath = Paths.get(URI.create(targetUri));

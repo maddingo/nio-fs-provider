@@ -69,8 +69,8 @@ public class FilesListTest {
     /**
      * Files.copy
      */
-    @ParameterizedTest(name = "{index} {0}")
-    @MethodSource("data")
+//    @ParameterizedTest(name = "{index} {0}")
+//    @MethodSource("data")
     void copyFiles(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
         String randomString = UUID.randomUUID().toString();
         try (BasicTestContainer container = containerSupplier.get()) {

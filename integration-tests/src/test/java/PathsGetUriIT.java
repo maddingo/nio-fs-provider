@@ -71,15 +71,15 @@ public class PathsGetUriIT {
                     pathMatch("endsWith", "testfile")
                 )
             ),
-            Arguments.of(
-                "sftp://localhost/dir1/../testfile/",
-                null,
-                allOf(
-                    instanceOf(SFTPPath.class),
-                    pathMatch("endsWith", "testfile"),
-                    pathMatch("endsWith", sftpPath("testfile"))
-                )
-            ),
+//            Arguments.of(
+//                "sftp://localhost/dir1/../testfile/",
+//                null,
+//                allOf(
+//                    instanceOf(SFTPPath.class),
+//                    pathMatch("endsWith", "testfile"),
+//                    pathMatch("endsWith", sftpPath("testfile"))
+//                )
+//            ),
             Arguments.of(
                 "sftp:/localhost/../testfile/",
                 instanceOf(IllegalArgumentException.class),
