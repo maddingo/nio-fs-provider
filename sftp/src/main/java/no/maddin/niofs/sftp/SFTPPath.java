@@ -143,7 +143,12 @@ public class SFTPPath implements Path {
 
     @Override
     public boolean endsWith(@NotNull String other) {
-        return false;
+        if (this.parts.isEmpty()) {
+            return false;
+        }
+        // Remove trailing Separator
+        String cleanPath = other.endsWith("/") ? other.substring(0, other.length() - 1) : other;
+        return this.parts.get(this.parts.size() - 1).equals(cleanPath);
     }
 
     @Override
