@@ -1,6 +1,7 @@
 package no.maddin.niofs.sftp;
 
 import com.jcraft.jsch.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.io.IOException;
 import java.net.URI;
@@ -13,6 +14,7 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -23,6 +25,8 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     private final Map<URI, SFTPHost> hosts = Collections.synchronizedMap(new HashMap<>());
 
     private final JSch jsch = new JSch();
+
+    private static final Logger log = Logger.getLogger(SFTPFileSystemProvider.class.getName());
 
     public SFTPFileSystemProvider() {
         JSch.setConfig("StrictHostKeyChecking", "no");
@@ -52,7 +56,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public Path getPath(URI uri) {
+    public @NotNull Path getPath(@NotNull URI uri) {
         try {
             SFTPHost host = getSFTPHost(uri, false, true);
             return new SFTPPath(host, uri.getPath());
@@ -161,7 +165,29 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void copy(Path source, Path target, CopyOption... options) throws IOException {
-        throw new UnsupportedOperationException();
+        if (!(source instanceof SFTPPath && target instanceof SFTPPath)) {
+            throw new UnsupportedOperationException("Both source and target must be associated with the same provider");
+        }
+        if (!source.getFileSystem().equals(target.getFileSystem())) {
+            String sourcePath = ((SFTPPath)source).getPathString();
+            String targetPath = ((SFTPPath)target).getPathString();
+            SFTPHost host = (SFTPHost) source.getFileSystem();
+            copySameProvider(host, sourcePath, targetPath, options);
+        } else {
+            throw new UnsupportedOperationException("Copy between different providers not supported");
+        }
+    }
+
+    private void copySameProvider(SFTPHost host, String source, String target, CopyOption[] options) throws IOException {
+        try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
+            if (options != null && options.length > 0) {
+                log.info("Copy option is ignored");
+            }
+            sftpSession.sftp.put(source, target, ChannelSftp.OVERWRITE);
+        } catch (JSchException | SftpException e) {
+            throw new IOException(e);
+        }
+
     }
 
     @Override
@@ -237,18 +263,20 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     static class SftpDirStream implements DirectoryStream<Path> {
 
-        List<Path> paths;
+        @NotNull
+        private final List<Path> paths;
 
         public SftpDirStream(List<Path> paths) {
-            this.paths = paths;
+            this.paths = paths == null ? Collections.emptyList() : paths;
         }
 
         @Override
         public void close() throws IOException {
+            // nothing to do
         }
 
         @Override
-        public Iterator<Path> iterator() {
+        public @NotNull Iterator<Path> iterator() {
             return paths.iterator();
         }
 

@@ -50,13 +50,13 @@ public class SFTPPath implements Path {
         return new ArrayList<>(parts);
     }
 
-    private String combineParts(int endIdx) {
+    private String combineParts(int startIdx, int endIdx) {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
-        if (path.startsWith(PATH_SEP)) {
+        if (path.startsWith(PATH_SEP) && startIdx == 0) {
             sb.append(PATH_SEP);
         }
-        for (String part : parts.subList(0, endIdx)) {
+        for (String part : parts.subList(startIdx, endIdx)) {
             if (!first) {
                 sb.append(PATH_SEP);
             }
@@ -98,7 +98,7 @@ public class SFTPPath implements Path {
         if (!path.startsWith(PATH_SEP)) {
             return null;
         }
-        return new SFTPPath(this.host, combineParts(getNameCount() - 1));
+        return new SFTPPath(this.host, combineParts(0, getNameCount() - 1));
     }
 
     @Override
@@ -116,7 +116,7 @@ public class SFTPPath implements Path {
 
     @Override
     public @NotNull Path subpath(int beginIndex, int endIndex) {
-        return new SFTPPath(beginIndex == 0 ? host : null, combineParts(endIndex));
+        return new SFTPPath(host, combineParts(beginIndex, endIndex));
     }
 
     @Override
@@ -153,7 +153,7 @@ public class SFTPPath implements Path {
 
     @Override
     public @NotNull Path normalize() {
-        return new SFTPPath(this.host, combineParts(getNameCount()));
+        return new SFTPPath(this.host, combineParts(0, getNameCount()));
     }
 
     @Override
