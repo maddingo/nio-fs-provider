@@ -1,4 +1,4 @@
-package no.maddin.niofs.webdav;
+package no.maddin.niofs.testutil;
 
 import org.jetbrains.annotations.NotNull;
 import org.testcontainers.containers.BindMode;
@@ -6,17 +6,20 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class WebdavContainer extends GenericContainer<WebdavContainer> {
+public class SftpgoContainer extends GenericContainer<SftpgoContainer> implements BasicTestContainer {
     private static final int WEBDAV_PORT = 8088;
     private static final int SFTP_PORT = 2022;
     public static final String USERNAME = "user";
+
+    @SuppressWarnings("java:S2068")
     private static final String PASSWORD = "secret";
 
-    public WebdavContainer(String testDataResource) {
+    public SftpgoContainer(String testDataResource) {
         super("drakkan/sftpgo:v2.5.5");
         this
             .withCreateContainerCmdModifier(cmd -> cmd.withUser(userString()))
@@ -43,10 +46,12 @@ public class WebdavContainer extends GenericContainer<WebdavContainer> {
             .withClasspathResourceMapping(testDataResource, "/srv/sftpgo", BindMode.READ_WRITE)
             .withClasspathResourceMapping("/sftpgo-config", "/var/lib/sftpgo", BindMode.READ_WRITE)
             .withExposedPorts(WEBDAV_PORT, SFTP_PORT)
-            .waitingFor(Wait.forHttp("/").forPort(WEBDAV_PORT).withBasicCredentials(USERNAME, PASSWORD).forStatusCode(207));
+            .waitingFor(Wait.forHttp("/").forPort(WEBDAV_PORT).withBasicCredentials(USERNAME, PASSWORD).forStatusCode(207))
+            .waitingFor(Wait.forListeningPorts(SFTP_PORT))
         ;
     }
 
+    @SuppressWarnings("java:S112")
     @NotNull
     private static String userString() {
         if (!System.getProperty("os.name").toLowerCase().contains("linux")) {
@@ -75,4 +80,15 @@ public class WebdavContainer extends GenericContainer<WebdavContainer> {
         return "webdav://" + USERNAME + ':' + PASSWORD + '@' + getHost() + ":" + getWebdavPort();
     }
 
+    @Override
+    public URI getBaseUri(String protocol) {
+        switch (protocol) {
+            case "webdav":
+                return URI.create(getWebdavUrl());
+            case "sftp":
+                return URI.create("sftp://" + USERNAME + ':' + PASSWORD + '@' + getHost() + ":" + getMappedPort(SFTP_PORT));
+            default:
+                throw new IllegalArgumentException("Unsupported protocol " + protocol);
+        }
+    }
 }
