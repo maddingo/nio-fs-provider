@@ -16,14 +16,17 @@
 
 package no.maddin.niofs.webdav;
 
+import com.github.sardine.Sardine;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
-
-import com.github.sardine.Sardine;
+import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
+import java.util.Set;
 
 /**
  * A {@link SeekableByteChannel} based on Sardine.
@@ -31,14 +34,21 @@ import com.github.sardine.Sardine;
 public class SardineChannel implements SeekableByteChannel {
 
   private final Sardine sardine;
-  private WebdavPath path;
+  private final WebdavPath path;
   private InputStream in;
   private ByteArrayOutputStream out;
   private int position = 0;
 
-  public SardineChannel(WebdavPath webdavPath) throws IOException {
+  public SardineChannel(WebdavPath webdavPath, Set<? extends OpenOption> options) throws IOException {
     this.sardine = ((WebdavFileSystem)webdavPath.getFileSystem()).getSardine();
     this.path = webdavPath;
+    if (isWritable(options)) {
+      getOutputStream();
+    }
+  }
+
+  private static boolean isWritable(Set<? extends OpenOption> options) {
+    return options != null && options.contains(StandardOpenOption.WRITE);
   }
 
   @Override
@@ -108,23 +118,23 @@ public class SardineChannel implements SeekableByteChannel {
   }
 
   @Override
-  public long position() throws IOException {
+  public long position() {
 	  return position;
   }
 
   @Override
-  public SeekableByteChannel position(long newPosition) throws IOException {
+  public SeekableByteChannel position(long newPosition) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public long size() throws IOException {
+  public long size() {
     // TODO Auto-generated method stub
     return 0;
   }
 
   @Override
-  public SeekableByteChannel truncate(long size) throws IOException {
+  public SeekableByteChannel truncate(long size) {
     throw new UnsupportedOperationException();
   }
 }
