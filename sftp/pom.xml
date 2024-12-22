@@ -39,6 +39,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <version>2.12.1</version>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
