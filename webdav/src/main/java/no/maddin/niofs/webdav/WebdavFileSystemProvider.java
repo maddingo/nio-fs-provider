@@ -16,49 +16,23 @@
 
 package no.maddin.niofs.webdav;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.sardine.DavResource;
+import com.github.sardine.Sardine;
+import com.github.sardine.impl.SardineException;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.AccessMode;
-import java.nio.file.CopyOption;
-import java.nio.file.DirectoryStream;
+import java.nio.file.*;
 import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemException;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.nio.file.ProviderMismatchException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 import java.util.logging.Logger;
-
-import javax.xml.namespace.QName;
-
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.sardine.DavResource;
-import com.github.sardine.Sardine;
-import com.github.sardine.impl.SardineException;
-import com.github.sardine.model.Allprop;
-import com.github.sardine.model.Propfind;
 
 /**
  * The WebDAV FileSystemProvider based on Sardine.
@@ -66,11 +40,9 @@ import com.github.sardine.model.Propfind;
 public class WebdavFileSystemProvider extends FileSystemProvider {
 
 	Logger log = Logger.getLogger(WebdavFileSystemProvider.class.getName());
-	
-	private static final String NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH = "Need to be an instance of WebdavPath";
+
     private static final int DEFAULT_PORT = 80;
     private final Map<URI, WebdavFileSystem> hosts = new HashMap<>();
-    final String newline = System.lineSeparator();
 
     public WebdavFileSystemProvider() {
 		super();
@@ -111,10 +83,10 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
         Sardine webdav = webdavHost.getSardine();
 
-        createDirectoryRecursive(webdav, wDir, attrs);
+        createDirectoryRecursive(webdav, wDir);
     }
 
-    private void createDirectoryRecursive(Sardine webdav, WebdavPath wDir, FileAttribute<?>[] attrs) throws IOException {
+    private void createDirectoryRecursive(Sardine webdav, WebdavPath wDir) throws IOException {
 
     	log.fine("createDirectoryRecursive");
     	
@@ -124,7 +96,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
         WebdavPath parent = (WebdavPath)wDir.getParent();
         if (parent != null) {
-            createDirectoryRecursive(webdav, parent, attrs);
+            createDirectoryRecursive(webdav, parent);
         }
         webdav.createDirectory(wDir.toUri().toString());
     }
@@ -136,8 +108,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
         if (!(dir instanceof WebdavPath)) {
             throw new IllegalArgumentException(dir.toString());
         }
-        
-        
+
         WebdavPath wDir = (WebdavPath)dir;
         WebdavFileSystem webdavHost = (WebdavFileSystem)dir.getFileSystem();
 
@@ -234,7 +205,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
      * Unsupported
      */
     @Override
-    public FileStore getFileStore(Path path) throws IOException {
+    public FileStore getFileStore(Path path) {
     	log.fine("getFileAttributeView");
         throw new UnsupportedOperationException();
     }
@@ -242,21 +213,11 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     @Override
     public void checkAccess(Path path, AccessMode... modes) throws IOException {
     	log.fine("checkAccess");
-        try {
-			WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
-			final String s = path.toUri().toString();
-			final boolean exists = webdavFs.getSardine().exists(s);
-			if (!exists) {
-			    throw new NoSuchFileException(s);
-			}
-		} catch (NoSuchFileException e) {
-			log.warning("checkAccess: path:" + path.toString());
-			log.warning(e.getMessage() + newline + e.getStackTrace());
-			throw e;
-		} catch (IOException e) {
-			log.warning("checkAccess: path:" + path.toString());
-			log.warning(e.getMessage() + newline + e.getStackTrace());
-			throw e;
+		WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
+		final String s = path.toUri().toString();
+		final boolean exists = webdavFs.getSardine().exists(s);
+		if (!exists) {
+			throw new NoSuchFileException(s);
 		}
     }
 
@@ -264,7 +225,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
      * Unsupported
      */
     @Override
-    public boolean isHidden(Path path) throws IOException {
+    public boolean isHidden(Path path) {
     	log.fine("isHidden");
         throw new UnsupportedOperationException();
     }
@@ -273,7 +234,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
      * Unsupported
      */
     @Override
-    public boolean isSameFile(Path path, Path path2) throws IOException {
+    public boolean isSameFile(Path path, Path path2) {
     	log.fine("isSameFile");
         throw new UnsupportedOperationException();
     }
@@ -282,7 +243,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
      * Unsupported
      */
     @Override
-    public void move(Path source, Path target, CopyOption... options) throws IOException {
+    public void move(Path source, Path target, CopyOption... options) {
     	log.fine("move");
         throw new UnsupportedOperationException();
     }
@@ -292,11 +253,11 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
             throws IOException
     {
     	log.fine("newByteChannel");
-        return new SardineChannel((WebdavPath)path);
+        return new SardineChannel((WebdavPath)path, options);
     }
 
     
-    class DirStream implements DirectoryStream<Path> {
+    static class DirStream implements DirectoryStream<Path> {
     	
     	ArrayList<Path> paths;
     	
@@ -305,70 +266,57 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 		}
     	
 		@Override
-		public void close() throws IOException {			
+		public void close() {
 		}
 
 		@Override
 		public Iterator<Path> iterator() {
 			return paths.iterator();
 		}
-	
     }
     
     @Override
 	public DirectoryStream<Path> newDirectoryStream(Path path, Filter<? super Path> filter) throws IOException {
-		// throw new UnsupportedOperationException();		
 		log.fine("newDirectoryStream");
 
-		try {
-			if (!(path instanceof WebdavPath)) {
-				IOException e = new IOException(NEED_TO_BE_AN_INSTANCE_OF_WEBDAV_PATH);
-				log.warning("newDirectoryStream: path:" + path.toString());
-				log.warning(e.getMessage() + newline + e.getStackTrace());
-				throw e;
-			}
-
-			WebdavFileSystem wfs = (WebdavFileSystem) path.getFileSystem();
-			Cache<Path, WebdavFileAttributes> cache = wfs.getAttcache();
-
-			List<DavResource> resources = wfs.getSardine().list(path.toUri().toString(), 1, true);
-
-			ArrayList<Path> paths = new ArrayList<Path>(10);
-			Iterator<DavResource> iter = resources.iterator();
-			boolean first = true;
-			while (iter.hasNext()) {
-				DavResource res = iter.next();
-				if (first) {
-					first = false;
-					if (res.isDirectory()) {
-						/*
-						 * in a canonical directory listing, the parent directory queried isn't included
-						 * only its contents this omits that entry so that it 'looks' like a
-						 * conventional directory listing
-						 */
-						WebdavPath dp = new WebdavPath((WebdavFileSystem) path.getFileSystem(), res.getPath());
-						if (dp.equals(path))
-							continue;
-					}
-				}
-				WebdavPath wpath = new WebdavPath((WebdavFileSystem) path.getFileSystem(), res.getPath());
-				if(filter != null && !filter.accept(wpath))
-					continue;		
-				if (cache.getIfPresent(wpath) == null) {
-					WebdavFileAttributes attr = new WebdavFileAttributes(res);
-					cache.put(wpath, attr);
-				}
-				paths.add(wpath);
-			}
-
-			DirStream dirstream = new DirStream(paths);
-
-			return dirstream;
-		} catch (IOException e) {
-			log.warning("newDirectoryStream: path:" + path.toString());
-			log.warning(e.getMessage() + newline + e.getStackTrace());
-			throw e;
+		if (!(path instanceof WebdavPath)) {
+			throw new IOException("Need to be an instance of WebdavPath");
 		}
+
+		WebdavFileSystem wfs = (WebdavFileSystem) path.getFileSystem();
+		Cache<Path, WebdavFileAttributes> cache = wfs.getAttcache();
+
+		List<DavResource> resources = wfs.getSardine().list(path.toUri().toString(), 1, true);
+
+		ArrayList<Path> paths = new ArrayList<>(10);
+		Iterator<DavResource> iter = resources.iterator();
+		boolean first = true;
+		while (iter.hasNext()) {
+			DavResource res = iter.next();
+			if (first) {
+				first = false;
+				if (res.isDirectory()) {
+					/*
+					 * in a canonical directory listing, the parent directory queried isn't included
+					 * only its contents this omits that entry so that it 'looks' like a
+					 * conventional directory listing
+					 */
+					WebdavPath dp = new WebdavPath((WebdavFileSystem) path.getFileSystem(), res.getPath());
+					if (dp.equals(path))
+						continue;
+				}
+			}
+			WebdavPath wpath = new WebdavPath((WebdavFileSystem) path.getFileSystem(), res.getPath());
+			if(filter != null && !filter.accept(wpath))
+				continue;
+			if (cache.getIfPresent(wpath) == null) {
+				WebdavFileAttributes attr = new WebdavFileAttributes(res);
+				cache.put(wpath, attr);
+			}
+			paths.add(wpath);
+		}
+
+        return new DirStream(paths);
 	}
 
     @Override
@@ -384,7 +332,8 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     @SuppressWarnings("unchecked")
     @Override
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) 
-    		throws IOException {
+    		throws IOException
+	{
     	log.fine("readAttributes(path,type)");
     	if(!(path.getFileSystem() instanceof WebdavFileSystem)) {
     		log.warning("readAttributes(path,type): Invalid filesystem");
@@ -396,62 +345,55 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     		return (A) cache.getIfPresent(path);
     	}
     	
-        List<DavResource> resources;
-		try {
-			WebdavFileSystem wfs = (WebdavFileSystem)path.getFileSystem();        
-			resources = wfs.getSardine().list(path.toUri().toString(),0,true);
-			
-	        //List<DavResource> resources = wfs.getSardine().list(path.toUri().toString());
-	        if (resources.size() != 1) {
-	            throw new IllegalArgumentException();
-	        }
-	        final DavResource res = resources.get(0);
+		WebdavFileSystem wfs = (WebdavFileSystem)path.getFileSystem();
+        List<DavResource> resources = wfs.getSardine().list(path.toUri().toString(),0,true);
 
-	        if (!type.isAssignableFrom(WebdavFileAttributes.class)) {
-	            throw new ProviderMismatchException();
-	        }
-	        
-	        WebdavFileAttributes attr = new WebdavFileAttributes(res); 
-	        cache.put(path, attr);
-	        
-	        return (A) attr;
-
-		} catch (IOException e) {
-			log.warning("readAttributes(path,type): error connecting: {}" + path.toUri().toString());
-			log.warning(e.getMessage() + newline + e.getStackTrace());
-			throw e;
+		//List<DavResource> resources = wfs.getSardine().list(path.toUri().toString());
+		if (resources.size() != 1) {
+			throw new IllegalArgumentException();
 		}
+		final DavResource res = resources.get(0);
+
+		if (!type.isAssignableFrom(WebdavFileAttributes.class)) {
+			throw new ProviderMismatchException();
+		}
+
+		WebdavFileAttributes attr = new WebdavFileAttributes(res);
+		cache.put(path, attr);
+
+		return (A) attr;
     }
 
     @Override
     public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... arg2) throws IOException {
         //throw new UnsupportedOperationException();
-    	log.fine("readAttributes(path,sattr)");
-    	
-    	WebdavFileAttributes wattr;
-    	if(!(path.getFileSystem() instanceof WebdavFileSystem)) {
-    		log.warning("readAttributes(path,sattr): Invalid filesystem");
-    		throw new FileSystemException("Invalid filesystem");
-    	}    		
-    	
-    	Cache<Path, WebdavFileAttributes> cache = ((WebdavFileSystem) path.getFileSystem()).getAttcache();
-    	if (cache.getIfPresent(path) != null) 
-    		wattr = cache.getIfPresent(path);
-    	else {
-            WebdavFileSystem wfs = (WebdavFileSystem)path.getFileSystem();        
-            List<DavResource> resources = wfs.getSardine().list(path.toUri().toString(),0,true);
-            //List<DavResource> resources = wfs.getSardine().list(path.toUri().toString());
+        log.fine("readAttributes(path,sattr)");
+
+        if (!(path.getFileSystem() instanceof WebdavFileSystem)) {
+            throw new FileSystemException("Invalid filesystem");
+        }
+
+        Cache<Path, WebdavFileAttributes> cache = ((WebdavFileSystem) path.getFileSystem()).getAttcache();
+        WebdavFileAttributes wattr = cache.get(path, (path1 -> {
+            WebdavFileSystem wfs = (WebdavFileSystem) path1.getFileSystem();
+            List<DavResource> resources;
+            try {
+                resources = wfs.getSardine().list(path1.toUri().toString(), 0, true);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             if (resources.size() != 1) {
                 throw new IllegalArgumentException();
             }
             final DavResource res = resources.get(0);
+            return new WebdavFileAttributes(res);
+        }));
 
-            wattr = new WebdavFileAttributes(res);
-            cache.put(path, wattr);
-    	}    	
-    	    	
-    	TreeMap<String, Object> map = new TreeMap<String, Object>();
-    	String attr[] = attributes.split(",");
+        if (wattr == null) {
+            throw new IOException("Failed to read attributes");
+        }
+    	TreeMap<String, Object> map = new TreeMap<>();
+    	String[] attr = attributes.split(",");
     	for(String a: attr) {
     		switch(a) {
     		case "lastModifiedTime":
@@ -491,10 +433,8 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
      * Unsupported
      */
     @Override
-    public void setAttribute(Path arg0, String arg1, Object arg2, LinkOption... arg3) throws IOException {
-    	log.fine("setAttribute");
-    	Exception e = new UnsupportedOperationException();
-    	log.warning(e.getMessage() + newline + e.getStackTrace());
-        throw new IOException(e);
+    public void setAttribute(Path arg0, String arg1, Object arg2, LinkOption... arg3) {
+        log.fine("setAttribute");
+    	throw new UnsupportedOperationException();
     }
 }
