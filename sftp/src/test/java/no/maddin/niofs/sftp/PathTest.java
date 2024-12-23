@@ -90,6 +90,18 @@ class PathTest {
         );
     }
 
+    public static Stream<Arguments> namesData() {
+        return Stream.of(
+            Arguments.of(
+                URI.create("sftp://localhost/test/text.txt"),
+                new Matcher[] {
+                    hasProperty("pathString", equalTo("test")),
+                    hasProperty("pathString", equalTo("text.txt"))
+                }
+            )
+        );
+    }
+
     @ParameterizedTest
     @MethodSource("validPathData")
     public void validPath(URI uri, Matcher<Path> expectedResult) throws IOException {
@@ -124,6 +136,21 @@ class PathTest {
             assertThat(ex, is(expectedException));
         }
     }
+
+    // TODO: relative paths are not supported
+//    @SafeVarargs
+//    @ParameterizedTest
+//    @MethodSource("namesData")
+//    final void getNameTest(URI uri, Matcher<Path>... name0Matcher) throws IOException {
+//        try (FileSystem fs = FileSystems.newFileSystem(serverUri(uri), Collections.emptyMap())) {
+//            assertThat(fs, hasProperty("open", equalTo(true)));
+//            Path path = Paths.get(uri);
+//            for (int i = 0; i < name0Matcher.length; i++) {
+//                assertThat(path.getName(i), is(name0Matcher[i]));
+//            }
+//        }
+//    }
+//
 
     @NotNull
     private static TypeSafeDiagnosingMatcher<Path> pathStartsWith(String startsWith) {

@@ -12,10 +12,6 @@ public class LoggingListener implements TestExecutionListener {
 
 	Logger log = Logger.getLogger(LoggingListener.class.getName());
 	
-	public LoggingListener() {
-		
-	}
-
 	@Override
 	public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
 		log.fine(String.format("%s %s", testIdentifier, entry));

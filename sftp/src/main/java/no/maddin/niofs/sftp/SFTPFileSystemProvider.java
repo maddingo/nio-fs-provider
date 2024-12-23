@@ -1,18 +1,21 @@
 package no.maddin.niofs.sftp;
 
 import com.jcraft.jsch.*;
+import jakarta.validation.constraints.NotNull;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.*;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * FileSystemProvider for Secure FTP.
@@ -21,7 +24,9 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     static final String SFTP = "sftp";
     private final Map<URI, SFTPHost> hosts = Collections.synchronizedMap(new HashMap<>());
 
-    private JSch jsch = new JSch();
+    private final JSch jsch = new JSch();
+
+    private static final Logger log = Logger.getLogger(SFTPFileSystemProvider.class.getName());
 
     public SFTPFileSystemProvider() {
         JSch.setConfig("StrictHostKeyChecking", "no");
@@ -36,7 +41,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
         try {
             return getSFTPHost(uri, true, true);
-        } catch(URISyntaxException e) {
+        } catch (URISyntaxException e) {
             throw new FileSystemException(e.toString());
         }
     }
@@ -45,17 +50,17 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     public FileSystem getFileSystem(URI uri) {
         try {
             return getSFTPHost(uri, true, false);
-        } catch(URISyntaxException ex) {
+        } catch (URISyntaxException ex) {
             throw new FileSystemNotFoundException(uri.toString());
         }
     }
 
     @Override
-    public Path getPath(URI uri) {
+    public @NotNull Path getPath(@NotNull URI uri) {
         try {
-            SFTPHost host = getSFTPHost(uri, false, false);
+            SFTPHost host = getSFTPHost(uri, false, true);
             return new SFTPPath(host, uri.getPath());
-        } catch(URISyntaxException e) {
+        } catch (URISyntaxException e) {
             throw new FileSystemNotFoundException(uri.toString());
         }
     }
@@ -63,9 +68,8 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     /**
      * Get a SFTP Host with the given host, user, password and port.
      *
-     * @param uri valid URI
-     * @param create
-     *        if {@code true} a new SFTPHost is created if none is registered.
+     * @param uri    valid URI
+     * @param create if {@code true} a new SFTPHost is created if none is registered.
      */
     private SFTPHost getSFTPHost(URI uri, boolean requireEmptyPath, boolean create) throws URISyntaxException {
         URI serverUri = SFTPHost.getServerUri(uri, requireEmptyPath);
@@ -84,13 +88,44 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
+    public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path dir, Filter<? super Path> filter) throws IOException {
-        throw new UnsupportedOperationException();
+        if (!(dir instanceof SFTPPath)) {
+            throw new IllegalArgumentException(dir.toString());
+        }
+
+        SFTPHost sftpHost = (SFTPHost) dir.getFileSystem();
+
+        try (SFTPSession sftpSession = new SFTPSession(sftpHost, jsch)) {
+            Vector<ChannelSftp.LsEntry> ls = sftpSession.sftp.ls(((SFTPPath)dir).getPathString());
+
+            List<Path> list = ls.stream()
+                .map(ChannelSftp.LsEntry::getFilename)
+                .filter(fn -> !fn.equals(".") && !fn.equals("..")) // TODO relative filenames not supported
+                .map(fn -> "/" + fn) // TODO relative filenames not supported
+                .map(fn -> new SFTPPath(sftpHost,fn))
+                .filter(p -> {
+                    try {
+                        if (filter != null) {
+                            return filter.accept(p);
+                        } else {
+                            return true;
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
+
+            return new SftpDirStream(list);
+
+        } catch (JSchException | SftpException e) {
+            throw new IOException(e);
+        }
     }
 
     @Override
@@ -101,20 +136,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
         SFTPHost sftpHost = (SFTPHost)dir.getFileSystem();
 
-        String username = sftpHost.getUsername();
-        String host = sftpHost.getHost();
-        int port = sftpHost.getPort();
-        Session session;
-        try {
-            session = jsch.getSession(username, host, port);
-            UserInfo userinfo = new SFTPUserInfo(sftpHost.getPassword());
-            session.setUserInfo(userinfo);
-            session.connect();
-
-            ChannelSftp sftp = (ChannelSftp)session.openChannel(SFTP);
-
-            sftp.connect();
-
+        try (SFTPSession sftpSession = new SFTPSession(sftpHost, jsch)) {
             List<String> parts = ((SFTPPath) dir).getParts();
             // remove the first part if it is the root directory (empty string)
             if (!parts.isEmpty() && "".equals(parts.get(0))) {
@@ -123,54 +145,102 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
             // Implementation might not support recursive creation of directories
             for (String subPath : parts) {
                 try {
-                    sftp.mkdir(subPath);
+                    sftpSession.sftp.mkdir(subPath);
                 } catch(SftpException e) {
                     throw new IOException(subPath, e);
                 }
 
             }
 
-            sftp.quit();
-
-            session.disconnect();
-            //throw new UnsupportedOperationException();
-        } catch(JSchException e) {
+        } catch (JSchException e) {
             throw new IOException(e);
         }
     }
 
     @Override
-    public void delete(Path path) throws IOException {
+    public void delete(Path path) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void copy(Path source, Path target, CopyOption... options) throws IOException {
+        if (!(source instanceof SFTPPath && target instanceof SFTPPath)) {
+            throw new UnsupportedOperationException("Both source and target must be associated with the same provider");
+        }
+      if (source.getFileSystem().equals(target.getFileSystem())) {
+            String sourcePath = ((SFTPPath)source).getPathString();
+            String targetPath = ((SFTPPath)target).getPathString();
+            SFTPHost host = (SFTPHost) source.getFileSystem();
+            copySameProvider(host, sourcePath, targetPath, options);
+        } else {
+            throw new UnsupportedOperationException("Copy between different filesystems not supported");
+        }
+    }
+
+    private void copySameProvider(SFTPHost host, String source, String target, CopyOption[] options) throws IOException {
+        try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
+            if (options != null && options.length > 0) {
+                log.info("Copy option is ignored");
+            }
+            File tmpFile = createTempFile();
+            try (
+                OutputStream tmpOut = Files.newOutputStream(tmpFile.toPath())
+            ) {
+                sftpSession.sftp.get(source, tmpOut);
+            }
+            sftpSession.sftp.put(tmpFile.getAbsolutePath(), target);
+        } catch (JSchException | SftpException e) {
+            throw new IOException(e);
+        }
+
+    }
+
+    private static File createTempFile() throws IOException {
+        boolean isPosixFS = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+        File tempFile = isPosixFS ? createPosixTempfile() : creeateNonPosixTempfile();
+        tempFile.deleteOnExit();
+        return tempFile;
+    }
+
+    private static File createPosixTempfile() throws IOException {
+        File tempFile;
+        FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+        tempFile = Files.createTempFile("prefix", "suffix", attr).toFile();
+        return tempFile;
+    }
+
+    @SuppressWarnings({"java:S5443", "java:S899"}) // use of createTempFile is ok here
+    private static File creeateNonPosixTempfile() throws IOException {
+        File tempFile;
+        tempFile = Files.createTempFile("prefix", "suffix").toFile();
+        tempFile.setReadable(true, true);
+        tempFile.setWritable(true, true);
+        tempFile.setExecutable(true, true);
+        return tempFile;
+    }
+
+    @Override
+    public void move(Path source, Path target, CopyOption... options) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void move(Path source, Path target, CopyOption... options) throws IOException {
+    public boolean isSameFile(Path path, Path path2) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean isSameFile(Path path, Path path2) throws IOException {
+    public boolean isHidden(Path path) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean isHidden(Path path) throws IOException {
+    public FileStore getFileStore(Path path) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public FileStore getFileStore(Path path) throws IOException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void checkAccess(Path path, AccessMode... modes) throws IOException {
+    public void checkAccess(Path path, AccessMode... modes) {
         throw new UnsupportedOperationException();
     }
 
@@ -180,21 +250,66 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
+    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
+    public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException {
+    public void setAttribute(Path path, String attribute, Object value, LinkOption... options) {
         throw new UnsupportedOperationException();
     }
 
     void removeCacheEntry(URI serverUri) {
         hosts.remove(serverUri);
     }
+
+    private static class SFTPSession implements AutoCloseable {
+        private final Session session;
+        final ChannelSftp sftp;
+
+        public SFTPSession(SFTPHost host, JSch jsch) throws JSchException {
+            this.session = jsch.getSession(host.getUsername(), host.getHost(), host.getPort());
+            UserInfo userinfo = new SFTPUserInfo(host.getPassword());
+            session.setUserInfo(userinfo);
+            session.connect();
+
+            this.sftp = (ChannelSftp)session.openChannel(SFTP);
+
+            sftp.connect();
+        }
+
+        @Override
+        public void close() {
+            sftp.quit();
+            session.disconnect();
+        }
+    }
+
+    static class SftpDirStream implements DirectoryStream<Path> {
+
+        @NotNull
+        private final List<Path> paths;
+
+        public SftpDirStream(List<Path> paths) {
+            this.paths = paths == null ? Collections.emptyList() : paths;
+        }
+
+        @Override
+        public void close() {
+            // nothing to do
+        }
+
+        @Override
+        public @NotNull Iterator<Path> iterator() {
+            return paths.iterator();
+        }
+
+    }
+
+
 }

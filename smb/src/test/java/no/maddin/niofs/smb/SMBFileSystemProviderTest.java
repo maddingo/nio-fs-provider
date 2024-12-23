@@ -1,12 +1,10 @@
 package no.maddin.niofs.smb;
 
-import com.sun.org.apache.xalan.internal.xsltc.DOM;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;

@@ -1,0 +1,1 @@
+Keep this directory. It is used by sftpgo to store the host keys.

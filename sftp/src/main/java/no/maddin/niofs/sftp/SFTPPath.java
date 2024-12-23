@@ -1,6 +1,6 @@
 package no.maddin.niofs.sftp;
 
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,7 +10,6 @@ import java.nio.file.*;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * A Path implementation for SFTP.
@@ -20,26 +19,26 @@ public class SFTPPath implements Path {
     static final String PATH_SEP = "/";
     private final String path;
     private final SFTPHost host;
-    private final java.util.List<String> parts;
+    private final List<String> parts;
 
-    SFTPPath(SFTPHost sftpHost, String path) {
+    SFTPPath(@NotNull SFTPHost sftpHost, String path) {
         this.host = sftpHost;
-        parts = splitParts(path);
-        this.path = "/" + String.join(PATH_SEP, parts);
+        if (path == null) {
+            this.path = "";
+            this.parts = Collections.emptyList();
+        } else {
+            this.path = path;
+            this.parts = splitParts(path);
+        }
     }
 
-    private static List<String> splitParts(String path) {
-        if (path == null || !path.startsWith(PATH_SEP)) {
-            throw new IllegalArgumentException("Path must start with " + PATH_SEP);
-        }
+    private static List<String> splitParts(@NotNull String path) {
         Deque<String> parts = new ArrayDeque<>();
         try {
-            for (String p : path.substring(1).split(PATH_SEP, -1)) {
-                if (p.isEmpty() || p.equals(".")) {
-                    // ignore
-                } else if (p.equals("..")) {
+            for (String p : path.split(PATH_SEP, -1)) {
+                if (p.equals("..")) {
                     parts.removeLast();
-                } else {
+                } else if (!p.isEmpty() && !p.equals(".")) {
                     parts.add(p);
                 }
             }
@@ -50,12 +49,17 @@ public class SFTPPath implements Path {
     }
 
     private String combineParts(int startIdx, int endIdx) {
-        StringBuilder sb = new StringBuilder(PATH_SEP);
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        if (path.startsWith(PATH_SEP) && startIdx == 0) {
+            sb.append(PATH_SEP);
+        }
         for (String part : parts.subList(startIdx, endIdx)) {
-            if (sb.length() > 0) {
+            if (!first) {
                 sb.append(PATH_SEP);
             }
             sb.append(part);
+            first = false;
         }
         return sb.toString();
     }
@@ -67,26 +71,29 @@ public class SFTPPath implements Path {
 
     @Override
     public boolean isAbsolute() {
-        return path.startsWith(PATH_SEP);
+        return path.startsWith(PATH_SEP) && host != null;
     }
 
     @Override
     public Path getRoot() {
-        if (path ==  null) {
-            return this;
+        if (host ==  null) {
+            return null;
         }
-        return new SFTPPath(this.host, null);
+        return new SFTPPath(this.host, PATH_SEP);
     }
 
     @Override
     public Path getFileName() {
-        throw new UnsupportedOperationException("Not Implemented");
+        if (path.isEmpty()) {
+            return null;
+        }
+        return new SFTPPath(this.host, parts.get(parts.size() - 1));
     }
 
     @Override
     public Path getParent() {
 
-        if (path == null) {
+        if (!path.startsWith(PATH_SEP)) {
             return null;
         }
         return new SFTPPath(this.host, combineParts(0, getNameCount() - 1));
@@ -94,28 +101,29 @@ public class SFTPPath implements Path {
 
     @Override
     public int getNameCount() {
-
         return parts.size();
     }
 
     @Override
-    public Path getName(int index) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public @NotNull Path getName(int index) {
+        if (index < 0 || index >= parts.size()) {
+            throw new IllegalArgumentException("index");
+        }
+        return new SFTPPath(this.host, parts.get(index - 1));
     }
 
     @Override
-    public Path subpath(int beginIndex, int endIndex) {
-        return new SFTPPath(beginIndex == 0 ? host : null, combineParts(0, endIndex));
+    public @NotNull Path subpath(int beginIndex, int endIndex) {
+        return new SFTPPath(host, combineParts(beginIndex, endIndex));
     }
 
     @Override
     public boolean startsWith(Path other) {
-        if (other.getFileSystem().equals(this.getFileSystem())) {
-            if (other instanceof SFTPPath) {
+        if (other instanceof SFTPPath && other.getFileSystem().equals(this.getFileSystem())) {
                 SFTPPath otherPath = (SFTPPath) other;
                 return Collections.indexOfSubList(this.parts, otherPath.getParts()) == 0;
             }
-        }
+
         return false;
     }
 
@@ -126,50 +134,52 @@ public class SFTPPath implements Path {
     }
 
     @Override
-    public boolean endsWith(Path other) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public boolean endsWith(@NotNull Path other) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean endsWith(@NotNull String other) {
-        return false;
-    }
-
-    /**
-     * SFTPPAths are normalized at creation time. This just returns itself.
-     */
-    @Override
-    public Path normalize() {
-        return this;
+        if (this.parts.isEmpty()) {
+            return false;
+        }
+        // Remove trailing Separator
+        String cleanPath = other.endsWith("/") ? other.substring(0, other.length() - 1) : other;
+        return this.parts.get(this.parts.size() - 1).equals(cleanPath);
     }
 
     @Override
-    public Path resolve(Path other) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public @NotNull Path normalize() {
+        return new SFTPPath(this.host, combineParts(0, getNameCount()));
     }
 
     @Override
-    public Path resolve(String other) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public @NotNull Path resolve(@NotNull Path other) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public Path resolveSibling(Path other) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public @NotNull Path resolve(@NotNull String other) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public Path resolveSibling(String other) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public @NotNull Path resolveSibling(@NotNull Path other) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public Path relativize(Path other) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public @NotNull Path resolveSibling(@NotNull String other) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public URI toUri() {
+    public @NotNull Path relativize(@NotNull Path other) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull URI toUri() {
 
         try {
             String userInfo = null;
@@ -188,38 +198,38 @@ public class SFTPPath implements Path {
     }
 
     @Override
-    public Path toAbsolutePath() {
+    public @NotNull Path toAbsolutePath() {
         return normalize();
     }
 
     @Override
-    public Path toRealPath(LinkOption... options) throws IOException {
-        throw new UnsupportedOperationException("Not Implemented");
-    }
-
-    @Override
-    public File toFile() {
+    public @NotNull Path toRealPath(LinkOption @NotNull ... options) throws IOException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public WatchKey register(WatchService watcher, Kind<?>[] events, Modifier... modifiers) throws IOException {
-        throw new UnsupportedOperationException("Not Implemented");
+    public @NotNull File toFile() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public WatchKey register(WatchService watcher, Kind<?>... events) throws IOException {
-        throw new UnsupportedOperationException("Not Implemented");
+    public @NotNull WatchKey register(@NotNull WatchService watcher, Kind<?> @NotNull [] events, Modifier... modifiers) throws IOException {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterator<Path> iterator() {
-        throw new UnsupportedOperationException("Not Implemented");
+    public @NotNull WatchKey register(@NotNull WatchService watcher, Kind<?> @NotNull ... events) throws IOException {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public int compareTo(Path other) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public @NotNull Iterator<Path> iterator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int compareTo(@NotNull Path other) {
+        throw new UnsupportedOperationException();
     }
 
     public String getPathString() {
@@ -228,5 +238,29 @@ public class SFTPPath implements Path {
 
     public List<String> getParts() {
         return Collections.unmodifiableList(parts);
+    }
+
+    @Override
+    @NotNull
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (host != null && path.startsWith(PATH_SEP)) {
+            sb.append(host);
+        }
+        sb.append(path);
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof SFTPPath) {
+            SFTPPath other = (SFTPPath) obj;
+            return Objects.equals(this.host, other.host) && Objects.equals(this.path, other.path);
+        }
+        return false;
+    }
+
+    public int hashCode() {
+        return Objects.hash(this.host, this.path);
     }
 }
