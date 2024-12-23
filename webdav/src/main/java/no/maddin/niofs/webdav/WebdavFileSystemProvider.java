@@ -39,17 +39,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -273,13 +262,12 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     	log.fine("newByteChannel");
         return new SardineChannel((WebdavPath)path, options);
     }
-
     
-    class DirStream implements DirectoryStream<Path> {
+    private static class WebdavDirStream implements DirectoryStream<Path> {
     	
-    	ArrayList<Path> paths;
+    	private final ArrayList<Path> paths;
     	
-    	public DirStream(ArrayList<Path> paths) {
+    	private WebdavDirStream(ArrayList<Path> paths) {
     		this.paths = paths;
 		}
     	
@@ -334,7 +322,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 			paths.add(wpath);
 		}
 
-        return new DirStream(paths);
+        return new WebdavDirStream(paths);
 	}
 
     @Override

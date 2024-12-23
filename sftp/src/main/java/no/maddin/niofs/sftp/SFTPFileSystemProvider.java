@@ -3,7 +3,9 @@ package no.maddin.niofs.sftp;
 import com.jcraft.jsch.*;
 import jakarta.validation.constraints.NotNull;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
@@ -88,7 +90,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
+    public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) {
         throw new UnsupportedOperationException();
     }
 
@@ -101,7 +103,6 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         SFTPHost sftpHost = (SFTPHost) dir.getFileSystem();
 
         try (SFTPSession sftpSession = new SFTPSession(sftpHost, jsch)) {
-            @SuppressWarnings("unchecked")
             Vector<ChannelSftp.LsEntry> ls = sftpSession.sftp.ls(((SFTPPath)dir).getPathString());
 
             List<Path> list = ls.stream()
@@ -159,7 +160,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public void delete(Path path) throws IOException {
+    public void delete(Path path) {
         throw new UnsupportedOperationException();
     }
 
@@ -168,13 +169,13 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         if (!(source instanceof SFTPPath && target instanceof SFTPPath)) {
             throw new UnsupportedOperationException("Both source and target must be associated with the same provider");
         }
-        if (!source.getFileSystem().equals(target.getFileSystem())) {
+      if (source.getFileSystem().equals(target.getFileSystem())) {
             String sourcePath = ((SFTPPath)source).getPathString();
             String targetPath = ((SFTPPath)target).getPathString();
             SFTPHost host = (SFTPHost) source.getFileSystem();
             copySameProvider(host, sourcePath, targetPath, options);
         } else {
-            throw new UnsupportedOperationException("Copy between different providers not supported");
+            throw new UnsupportedOperationException("Copy between different filesystems not supported");
         }
     }
 
@@ -183,7 +184,14 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
             if (options != null && options.length > 0) {
                 log.info("Copy option is ignored");
             }
-            sftpSession.sftp.put(source, target, ChannelSftp.OVERWRITE);
+            File tmpFile = File.createTempFile("sftp", ".tmp");
+            tmpFile.deleteOnExit();
+            try (
+                OutputStream tmpOut = new java.io.FileOutputStream(tmpFile)
+            ) {
+                sftpSession.sftp.get(source, tmpOut);
+            }
+            sftpSession.sftp.put(tmpFile.getAbsolutePath(), target);
         } catch (JSchException | SftpException e) {
             throw new IOException(e);
         }
@@ -191,27 +199,27 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public void move(Path source, Path target, CopyOption... options) throws IOException {
+    public void move(Path source, Path target, CopyOption... options) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean isSameFile(Path path, Path path2) throws IOException {
+    public boolean isSameFile(Path path, Path path2) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean isHidden(Path path) throws IOException {
+    public boolean isHidden(Path path) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public FileStore getFileStore(Path path) throws IOException {
+    public FileStore getFileStore(Path path) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void checkAccess(Path path, AccessMode... modes) throws IOException {
+    public void checkAccess(Path path, AccessMode... modes) {
         throw new UnsupportedOperationException();
     }
 
@@ -221,17 +229,17 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
+    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
+    public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException {
+    public void setAttribute(Path path, String attribute, Object value, LinkOption... options) {
         throw new UnsupportedOperationException();
     }
 
@@ -255,7 +263,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() {
             sftp.quit();
             session.disconnect();
         }
@@ -271,7 +279,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() {
             // nothing to do
         }
 

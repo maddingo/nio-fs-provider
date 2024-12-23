@@ -24,9 +24,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.jcraft</groupId>
+            <groupId>com.github.mwiede</groupId>
             <artifactId>jsch</artifactId>
-            <version>0.1.55</version>
+            <version>0.2.21</version>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -39,7 +39,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <version>2.12.1</version>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
