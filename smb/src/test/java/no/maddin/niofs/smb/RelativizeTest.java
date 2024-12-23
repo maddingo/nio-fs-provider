@@ -1,7 +1,6 @@
 package no.maddin.niofs.smb;
 
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -19,8 +18,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static no.maddin.niofs.testutil.Matchers.hasStringValue;
-import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 @Testcontainers
 public class RelativizeTest {

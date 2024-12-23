@@ -1,7 +1,7 @@
+package no.maddin.niofs.it;
+
 import no.maddin.niofs.testutil.BasicTestContainer;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.net.URI;

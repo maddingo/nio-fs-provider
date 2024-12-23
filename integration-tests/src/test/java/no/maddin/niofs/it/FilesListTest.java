@@ -1,3 +1,5 @@
+package no.maddin.niofs.it;
+
 import no.maddin.niofs.testutil.BasicTestContainer;
 import no.maddin.niofs.testutil.FileUtils;
 import no.maddin.niofs.testutil.SftpgoContainer;

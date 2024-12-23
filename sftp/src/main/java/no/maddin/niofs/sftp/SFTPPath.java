@@ -36,11 +36,9 @@ public class SFTPPath implements Path {
         Deque<String> parts = new ArrayDeque<>();
         try {
             for (String p : path.split(PATH_SEP, -1)) {
-                if (p.isEmpty() || p.equals(".")) {
-                    // ignore
-                } else if (p.equals("..")) {
+                if (p.equals("..")) {
                     parts.removeLast();
-                } else {
+                } else if (!parts.isEmpty() && !path.equals(".")) {
                     parts.add(p);
                 }
             }
@@ -67,7 +65,7 @@ public class SFTPPath implements Path {
     }
 
     @Override
-    public @NotNull FileSystem getFileSystem() {
+    public FileSystem getFileSystem() {
         return this.host;
     }
 
@@ -121,12 +119,11 @@ public class SFTPPath implements Path {
 
     @Override
     public boolean startsWith(Path other) {
-        if (other.getFileSystem().equals(this.getFileSystem())) {
-            if (other instanceof SFTPPath) {
+        if (other instanceof SFTPPath && other.getFileSystem().equals(this.getFileSystem())) {
                 SFTPPath otherPath = (SFTPPath) other;
                 return Collections.indexOfSubList(this.parts, otherPath.getParts()) == 0;
             }
-        }
+
         return false;
     }
 
@@ -138,7 +135,7 @@ public class SFTPPath implements Path {
 
     @Override
     public boolean endsWith(@NotNull Path other) {
-        throw new UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -158,27 +155,27 @@ public class SFTPPath implements Path {
 
     @Override
     public @NotNull Path resolve(@NotNull Path other) {
-        throw new UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @NotNull Path resolve(@NotNull String other) {
-        throw new UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @NotNull Path resolveSibling(@NotNull Path other) {
-        throw new UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @NotNull Path resolveSibling(@NotNull String other) {
-        throw new UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @NotNull Path relativize(@NotNull Path other) {
-        throw new UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -207,7 +204,7 @@ public class SFTPPath implements Path {
 
     @Override
     public @NotNull Path toRealPath(LinkOption @NotNull ... options) throws IOException {
-        throw new UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -217,22 +214,22 @@ public class SFTPPath implements Path {
 
     @Override
     public @NotNull WatchKey register(@NotNull WatchService watcher, Kind<?> @NotNull [] events, Modifier... modifiers) throws IOException {
-        throw new UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @NotNull WatchKey register(@NotNull WatchService watcher, Kind<?> @NotNull ... events) throws IOException {
-        throw new UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @NotNull Iterator<Path> iterator() {
-        throw new UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public int compareTo(@NotNull Path other) {
-        throw new UnsupportedOperationException("Not Implemented");
+        throw new UnsupportedOperationException();
     }
 
     public String getPathString() {

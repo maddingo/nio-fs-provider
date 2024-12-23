@@ -2,10 +2,7 @@ package no.maddin.niofs.smb;
 
 import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -28,7 +25,6 @@ public class DirectoryStreamIteratorTest {
 
         String sambaAddress = samba.getGuestIpAddress();
 
-        Set<URI> args = new TreeSet<>(Comparator.comparing(URI::toString));
         return Stream.of(
             Arguments.of(
                 uri("smb://" + sambaAddress + "/public"),
@@ -37,7 +33,7 @@ public class DirectoryStreamIteratorTest {
                     uri("smb://" + sambaAddress + "/public/My+Documents/Folder+One"),
                     uri("smb://" + sambaAddress + "/public/My+Documents/Folder+Two")
                 ),
-                (DirectoryStream.Filter<Path>) (entry) -> !entry.endsWith(".") && !entry.endsWith("..")
+                (DirectoryStream.Filter<Path>) entry -> !entry.endsWith(".") && !entry.endsWith("..")
             ),
             Arguments.of(
                 uri("smb://" + sambaAddress + "/public"),
@@ -48,13 +44,12 @@ public class DirectoryStreamIteratorTest {
                 ),
                 fileNameEndsWith(".txt")
             )
-
         );
     }
 
     @NotNull
     private static DirectoryStream.Filter<Path> fileNameEndsWith(String suffix) {
-        return (entry) -> Optional.ofNullable(entry.getFileName())
+        return entry -> Optional.ofNullable(entry.getFileName())
             .map(Path::toString)
             .filter(f -> f.endsWith(suffix))
             .isPresent();

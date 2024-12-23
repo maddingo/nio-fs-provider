@@ -11,9 +11,7 @@ import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.*;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
 import java.util.logging.Logger;
@@ -184,10 +182,9 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
             if (options != null && options.length > 0) {
                 log.info("Copy option is ignored");
             }
-            File tmpFile = File.createTempFile("sftp", ".tmp");
-            tmpFile.deleteOnExit();
+            File tmpFile = createTempFile();
             try (
-                OutputStream tmpOut = new java.io.FileOutputStream(tmpFile)
+                OutputStream tmpOut = Files.newOutputStream(tmpFile.toPath())
             ) {
                 sftpSession.sftp.get(source, tmpOut);
             }
@@ -196,6 +193,30 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
             throw new IOException(e);
         }
 
+    }
+
+    private static File createTempFile() throws IOException {
+        boolean isPosixFS = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+        File tempFile = isPosixFS ? createPosixTempfile() : creeateNonPosixTempfile();
+        tempFile.deleteOnExit();
+        return tempFile;
+    }
+
+    private static File createPosixTempfile() throws IOException {
+        File tempFile;
+        FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+        tempFile = Files.createTempFile("prefix", "suffix", attr).toFile();
+        return tempFile;
+    }
+
+    @SuppressWarnings({"java:S5443", "java:S899"}) // use of createTempFile is ok here
+    private static File creeateNonPosixTempfile() throws IOException {
+        File tempFile;
+        tempFile = Files.createTempFile("prefix", "suffix").toFile();
+        tempFile.setReadable(true, true);
+        tempFile.setWritable(true, true);
+        tempFile.setExecutable(true, true);
+        return tempFile;
     }
 
     @Override

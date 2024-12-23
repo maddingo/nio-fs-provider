@@ -1,19 +1,15 @@
-import no.maddin.niofs.sftp.SFTPFileSystemProvider;
-import no.maddin.niofs.sftp.SFTPHost;
+package no.maddin.niofs.it;
+
 import no.maddin.niofs.sftp.SFTPPath;
 import org.hamcrest.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -90,7 +86,7 @@ public class PathsGetUriIT {
 
     @ParameterizedTest (name = "{index} {0} {2}")
     @MethodSource("data")
-    public void getURI(String uriString, Matcher<Exception> exceptionExpectation, Matcher<Path> testGetUriExpected) throws Exception {
+    void getURI(String uriString, Matcher<Exception> exceptionExpectation, Matcher<Path> testGetUriExpected) {
 
         Exception tr = null;
         try {
