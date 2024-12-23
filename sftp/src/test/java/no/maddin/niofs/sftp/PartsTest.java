@@ -1,10 +1,12 @@
 package no.maddin.niofs.sftp;
 
 import org.hamcrest.Matcher;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -66,5 +68,13 @@ class PartsTest {
         } catch (Exception ex) {
             assertThat(ex, is(expectedException));
         }
+    }
+
+    @Test
+    void toStringTest() {
+        SFTPHost host = new SFTPHost(new SFTPFileSystemProvider(), URI.create("sftp://localhost"));
+        SFTPPath path = new SFTPPath(host, "/aa/bb/cc.txt");
+
+        assertThat(path.toString(), is(equalTo("sftp://localhost/aa/bb/cc.txt")));
     }
 }

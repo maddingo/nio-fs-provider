@@ -38,7 +38,7 @@ public class SFTPPath implements Path {
             for (String p : path.split(PATH_SEP, -1)) {
                 if (p.equals("..")) {
                     parts.removeLast();
-                } else if (!parts.isEmpty() && !path.equals(".")) {
+                } else if (!p.isEmpty() && !p.equals(".")) {
                     parts.add(p);
                 }
             }

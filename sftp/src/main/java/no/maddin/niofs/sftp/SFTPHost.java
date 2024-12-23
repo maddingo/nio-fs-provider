@@ -201,7 +201,12 @@ public class SFTPHost extends FileSystem {
         return serverUri;
     }
 
-    public static class UserInfo{
+    @Override
+    public String toString() {
+        return serverUri != null ? serverUri.toString() : "";
+    }
+
+    public static class UserInfo {
         private final String username;
         private final String password;
 
