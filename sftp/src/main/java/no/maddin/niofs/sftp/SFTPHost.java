@@ -1,7 +1,5 @@
 package no.maddin.niofs.sftp;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,6 +25,8 @@ public class SFTPHost extends FileSystem {
 
     private final AtomicBoolean open = new AtomicBoolean();
 
+    static final SFTPHost SFTP_TEST_HOST = new SFTPHost();
+
     SFTPHost(SFTPFileSystemProvider provider, URI serverUri) {
         this.serverUri = serverUri;
         this.provider = provider;
@@ -34,6 +34,14 @@ public class SFTPHost extends FileSystem {
         this.port = serverUri.getPort();
         this.userInfo = userInfo(serverUri.getUserInfo());
         open.set(true);
+    }
+
+    private SFTPHost() {
+        this.provider = null;
+        this.host = null;
+        this.port = 0;
+        this.userInfo = null;
+        this.serverUri = null;
     }
 
     private static UserInfo userInfo(String userInfo) {
@@ -49,7 +57,6 @@ public class SFTPHost extends FileSystem {
         return new UserInfo(un, pw);
     }
 
-    @NotNull
     static URI getServerUri(URI uri, boolean requireEmptyPath) throws URISyntaxException {
         String host = uri.getHost();
         if (host == null) {
@@ -194,7 +201,12 @@ public class SFTPHost extends FileSystem {
         return serverUri;
     }
 
-    public static class UserInfo{
+    @Override
+    public String toString() {
+        return serverUri != null ? serverUri.toString() : "";
+    }
+
+    public static class UserInfo {
         private final String username;
         private final String password;
 
