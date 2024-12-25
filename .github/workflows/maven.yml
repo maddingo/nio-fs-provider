@@ -35,5 +35,5 @@ jobs:
     - name: Build with Maven
       run: mvn -B verify
     - name: Maven Site
-      if: matrix.java == '21'
+      if: matrix.java == '21' && github.event_name == 'push'
       run: mvn -B site site:stage
