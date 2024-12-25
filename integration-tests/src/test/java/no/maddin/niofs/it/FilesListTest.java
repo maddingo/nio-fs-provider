@@ -78,8 +78,8 @@ public class FilesListTest {
         try (BasicTestContainer container = containerSupplier.get()) {
             container.start();
             URI uri = container.getBaseUri(protocol);
-            Path sourcePath = Paths.get(uri.resolve("testfile.txt"));
-            Path targetPath = Paths.get(uri.resolve("testfile-" + randomString + ".txt"));
+            Path sourcePath = Paths.get(uri.resolve("/testfile.txt"));
+            Path targetPath = Paths.get(uri.resolve("/testfile-" + randomString + ".txt"));
             Files.copy(sourcePath, targetPath);
             assertThat(new File(localDataFileRoot, "testfile-" + randomString + ".txt"), anExistingFile());
         }
