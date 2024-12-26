@@ -364,4 +364,56 @@
         </dependencies>
     </dependencyManagement>
 
+    <profiles>
+        <profile>
+            <id>local</id>
+            <activation>
+                <property>
+                    <name>env.MAVEN_PROFILE</name>
+                    <value>local</value>
+                </property>
+            </activation>
+            <properties>
+                <devlocal.base>file://${env.PWD}/target</devlocal.base>
+            </properties>
+            <distributionManagement>
+                <site>
+                    <id>local</id>
+                    <name>Local Deployment</name>
+                    <url>${devlocal.base}/site</url>
+                </site>
+                <repository>
+                    <id>dev-local</id>
+                    <url>${devlocal.base}/repository</url>
+                    <releases>
+                        <enabled>true</enabled>
+                        <updatePolicy>always</updatePolicy>
+                        <checksumPolicy>fail</checksumPolicy>
+                    </releases>
+                </repository>
+                <snapshotRepository>
+                    <id>dev-local</id>
+                    <url>${devlocal.base}/repository</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                        <updatePolicy>always</updatePolicy>
+                        <checksumPolicy>fail</checksumPolicy>
+                    </snapshots>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+        <profile>
+            <id>sonatype-oss</id>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+                <repository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 </project>
