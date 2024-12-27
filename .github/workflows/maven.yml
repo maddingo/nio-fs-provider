@@ -8,6 +8,10 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+    paths-ignore:
+      - .github/workflows/deploy.yml
+      - README.md
+      - '**/site/**'
 
 jobs:
   build:

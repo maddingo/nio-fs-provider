@@ -341,23 +341,14 @@
 
     <profiles>
         <profile>
-            <id>local</id>
-            <activation>
-                <property>
-                    <name>env.MAVEN_PROFILE</name>
-                    <value>local</value>
-                </property>
-            </activation>
-            <properties>
-                <devlocal.base>file://${env.PWD}/target</devlocal.base>
-            </properties>
+            <id>github</id>
             <distributionManagement>
                 <site>
-                    <id>local</id>
-                    <name>Local Deployment</name>
-                    <url>${devlocal.base}/site</url>
+                    <id>github-pages</id>
+                    <name>Github Pages</name>
+                    <url>https://github.com/maddingo/nio-fs-provider.git</url>
                 </site>
-                <repository>
+                <!--repository>
                     <id>dev-local</id>
                     <url>${devlocal.base}/repository</url>
                     <releases>
@@ -374,7 +365,7 @@
                         <updatePolicy>always</updatePolicy>
                         <checksumPolicy>fail</checksumPolicy>
                     </snapshots>
-                </snapshotRepository>
+                </snapshotRepository-->
             </distributionManagement>
         </profile>
         <profile>

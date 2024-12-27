@@ -6,10 +6,13 @@ on:
       java-version:
         description: 'Java version'
         required: true
+        type: choice
+        options:
+          - '21'
+          - '8'
+          - '11'
+          - '17'
         default: '21'
-        validation:
-          pattern: '^(8|11|17|21)$'
-          error: 'Must be one of: 8, 11, 17, 21'
       do-build:
         description: 'Build the project'
         required: true
@@ -24,7 +27,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-24.04
-
+    permissions:
+      pages: write
+      packages: write
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK ${{ inputs.java-version }}
@@ -42,7 +47,7 @@ jobs:
           ${{ runner.os }}-maven-${{ inputs.java-version }}
     - name: Deploy with Maven
       if: inputs.do-build
-      run: mvn -B deploy -DskipTests
+      run: mvn -B deploy -DskipTests -P github
     - name: Maven Site
       if: inputs.do-site
-      run: mvn -B site site:stage scm-publish:publish-scm
+      run: mvn -B site site:stage scm-publish:publish-scm -P github
