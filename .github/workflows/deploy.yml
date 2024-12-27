@@ -2,10 +2,18 @@ name: Manual Deploy and site publishing
 
 on:
   workflow_dispatch:
+    inputs:
+      java-version:
+        description: 'Java version'
+        required: true
+        default: '21'
+        validation:
+          pattern: '^(8|11|17|21)$'
+          error: 'Must be one of: 8, 11, 17, 21'
 
 jobs:
   deploy:
-    runs-on: ubuntu-24.04 [Beta]
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4
@@ -22,7 +30,7 @@ jobs:
         key: ${{ runner.os }}-maven-21-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-21
-    - name: Build with Maven
+    - name: Deploy with Maven
       run: mvn -B deploy -DskipTests
     - name: Maven Site
       run: mvn -B site site:stage scm-publish:publish-scm
