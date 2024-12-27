@@ -36,4 +36,4 @@ jobs:
       run: mvn -B verify
     - name: Maven Site
       if: matrix.java == '21' && github.event_name == 'push'
-      run: mvn -B site site:stage
+      run: mvn -B site site:stage scm-publish:publish-scm
