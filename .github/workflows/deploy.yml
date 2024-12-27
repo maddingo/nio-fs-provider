@@ -50,4 +50,7 @@ jobs:
       run: mvn -B deploy -DskipTests -P github
     - name: Maven Site
       if: inputs.do-site
-      run: mvn -B site site:stage scm-publish:publish-scm -P github
+      run: |
+        git config --global user.name "Github Actions"
+        git config --global user.email "maddingo@github.com"
+        mvn -B site site:stage scm-publish:publish-scm -P github
