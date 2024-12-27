@@ -1,1 +1,0 @@
-typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"no.maddin.niofs.smb","l":"DirectoryStreamIteratorTest"},{"p":"no.maddin.niofs.smb","l":"RelativizeTest"},{"p":"no.maddin.niofs.smb","l":"SambaContainer"},{"p":"no.maddin.niofs.smb","l":"SMBFileSystemProviderTest"}];updateSearchResults();

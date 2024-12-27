@@ -1,1 +1,0 @@
-typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"no.maddin.niofs.webdav","l":"LoggingListener"},{"p":"no.maddin.niofs.webdav","l":"WebdavPathServerTest"},{"p":"no.maddin.niofs.webdav","l":"WebdavPathTest"}];updateSearchResults();

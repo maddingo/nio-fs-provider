@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebdavFileSystemProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">nio-fs-webdav</a> &gt; <a href="index.source.html" class="el_package">no.maddin.niofs.webdav</a> &gt; <span class="el_source">WebdavFileSystemProvider.java</span></div><h1>WebdavFileSystemProvider.java</h1><pre class="source lang-java linenums">/*
+ Copyright 2012-2013 University of Stavanger, Norway
+
+ Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+
+package no.maddin.niofs.webdav;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.AccessMode;
+import java.nio.file.CopyOption;
+import java.nio.file.DirectoryStream;
+import java.nio.file.DirectoryStream.Filter;
+import java.nio.file.FileStore;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemException;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.ProviderMismatchException;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.spi.FileSystemProvider;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+import com.github.sardine.DavResource;
+import com.github.sardine.Sardine;
+import com.github.sardine.impl.SardineException;
+
+/**
+ * The WebDAV FileSystemProvider based on Sardine.
+ */
+<span class="fc" id="L54">public class WebdavFileSystemProvider extends FileSystemProvider {</span>
+
+    private static final int DEFAULT_PORT = 80;
+<span class="fc" id="L57">    private final Map&lt;URI, WebdavFileSystem&gt; hosts = new HashMap&lt;&gt;();</span>
+
+    @Override
+    public void copy(Path fileFrom, Path fileTo, CopyOption... options) throws IOException {
+
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (!(fileFrom instanceof WebdavPath)) {</span>
+<span class="nc" id="L63">            throw new IllegalArgumentException(fileFrom.toString());</span>
+        }
+
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (!(fileTo instanceof WebdavPath)) {</span>
+<span class="nc" id="L67">            throw new IllegalArgumentException(fileTo.toString());</span>
+        }
+
+<span class="nc" id="L70">        WebdavPath wPathTo = (WebdavPath)fileTo;</span>
+
+<span class="nc" id="L72">        WebdavFileSystem webdavHost = (WebdavFileSystem)fileTo.getFileSystem();</span>
+
+<span class="nc" id="L74">        Sardine webdav = webdavHost.getSardine();</span>
+
+<span class="nc" id="L76">        webdav.put(wPathTo.toUri().toString(), Files.readAllBytes(fileFrom));</span>
+<span class="nc" id="L77">    }</span>
+
+    @Override
+    public void createDirectory(Path dir, FileAttribute&lt;?&gt;... attrs) throws IOException {
+
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if (!(dir instanceof WebdavPath)) {</span>
+<span class="nc" id="L83">            throw new IllegalArgumentException(dir.toString());</span>
+        }
+
+<span class="fc" id="L86">        WebdavPath wDir = (WebdavPath)dir;</span>
+
+<span class="fc" id="L88">        WebdavFileSystem webdavHost = (WebdavFileSystem)dir.getFileSystem();</span>
+
+<span class="fc" id="L90">        Sardine webdav = webdavHost.getSardine();</span>
+
+<span class="fc" id="L92">        createDirectoryRecursive(webdav, wDir, attrs);</span>
+<span class="fc" id="L93">    }</span>
+
+    private void createDirectoryRecursive(Sardine webdav, WebdavPath wDir, FileAttribute&lt;?&gt;[] attrs) throws IOException {
+
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">        if (webdav.exists(wDir.toUri().toString())) {</span>
+<span class="nc" id="L98">            return;</span>
+        }
+
+<span class="fc" id="L101">        WebdavPath parent = (WebdavPath)wDir.getParent();</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        if (parent != null) {</span>
+<span class="fc" id="L103">            createDirectoryRecursive(webdav, parent, attrs);</span>
+        }
+<span class="fc" id="L105">        webdav.createDirectory(wDir.toUri().toString());</span>
+<span class="fc" id="L106">    }</span>
+
+    @Override
+    public void delete(Path dir) throws IOException {
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (!(dir instanceof WebdavPath)) {</span>
+<span class="nc" id="L111">            throw new IllegalArgumentException(dir.toString());</span>
+        }
+
+<span class="fc" id="L114">        WebdavPath wDir = (WebdavPath)dir;</span>
+<span class="fc" id="L115">        WebdavFileSystem webdavHost = (WebdavFileSystem)dir.getFileSystem();</span>
+
+<span class="fc" id="L117">        Sardine webdav = webdavHost.getSardine();</span>
+
+<span class="fc" id="L119">        String dirString = &quot;&quot;;</span>
+        try {
+<span class="fc" id="L121">            dirString = wDir.toUri().toString();</span>
+<span class="fc" id="L122">            webdav.delete(dirString);</span>
+<span class="fc" id="L123">        } catch(SardineException se) {</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">            if (se.getCause() instanceof IOException) {</span>
+<span class="nc" id="L125">                throw (IOException)se.getCause();</span>
+            }
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">            if (Objects.equals(se.getResponsePhrase(), &quot;Not Found&quot;)) {</span>
+<span class="fc" id="L128">                throw new NoSuchFileException(dirString);</span>
+            }
+<span class="nc" id="L130">            throw new IOException(se);</span>
+<span class="fc" id="L131">        }</span>
+<span class="fc" id="L132">    }</span>
+
+    /**
+     * The default implementation in FileSystemProvider will simply call
+     * delete() in deleteIfExists() and silently ignore any NoSuchFileException.
+     * In case of Nexus, trying to delete() will result in 503 (Not allowed)
+     * even if the path points to nowhere.
+     */
+    @Override
+    public boolean deleteIfExists(Path path) throws IOException {
+<span class="fc" id="L142">        WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();</span>
+<span class="fc" id="L143">        final String s = path.toUri().toString();</span>
+<span class="fc" id="L144">        return webdavFs.getSardine().exists(s);</span>
+    }
+
+    @Override
+    public FileSystem getFileSystem(URI uri) {
+        try {
+<span class="nc" id="L150">            return getWebdavHost(uri, true);</span>
+<span class="nc" id="L151">        } catch(URISyntaxException ex) {</span>
+<span class="nc" id="L152">            throw new FileSystemNotFoundException(uri.toString());</span>
+        }
+    }
+
+    @Override
+    public Path getPath(URI uri) {
+        try {
+<span class="fc" id="L159">            WebdavFileSystem host = getWebdavHost(uri, true);</span>
+<span class="fc" id="L160">            return new WebdavPath(host, uri.getPath());</span>
+<span class="nc" id="L161">        } catch(URISyntaxException e) {</span>
+<span class="nc" id="L162">            throw new FileSystemNotFoundException(uri.toString());</span>
+        }
+    }
+
+    private WebdavFileSystem getWebdavHost(URI uri, boolean create) throws URISyntaxException {
+<span class="fc" id="L167">        String host = uri.getHost();</span>
+<span class="fc" id="L168">        int port = uri.getPort();</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">        if (port == -1) {</span>
+<span class="fc" id="L170">            port = DEFAULT_PORT;</span>
+        }
+<span class="fc" id="L172">        String userInfo = uri.getUserInfo();</span>
+<span class="fc" id="L173">        URI serverUri = new URI(getScheme(), userInfo, host, port, null, null, null);</span>
+
+<span class="fc" id="L175">        synchronized (hosts) {</span>
+<span class="fc" id="L176">            WebdavFileSystem fs = hosts.get(serverUri);</span>
+<span class="pc bpc" id="L177" title="1 of 4 branches missed.">            if (fs == null &amp;&amp; create) {</span>
+<span class="fc" id="L178">                fs = new WebdavFileSystem(this, serverUri);</span>
+<span class="fc" id="L179">                hosts.put(serverUri, fs);</span>
+            }
+<span class="fc" id="L181">            return fs;</span>
+<span class="nc" id="L182">        }</span>
+    }
+
+    @Override
+    public String getScheme() {
+<span class="fc" id="L187">        return &quot;webdav&quot;;</span>
+    }
+
+    /**
+     * Unsupported
+     */
+    @Override
+    public &lt;V extends FileAttributeView&gt; V getFileAttributeView(Path path, Class&lt;V&gt; type, LinkOption... options) {
+<span class="nc" id="L195">        throw new UnsupportedOperationException();</span>
+    }
+
+    /**
+     * Unsupported
+     */
+    @Override
+    public FileStore getFileStore(Path path) throws IOException {
+<span class="nc" id="L203">        throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public void checkAccess(Path path, AccessMode... modes) throws IOException {
+<span class="fc" id="L208">        WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();</span>
+<span class="fc" id="L209">        final String s = path.toUri().toString();</span>
+<span class="fc" id="L210">        final boolean exists = webdavFs.getSardine().exists(s);</span>
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">        if (!exists) {</span>
+<span class="nc" id="L212">            throw new NoSuchFileException(s);</span>
+        }
+<span class="fc" id="L214">    }</span>
+
+    /**
+     * Unsupported
+     */
+    @Override
+    public boolean isHidden(Path path) throws IOException {
+<span class="nc" id="L221">        throw new UnsupportedOperationException();</span>
+    }
+
+    /**
+     * Unsupported
+     */
+    @Override
+    public boolean isSameFile(Path path, Path path2) throws IOException {
+<span class="nc" id="L229">        throw new UnsupportedOperationException();</span>
+    }
+
+    /**
+     * Unsupported
+     */
+    @Override
+    public void move(Path source, Path target, CopyOption... options) throws IOException {
+<span class="nc" id="L237">        throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public SeekableByteChannel newByteChannel(Path path, Set&lt;? extends OpenOption&gt; options, FileAttribute&lt;?&gt;... attrs)
+            throws IOException
+    {
+<span class="fc" id="L244">        return new SardineChannel((WebdavPath)path);</span>
+    }
+
+    /**
+     * Unsupported
+     */
+    @Override
+    public DirectoryStream&lt;Path&gt; newDirectoryStream(Path arg0, Filter&lt;? super Path&gt; arg1) throws IOException {
+<span class="nc" id="L252">        throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public FileSystem newFileSystem(URI uri, Map&lt;String, ?&gt; env) throws IOException {
+        try {
+<span class="fc" id="L258">            return getWebdavHost(uri, true);</span>
+<span class="nc" id="L259">        } catch(URISyntaxException e) {</span>
+<span class="nc" id="L260">            throw new FileSystemException(e.toString());</span>
+        }
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public &lt;A extends BasicFileAttributes&gt; A readAttributes(Path path, Class&lt;A&gt; type, LinkOption... options) throws IOException {
+<span class="fc" id="L267">        WebdavFileSystem wfs = (WebdavFileSystem)path.getFileSystem();</span>
+<span class="fc" id="L268">        List&lt;DavResource&gt; resources = wfs.getSardine().list(path.toUri().toString());</span>
+<span class="pc bpc" id="L269" title="1 of 2 branches missed.">        if (resources.size() != 1) {</span>
+<span class="nc" id="L270">            throw new IllegalArgumentException();</span>
+        }
+<span class="fc" id="L272">        final DavResource res = resources.get(0);</span>
+
+<span class="pc bpc" id="L274" title="1 of 2 branches missed.">        if (!type.isAssignableFrom(WebdavFileAttributes.class)) {</span>
+<span class="nc" id="L275">            throw new ProviderMismatchException();</span>
+        }
+
+<span class="fc" id="L278">        return (A)new WebdavFileAttributes(res);</span>
+    }
+
+    /**
+     * Unsupported
+     */
+    @Override
+    public Map&lt;String, Object&gt; readAttributes(Path arg0, String arg1, LinkOption... arg2) throws IOException {
+<span class="nc" id="L286">        throw new UnsupportedOperationException();</span>
+    }
+
+    /**
+     * Unsupported
+     */
+    @Override
+    public void setAttribute(Path arg0, String arg1, Object arg2, LinkOption... arg3) throws IOException {
+<span class="nc" id="L294">        throw new UnsupportedOperationException();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
