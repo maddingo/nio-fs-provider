@@ -1,0 +1,48 @@
+name: Manual Deploy and site publishing
+
+on:
+  workflow_dispatch:
+    inputs:
+      java-version:
+        description: 'Java version'
+        required: true
+        default: '21'
+        validation:
+          pattern: '^(8|11|17|21)$'
+          error: 'Must be one of: 8, 11, 17, 21'
+      do-build:
+        description: 'Build the project'
+        required: true
+        type: boolean
+        default: true
+      do-site:
+        description: 'Publish the site'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK ${{ inputs.java-version }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: 'temurin'
+        cache: maven
+    - name: Cache local Maven repository
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ inputs.java-version }}-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-${{ inputs.java-version }}
+    - name: Deploy with Maven
+      if: inputs.do-build
+      run: mvn -B deploy -DskipTests
+    - name: Maven Site
+      if: inputs.do-site
+      run: mvn -B site site:stage scm-publish:publish-scm
