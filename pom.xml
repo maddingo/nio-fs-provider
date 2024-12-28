@@ -344,9 +344,8 @@
             <id>github</id>
             <distributionManagement>
                 <site>
-                    <id>github-pages</id>
-                    <name>Github Pages</name>
-                    <url>scm:git:https://github.com/maddingo/nio-fs-provider.git</url>
+                    <id>github</id>
+                    <url>scm:git:git@github.com:maddingo/nio-fs-provider.git</url>
                 </site>
                 <!--repository>
                     <id>dev-local</id>
