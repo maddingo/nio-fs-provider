@@ -345,7 +345,8 @@
             <distributionManagement>
                 <site>
                     <id>github</id>
-                    <url>scm:git:git@github.com:maddingo/nio-fs-provider.git</url>
+                    <!--url>scm:git:git@github.com:maddingo/nio-fs-provider.git</url-->
+                    <url>scm:git:https://github.com/maddingo/nio-fs-provider</url>
                 </site>
                 <!--repository>
                     <id>dev-local</id>
@@ -371,11 +372,11 @@
             <id>sonatype-oss</id>
             <distributionManagement>
                 <snapshotRepository>
-                    <id>ossrh</id>
+                    <id>sonatype-nexus-snapshots</id>
                     <url>https://oss.sonatype.org/content/repositories/snapshots</url>
                 </snapshotRepository>
                 <repository>
-                    <id>ossrh</id>
+                    <id>sonatype-nexus-staging</id>
                     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>
