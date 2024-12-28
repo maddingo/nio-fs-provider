@@ -55,4 +55,4 @@ jobs:
       run: |
         git config --global user.name "Github Actions"
         git config --global user.email "maddingo@github.com"
-        mvn -B site site:stage scm-publish:publish-scm -P github -X
+        mvn -B site site:stage scm-publish:publish-scm -X

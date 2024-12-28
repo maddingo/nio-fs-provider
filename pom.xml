@@ -228,10 +228,9 @@
     <distributionManagement>
         <site>
             <id>github</id>
-            <name>Deployment through GitHub's site deployment plugin</name>
-            <!--url>scm:git:https://github.com/maddingo/nio-fs-provider.git</url-->
+            <url>scm:git:https://github.com/maddingo/nio-fs-provider</url>
             <!--url>scm:git:ssh://git@github.com/maddingo/nio-fs-provider.git</url-->
-            <url>scm:git:git@github.com:maddingo/nio-fs-provider.git</url>
+            <!--url>scm:git:git@github.com:maddingo/nio-fs-provider.git</url-->
         </site>
     </distributionManagement>
 
@@ -340,34 +339,6 @@
     </dependencyManagement>
 
     <profiles>
-        <profile>
-            <id>github</id>
-            <distributionManagement>
-                <site>
-                    <id>github</id>
-                    <!--url>scm:git:git@github.com:maddingo/nio-fs-provider.git</url-->
-                    <url>scm:git:https://github.com/maddingo/nio-fs-provider</url>
-                </site>
-                <!--repository>
-                    <id>dev-local</id>
-                    <url>${devlocal.base}/repository</url>
-                    <releases>
-                        <enabled>true</enabled>
-                        <updatePolicy>always</updatePolicy>
-                        <checksumPolicy>fail</checksumPolicy>
-                    </releases>
-                </repository>
-                <snapshotRepository>
-                    <id>dev-local</id>
-                    <url>${devlocal.base}/repository</url>
-                    <snapshots>
-                        <enabled>true</enabled>
-                        <updatePolicy>always</updatePolicy>
-                        <checksumPolicy>fail</checksumPolicy>
-                    </snapshots>
-                </snapshotRepository-->
-            </distributionManagement>
-        </profile>
         <profile>
             <id>sonatype-oss</id>
             <distributionManagement>
