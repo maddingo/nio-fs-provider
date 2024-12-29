@@ -41,8 +41,8 @@ jobs:
         distribution: 'temurin'
         cache: maven
         server-id: sonatype
-        server-username: ${{ secrets.SONATYPE_USERNAME }}
-        server-password: ${{ secrets.SONATYPE_PASSWORD }}
+        server-username: SONATYPE_USERNAME
+        server-password: SONATYPE_PASSWORD
     - name: Cache local Maven repository
       uses: actions/cache@v4
       with:
@@ -52,6 +52,9 @@ jobs:
           ${{ runner.os }}-maven-${{ inputs.java-version }}
     - name: Deploy with Maven
       if: inputs.do-build
+      env:
+        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
       run: |
         grep username ~/.m2/settings.xml
         mvn -B deploy -DskipTests -P sonatype
