@@ -2,7 +2,9 @@ nio-fs-provider
 ===============
 
 
-- Maven Central: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.maddin.niofs/nio-fs/badge.svg?style=plastic)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22no.maddin.niofs%22)
+- Latest Release on Maven Central: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.maddin.niofs/nio-fs/badge.svg?style=plastic)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22no.maddin.niofs%22)
+
+- Latest Snapshot on Sonatype OSSRH: [![Sonatype Nexus (Snapshots)](https://img.shields.io/nexus/s/no.maddin.niofs/nio-fs?server=https%3A%2F%2Foss.sonatype.org)](https://oss.sonatype.org/content/repositories/snapshots/no/maddin/niofs/nio-fs/)
 
 - Build status: [![Github](https://github.com/maddingo/nio-fs-provider/actions/workflows/maven.yml/badge.svg?branch=master)](https://github.com/maddingo/nio-fs-provider/actions/workflows/maven.yml?query=branch%3Amaster+)
 
@@ -31,16 +33,3 @@ Newer versions are published with groupId `no.maddin.niofs`.
 -----------
 [![](https://codescene.io/projects/3651/status.svg) Get more details at **codescene.io**.](https://codescene.io/projects/3651/jobs/latest-successful/results)
 
-------------
-# Deployment
-local deployment
-```bash
-mvn clean deploy -P local
-```
-
-Sonatype OSSRH deployment
-```bash
-mvn clean deploy -P sonatype-oss
-```
-- https://central.sonatype.org/publish/publish-maven/#distribution-management-and-authentication
-- https://central.sonatype.org/publish/generate-token/
