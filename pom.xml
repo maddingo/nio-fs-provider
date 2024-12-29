@@ -341,14 +341,14 @@
 
     <profiles>
         <profile>
-            <id>sonatype-oss</id>
+            <id>sonatype</id>
             <distributionManagement>
                 <snapshotRepository>
-                    <id>sonatype-nexus-snapshots</id>
+                    <id>sonatype</id>
                     <url>https://oss.sonatype.org/content/repositories/snapshots</url>
                 </snapshotRepository>
                 <repository>
-                    <id>sonatype-nexus-staging</id>
+                    <id>sonatype</id>
                     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>

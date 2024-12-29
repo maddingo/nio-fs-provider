@@ -40,7 +40,9 @@ jobs:
         java-version: ${{ inputs.java-version }}
         distribution: 'temurin'
         cache: maven
-        server-id: github
+        server-id: sonatype
+        server-username: ${{ secrets.SONATYPE_USERNAME }}
+        server-password: ${{ secrets.SONATYPE_PASSWORD }}
     - name: Cache local Maven repository
       uses: actions/cache@v4
       with:
@@ -50,7 +52,7 @@ jobs:
           ${{ runner.os }}-maven-${{ inputs.java-version }}
     - name: Deploy with Maven
       if: inputs.do-build
-      run: mvn -B deploy -DskipTests -P github
+      run: mvn -B deploy -DskipTests -P github -P sonatype
     - name: Maven Site
       if: inputs.do-site
       run: |
