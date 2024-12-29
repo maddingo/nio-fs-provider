@@ -53,7 +53,7 @@ jobs:
     - name: Deploy with Maven
       if: inputs.do-build
       run: |
-        grep id ~/.m2/settings.xml
+        grep username ~/.m2/settings.xml
         mvn -B deploy -DskipTests -P sonatype
     - name: Maven Site
       if: inputs.do-site
