@@ -168,7 +168,7 @@
                     <!-- there seems to be a change in behaviour in version 3.3.0 -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-scm-publish-plugin</artifactId>
-                    <version>3.2.1</version>
+                    <version>3.3.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -220,6 +220,7 @@
                 <configuration>
                     <scmBranch>gh-pages</scmBranch>
                     <subDirectory>site/${project.version}</subDirectory>
+                    <!--serverId>github</serverId-->
                 </configuration>
             </plugin>
         </plugins>
@@ -228,10 +229,9 @@
     <distributionManagement>
         <site>
             <id>github</id>
-            <name>Deployment through GitHub's site deployment plugin</name>
-            <!--url>scm:git:https://github.com/maddingo/nio-fs-provider.git</url-->
+            <url>scm:git:https://github.com/maddingo/nio-fs-provider.git</url>
             <!--url>scm:git:ssh://git@github.com/maddingo/nio-fs-provider.git</url-->
-            <url>scm:git:git@github.com:maddingo/nio-fs-provider.git</url>
+            <!--url>scm:git:git@github.com:maddingo/nio-fs-provider.git</url-->
         </site>
     </distributionManagement>
 
@@ -341,42 +341,14 @@
 
     <profiles>
         <profile>
-            <id>github</id>
-            <distributionManagement>
-                <site>
-                    <id>github-pages</id>
-                    <name>Github Pages</name>
-                    <url>https://github.com/maddingo/nio-fs-provider.git</url>
-                </site>
-                <!--repository>
-                    <id>dev-local</id>
-                    <url>${devlocal.base}/repository</url>
-                    <releases>
-                        <enabled>true</enabled>
-                        <updatePolicy>always</updatePolicy>
-                        <checksumPolicy>fail</checksumPolicy>
-                    </releases>
-                </repository>
-                <snapshotRepository>
-                    <id>dev-local</id>
-                    <url>${devlocal.base}/repository</url>
-                    <snapshots>
-                        <enabled>true</enabled>
-                        <updatePolicy>always</updatePolicy>
-                        <checksumPolicy>fail</checksumPolicy>
-                    </snapshots>
-                </snapshotRepository-->
-            </distributionManagement>
-        </profile>
-        <profile>
-            <id>sonatype-oss</id>
+            <id>sonatype</id>
             <distributionManagement>
                 <snapshotRepository>
-                    <id>ossrh</id>
+                    <id>sonatype</id>
                     <url>https://oss.sonatype.org/content/repositories/snapshots</url>
                 </snapshotRepository>
                 <repository>
-                    <id>ossrh</id>
+                    <id>sonatype</id>
                     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>

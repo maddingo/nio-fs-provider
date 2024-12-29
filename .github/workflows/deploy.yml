@@ -26,10 +26,12 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     permissions:
+      contents: write
       pages: write
       packages: write
+      id-token: write
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK ${{ inputs.java-version }}
@@ -38,6 +40,9 @@ jobs:
         java-version: ${{ inputs.java-version }}
         distribution: 'temurin'
         cache: maven
+        server-id: sonatype
+        server-username: SONATYPE_USERNAME
+        server-password: SONATYPE_PASSWORD
     - name: Cache local Maven repository
       uses: actions/cache@v4
       with:
@@ -47,7 +52,14 @@ jobs:
           ${{ runner.os }}-maven-${{ inputs.java-version }}
     - name: Deploy with Maven
       if: inputs.do-build
-      run: mvn -B deploy -DskipTests -P github
+      env:
+        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+      run: |
+        mvn -B deploy -DskipTests -P sonatype
     - name: Maven Site
       if: inputs.do-site
-      run: mvn -B site site:stage scm-publish:publish-scm -P github
+      run: |
+        git config --global user.name "Github Actions"
+        git config --global user.email "maddingo@github.com"
+        mvn -B site site:stage scm-publish:publish-scm -Dusername=${{ github.actor }} -Dpassword=${{ secrets.GIT_PAT }}
