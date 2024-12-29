@@ -33,16 +33,3 @@ Newer versions are published with groupId `no.maddin.niofs`.
 -----------
 [![](https://codescene.io/projects/3651/status.svg) Get more details at **codescene.io**.](https://codescene.io/projects/3651/jobs/latest-successful/results)
 
-------------
-# Deployment
-local deployment
-```bash
-mvn clean deploy -P local
-```
-
-Sonatype OSSRH deployment
-```bash
-mvn clean deploy -P sonatype-oss
-```
-- https://central.sonatype.org/publish/publish-maven/#distribution-management-and-authentication
-- https://central.sonatype.org/publish/generate-token/
