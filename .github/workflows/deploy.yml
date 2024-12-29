@@ -56,7 +56,6 @@ jobs:
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
       run: |
-        grep username ~/.m2/settings.xml
         mvn -B deploy -DskipTests -P sonatype
     - name: Maven Site
       if: inputs.do-site
