@@ -26,11 +26,12 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
       pages: write
       packages: write
+      id-token: write
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK ${{ inputs.java-version }}
@@ -55,4 +56,4 @@ jobs:
       run: |
         git config --global user.name "Github Actions"
         git config --global user.email "maddingo@github.com"
-        mvn -B site site:stage scm-publish:publish-scm -X
+        mvn -B site site:stage scm-publish:publish-scm -Dusername=${{ github.actor }} -Dpassword=${{ secrets.GIT_PAT }}

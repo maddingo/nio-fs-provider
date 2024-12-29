@@ -220,8 +220,7 @@
                 <configuration>
                     <scmBranch>gh-pages</scmBranch>
                     <subDirectory>site/${project.version}</subDirectory>
-                    <serverId>github</serverId>
-                    <!--username>git</username-->
+                    <!--serverId>github</serverId-->
                 </configuration>
             </plugin>
         </plugins>
@@ -230,7 +229,7 @@
     <distributionManagement>
         <site>
             <id>github</id>
-            <url>scm:git:https://git@github.com/maddingo/nio-fs-provider</url>
+            <url>scm:git:https://github.com/maddingo/nio-fs-provider.git</url>
             <!--url>scm:git:ssh://git@github.com/maddingo/nio-fs-provider.git</url-->
             <!--url>scm:git:git@github.com:maddingo/nio-fs-provider.git</url-->
         </site>
