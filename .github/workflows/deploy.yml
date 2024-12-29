@@ -52,7 +52,7 @@ jobs:
           ${{ runner.os }}-maven-${{ inputs.java-version }}
     - name: Deploy with Maven
       if: inputs.do-build
-      run: mvn -B deploy -DskipTests -P github -P sonatype
+      run: mvn -B deploy -DskipTests -P sonatype
     - name: Maven Site
       if: inputs.do-site
       run: |
