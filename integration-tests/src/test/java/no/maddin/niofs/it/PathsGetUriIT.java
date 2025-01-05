@@ -6,7 +6,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,7 +23,7 @@ public class PathsGetUriIT {
                 null,
                 allOf(
                     instanceOf(SFTPPath.class),
-                    not(pathMatch("endsWith", "/"))
+                    not(pathEndsWith("/"))
                 )
             ),
             Arguments.of(
@@ -32,7 +31,7 @@ public class PathsGetUriIT {
                 null,
                 allOf(
                     instanceOf(SFTPPath.class),
-                    not(pathMatch("endsWith", "/testfile/"))
+                    not(pathEndsWith("/testfile/"))
                 )
             ),
             Arguments.of(
@@ -40,7 +39,7 @@ public class PathsGetUriIT {
                 null,
                 allOf(
                     instanceOf(SFTPPath.class),
-                    not(pathMatch("endsWith", "/testfile"))
+                    not(pathEndsWith("/testfile"))
                 )
             ),
             Arguments.of(
@@ -48,7 +47,7 @@ public class PathsGetUriIT {
                 null,
                 allOf(
                     instanceOf(SFTPPath.class),
-                    pathMatch("endsWith", "testfile/")
+                    pathEndsWith("testfile/")
                 )
             ),
             Arguments.of(
@@ -56,7 +55,7 @@ public class PathsGetUriIT {
                 null,
                 allOf(
                     instanceOf(SFTPPath.class),
-                    pathMatch("endsWith", "testfile")
+                    pathEndsWith("testfile")
                 )
             ),
             Arguments.of(
@@ -64,7 +63,7 @@ public class PathsGetUriIT {
                 null,
                 allOf(
                     instanceOf(SFTPPath.class),
-                    pathMatch("endsWith", "testfile")
+                    pathEndsWith("testfile")
                 )
             ),
             Arguments.of(
@@ -72,8 +71,7 @@ public class PathsGetUriIT {
                 null,
                 allOf(
                     instanceOf(SFTPPath.class),
-                    pathMatch("endsWith", "testfile"),
-                    pathMatch("endsWith", "testfile")
+                    pathEndsWith("testfile")
                 )
             ),
             Arguments.of(
@@ -128,37 +126,17 @@ public class PathsGetUriIT {
         };
     }
 
-    private static TypeSafeDiagnosingMatcher<Path> pathMatch(String testMethod, Object arg) {
+    private static TypeSafeDiagnosingMatcher<Path> pathEndsWith(String arg) {
         return new TypeSafeDiagnosingMatcher<Path>() {
 
             @Override
             protected boolean matchesSafely(Path item, Description mismatchDescription) {
-                try {
-                    Method m = item.getClass().getMethod(testMethod, arg.getClass());
-                    return (Boolean)m.invoke(item, arg);
-                } catch (ReflectiveOperationException e) {
-                    throw new RuntimeException(e);
-                }
+                return item.endsWith(arg);
             }
 
             @Override
             public void describeTo(Description description) {
-                description.appendText("path.").appendText(testMethod).appendText("(").appendValue(arg).appendText(")");
-            }
-        };
-    }
-
-    private static TypeSafeDiagnosingMatcher<Path> endsWith(String endsWith) {
-        return new TypeSafeDiagnosingMatcher<Path>() {
-
-            @Override
-            protected boolean matchesSafely(Path item, Description mismatchDescription) {
-                return item.endsWith(endsWith);
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("path ending with ").appendValue(endsWith);
+                description.appendText("path ends with ").appendValue(arg);
             }
         };
     }

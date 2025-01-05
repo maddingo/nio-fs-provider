@@ -13,25 +13,24 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.io.FileMatchers.anExistingDirectory;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
 /**
  * We prepare a file structure and use the various providers list the files.
  */
 @Testcontainers
-public class FilesListTest {
+public class FilesListIT {
 
     private static final String TESTDATA_RESOURCE = "/sftpgo-data";
-    private static final File localDataFileRoot = FileUtils.classpathFile(FilesListTest.class, TESTDATA_RESOURCE);
+    private static final File localDataFileRoot = FileUtils.classpathFile(FilesListIT.class, TESTDATA_RESOURCE);
 
     public static Stream<Arguments> data() {
         // anonymous class
@@ -81,19 +80,48 @@ public class FilesListTest {
             Path sourcePath = Paths.get(uri.resolve("/testfile.txt"));
             Path targetPath = Paths.get(uri.resolve("/testfile-" + randomString + ".txt"));
             Files.copy(sourcePath, targetPath);
-            assertThat(new File(localDataFileRoot, "testfile-" + randomString + ".txt"), anExistingFile());
+            assertThat(localTestFile("testfile-" + randomString + ".txt"), anExistingFile());
         }
     }
 
-    void createDirectory() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void createDirectory(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path path = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectory(path);
+            assertThat(localTestFile(randomString), anExistingDirectory());
+        }
     }
 
-    void createDirecories() {
-
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void createDirecories(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomDir = UUID.randomUUID().toString();
+        String randomSubDir = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path path = Paths.get(uri.resolve("/" + randomDir + "/" + randomSubDir));
+            Files.createDirectories(path);
+            assertThat(localTestFile(randomDir, randomSubDir), anExistingDirectory());
+        }
     }
 
-    void createFile() {
-
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void createFile(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path path = Paths.get(uri.resolve("/" + randomString + ".txt"));
+            Files.createFile(path);
+            assertThat(localTestFile(randomString + ".txt"), anExistingFile());
+        }
     }
 
     void createTempDirectory() {
@@ -234,5 +262,21 @@ public class FilesListTest {
     }
 
     void write() {
+    }
+
+    private static File localTestFile(String... parts) {
+        if (parts == null || parts.length == 0) {
+            return localDataFileRoot;
+        }
+        Deque<String> dparts = new LinkedList<>(Arrays.asList(parts));
+        return newFile(localDataFileRoot, dparts);
+    }
+
+    private static File newFile(File parent, Deque<String> children) {
+        if (children.isEmpty()) {
+            return parent;
+        }
+        File newParent = new File(parent, children.pop());
+        return newFile(newParent, children);
     }
 }

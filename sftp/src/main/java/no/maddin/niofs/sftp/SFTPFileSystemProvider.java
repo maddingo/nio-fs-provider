@@ -88,8 +88,11 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) {
-        throw new UnsupportedOperationException();
+    public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
+        if (!(path instanceof SFTPPath)) {
+            throw new IllegalArgumentException(String.valueOf(path));
+        }
+        return new JSchByteChannel(jsch, (SFTPPath)path, options, attrs);
     }
 
     @Override
@@ -146,6 +149,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
             for (String subPath : parts) {
                 try {
                     sftpSession.sftp.mkdir(subPath);
+                    sftpSession.sftp.cd(subPath);
                 } catch(SftpException e) {
                     throw new IOException(subPath, e);
                 }
@@ -268,7 +272,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         hosts.remove(serverUri);
     }
 
-    private static class SFTPSession implements AutoCloseable {
+    static class SFTPSession implements AutoCloseable {
         private final Session session;
         final ChannelSftp sftp;
 
