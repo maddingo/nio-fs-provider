@@ -20,7 +20,9 @@ jobs:
       pull-requests: write
 
     runs-on: ubuntu-24.04
+    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         java: [ '8', '11', '17', '21']
 
@@ -42,9 +44,10 @@ jobs:
     - name: Build with Maven
       run: mvn -B verify
     - name: Write out Unit Test report annotation for forked repo
-      if: failure()
+      if: success() || failure()
       uses: mikepenz/action-junit-report@v5
       with:
+        report_paths: '**/*-reports/TEST-*.xml'
         comment: true
         detailed_summary: true
         group_suite: true
