@@ -155,7 +155,10 @@ public class SFTPPath implements Path {
 
     @Override
     public @NotNull Path resolve(@NotNull Path other) {
-        throw new UnsupportedOperationException();
+        if (!(other instanceof SFTPPath)) {
+            throw new IllegalArgumentException("other should be an instance of SFTPPath");
+        }
+        return new SFTPPath(this.host, this.path + "/" + ((SFTPPath) other).getPathString());
     }
 
     @Override

@@ -6,28 +6,27 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
-import org.hamcrest.core.IsEqual;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestReporter;
-
-import no.maddin.niofs.webdav.WebdavPath;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThan;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * These are the tests that don't require a running server.
  */
-public class WebdavPathTest {
+class WebdavPathTest {
 
     private int webdavPort = -1;
 
     @Test
-    public void newFileSystemWebdav() throws Exception {
+	void newFileSystemWebdav() throws Exception {
         URI uri = new URI("webdav", "user:password","localhost", webdavPort, "/", null, null);
 
         FileSystem fs = FileSystems.newFileSystem(uri, null);
@@ -36,7 +35,7 @@ public class WebdavPathTest {
     }
 
     @Test
-    public void newFileSystemWebdavs() throws Exception {
+	void newFileSystemWebdavs() throws Exception {
         URI uri = new URI("webdavs", "user:password","localhost", webdavPort, "/", null, null);
 
         FileSystem fs = FileSystems.newFileSystem(uri, null);
@@ -45,7 +44,7 @@ public class WebdavPathTest {
     }
 
     @Test
-    public void getURI() throws Exception {
+	void getURI() throws Exception {
         URI uri = new URI("webdav", "user:password","localhost", webdavPort, "/", null, null);
 
         Path path = Paths.get(uri);
@@ -54,7 +53,7 @@ public class WebdavPathTest {
     }
 
     @Test
-    public void normalize() throws Exception {
+	void normalize() throws Exception {
         String dottedPath = "/webdav/../test/something";
 
         URI uri = new URI("webdav", "username:password", "anyhost", webdavPort, dottedPath, null, null);
@@ -69,30 +68,12 @@ public class WebdavPathTest {
         assertThat(result.isAbsolute(), is(true));
     }
     
-    /*
-     * to swap tests between WepdavPath and UnixPath or some other java internal file:// path
-     * 
-     * set testwebdavclass to true for the normal WebdavPath test
-     * 
-     * set testwebdavclass to false for the alternate test
-     * 
-     * the Junit test runs would show the differences between the two
-     * 
-     */
-    final boolean testwebdavclass = true;
-    
     private URI makeURI(String path) throws Exception {
-    	URI uri;
-    	if(testwebdavclass) {
-    		uri = new URI("webdav", "username:password", "anyhost", webdavPort, path, null, null);
-    	} else {
-    		uri = new URI("file", null, null, 0, path, null, null);
-    	}
-    	return uri;
+        return new URI("webdav", "username:password", "anyhost", webdavPort, path, null, null);
     }	
 
     @Test
-    public void testgetParent() throws Exception {
+	void getParent() throws Exception {
     	    	
     	Path a = Paths.get(makeURI("/a/b/c"));
     	assertThat(a.getParent().toString().equals("/a/b"), is(true));
@@ -107,75 +88,65 @@ public class WebdavPathTest {
     	Path relpath = root.relativize(aaa);
     	assertThat(relpath.getRoot(), is(nullValue()));
 
-    	
-		if (testwebdavclass) {
-			assertThat(root, is(instanceOf(WebdavPath.class)));
-			assertThat(a, is(instanceOf(WebdavPath.class)));
-			assertThat(aaa, is(instanceOf(WebdavPath.class)));
-			assertThat(relpath, is(instanceOf(WebdavPath.class)));
-		}
+		assertThat(root, is(instanceOf(WebdavPath.class)));
+		assertThat(a, is(instanceOf(WebdavPath.class)));
+		assertThat(aaa, is(instanceOf(WebdavPath.class)));
+		assertThat(relpath, is(instanceOf(WebdavPath.class)));
     }
 
-    
     @Test
-    public void testtoAbsPath(TestReporter reporter) throws Exception {
+	void toAbsPath() throws Exception {
     	
     	// absolute paths simply return itself
     	Path a = Paths.get(makeURI("/a/b/c"));
-    	assertThat(a.toAbsolutePath().toString().equals("/a/b/c"), is(true));
+    	assertThat(a.toAbsolutePath().toString(), equalTo("/a/b/c"));
     	Path root = Paths.get(makeURI("/"));
-    	
-    	Logger log = Logger.getLogger("test");
     	
     	//relative paths is resolved
     	Path base = Paths.get(makeURI("/currentWorkPath"));
     	Path relpath = base.relativize(base.resolve("relativepath")); 
     	assertThat(relpath.toString(), equalTo("relativepath"));
-    	if(testwebdavclass) {
-    		//relativize preserve current workpath
-    		//relpath.toAbsolutePath() recovers original path
-    		assertThat(relpath.toAbsolutePath().toString(), equalTo("/currentWorkPath/relativepath"));
-    		//getFileName preserve current workpath
-    		//relpath.getFilename().toAbsolutePath() recovers original path
-    		assertThat(a.getFileName().toAbsolutePath().toString(), equalTo("/a/b/c"));
-    		//getName(index) preserve current workpath
-    		//relpath.getName(index).toAbsolutePath() recovers original path
-    		assertThat(a.getName(1).toAbsolutePath().toString(), equalTo("/a/b"));
-    		
-    		//relative path formed from FileSYstem.getPath do not have a current working path
-    		//fspath.toAbsolutePath() is resolved against default root
-    		Path fspath = a.getFileSystem().getPath("test");
-    		assertThat(fspath.toString(), equalTo("test"));
-    		assertThat(fspath.toAbsolutePath().toString(), equalTo("/test"));
-    		
-    		//if the base path is a relative path    
-    		//current work path is lost and hence toAbsolutePath() resolve against default root
-    		Path rabc = root.relativize(a);
-    		assertThat(rabc.toString(), equalTo("a/b/c"));
-    		Path rab = root.relativize(a.getParent());
-    		assertThat(rab.toString(), equalTo("a/b"));
-    		assertThat(rab.relativize(rabc).toAbsolutePath().toString(), equalTo("/c"));
-    		
-    	} else {
-    		// it is different in "file://" (UnixPath) implementation
-    		// Unix path resolve relative paths against current working directory
-    		reporter.publishEntry("relpath.toAbsolutePath()", relpath.toAbsolutePath().toString());
-    		reporter.publishEntry("'/a/b/c'.getFileName().toAbsolutePath()", 
-    				a.getFileName().toAbsolutePath().toString());
-    		reporter.publishEntry("'/a/b/c'.getName(1).toAbsolutePath()", 
-    				a.getName(1).toAbsolutePath().toString());    		
-    	}     	
-    	    	
-    	
-    	if(testwebdavclass) {
-    		assertThat(a, is(instanceOf(WebdavPath.class)));    	
-    		assertThat(relpath, is(instanceOf(WebdavPath.class)));
-    		assertThat(root, is(instanceOf(WebdavPath.class)));
-    	}
-    }
+		//relativize preserve current workpath
+		//relpath.toAbsolutePath() recovers original path
+		assertThrows(UnsupportedOperationException.class, () -> {
+			relpath.toAbsolutePath().toString();
+		});
+		//getFileName preserve current workpath
+		//relpath.getFilename().toAbsolutePath() recovers original path
+		assertThrows(UnsupportedOperationException.class, () -> {
+			a.getFileName().toAbsolutePath().toString();
+		});
+		//getName(index) preserve current workpath
+		//relpath.getName(index).toAbsolutePath() recovers original path
+		assertThrows(UnsupportedOperationException.class, () -> {
+			a.getName(1).toAbsolutePath().toString();
+		});
+
+		//relative path formed from FileSYstem.getPath do not have a current working path
+		//fspath.toAbsolutePath() is resolved against default root
+		Path fspath = a.getFileSystem().getPath("test");
+		assertThat(fspath.toString(), equalTo("test"));
+		assertThrows(UnsupportedOperationException.class, () -> {
+			fspath.toAbsolutePath().toString();
+		});
+
+		//if the base path is a relative path
+		//current work path is lost and hence toAbsolutePath() resolve against default root
+		Path rabc = root.relativize(a);
+		assertThat(rabc.toString(), equalTo("a/b/c"));
+		Path rab = root.relativize(a.getParent());
+		assertThat(rab.toString(), equalTo("a/b"));
+		assertThrows(UnsupportedOperationException.class, () -> {
+			rab.relativize(rabc).toAbsolutePath().toString();
+		});
+
+		assertThat(a, is(instanceOf(WebdavPath.class)));
+		assertThat(relpath, is(instanceOf(WebdavPath.class)));
+		assertThat(root, is(instanceOf(WebdavPath.class)));
+	}
     
     @Test
-    public void testgetRoot() throws Exception {    	    	    	
+	void relativizeRoot() throws Exception {
     	
     	// make a relative path
     	Path root = Paths.get(makeURI("/"));
@@ -184,38 +155,30 @@ public class WebdavPathTest {
     	Path aaa = Paths.get(makeURI("/aaa"));
     	Path relpath = root.relativize(aaa);
     	assertThat(relpath.getRoot(), is(nullValue()));
-    	
+    	assertThat (relpath.toString(), equalTo("aaa"));
     	assertThat(root.getRoot().toString().equals("/"), is(true));
-    	    	
-    	
-    	if(testwebdavclass) {
-    		assertThat(root, is(instanceOf(WebdavPath.class)));
-    		assertThat(aaa, is(instanceOf(WebdavPath.class)));
-    		assertThat(relpath, is(instanceOf(WebdavPath.class)));
-    	}
-    }    
-       
+
+		assertThat(root, is(instanceOf(WebdavPath.class)));
+		assertThat(aaa, is(instanceOf(WebdavPath.class)));
+		assertThat(relpath, is(instanceOf(WebdavPath.class)));
+	}
 
 	@Test
-	public void testnames(TestReporter reporter) throws Exception {
-		
-		//Logger log = Logger.getLogger("test");
+	void names() throws Exception {
 		
     	Path root = Paths.get(makeURI("/"));
     	assertThat(root.getFileName(), is(nullValue()));
-    	try {
-    		reporter.publishEntry("'/'.getName(0)", root.getName(0).toString());
-    		assertThat(true, is(false)); //should not reach here
-    	} catch (IllegalArgumentException e) {
-    		//test ok expected exception
-    	}
-    	
+		assertThrows(IndexOutOfBoundsException.class, () -> {
+			root.getName(0).toString();
+		});
+
     	Path empty = root.relativize(root);
     	assertThat(empty.toString(), equalTo(""));
-    	assertThat(empty.getFileName().toString(), equalTo(""));
-    	assertThat(empty.getName(0).toString(), equalTo(""));
-    	
-    	
+    	assertThat(empty.getFileName(), is(nullValue()));
+		assertThrows(UnsupportedOperationException.class, () -> {
+			empty.getName(0).toString();
+		});
+
     	Path a = Paths.get(makeURI("/a"));
     	assertThat(a.toString(), equalTo("/a"));
     	assertThat(a.getFileName().toString(), equalTo("a"));
@@ -224,8 +187,7 @@ public class WebdavPathTest {
     	Path relpath = root.relativize(a);
     	assertThat(relpath.toString(), equalTo("a"));
     	assertThat(relpath.getFileName().toString(), equalTo("a"));
-    	assertThat(relpath.getName(0).toString(), equalTo("a"));
-    	
+    	assertThrows(UnsupportedOperationException.class, () -> relpath.getName(0).toString());
     	
     	Path ab = Paths.get(makeURI("/a/b"));
     	assertThat(ab.toString(), equalTo("/a/b"));
@@ -236,34 +198,23 @@ public class WebdavPathTest {
     	Path relab = root.relativize(ab);
     	assertThat(relab.toString(), equalTo("a/b"));
     	assertThat(relab.getFileName().toString(), equalTo("b"));
-    	assertThat(relab.getName(1).toString(), equalTo("b"));
-    	assertThat(relab.getName(0).toString(), equalTo("a"));
-    	
-    	try {
-    		relab.getName(2);
-    		assertThat(false, is(true)); //shouldn't reach here
-    	} catch (IllegalArgumentException e) {
-    		// expected exception
-    	}
 
-    	try {
-    		root.getName(0);
-    		assertThat(false,is(true)); //shouldn't reach here
-    	} catch (IllegalArgumentException e) {
-    		//Logger log = Logger.getLogger("testok");
-    		//log.info("getName empty elements passed");
-    	}    	
-    	if(testwebdavclass) {
-    		assertThat(a, is(instanceOf(WebdavPath.class)));
-    		assertThat(ab, is(instanceOf(WebdavPath.class)));
-    		assertThat(relpath, is(instanceOf(WebdavPath.class)));
-    		assertThat(relab, is(instanceOf(WebdavPath.class)));
-    		assertThat(root, is(instanceOf(WebdavPath.class)));
-    	}
+		assertThrows(UnsupportedOperationException.class, () -> {
+			relab.getName(2);
+		});
+
+		assertThrows(IndexOutOfBoundsException.class, () -> {
+			root.getName(0);
+		});
+		assertThat(a, is(instanceOf(WebdavPath.class)));
+		assertThat(ab, is(instanceOf(WebdavPath.class)));
+		assertThat(relpath, is(instanceOf(WebdavPath.class)));
+		assertThat(relab, is(instanceOf(WebdavPath.class)));
+		assertThat(root, is(instanceOf(WebdavPath.class)));
 	}
 
-    @Test 
-    public void testiterator_getname() throws Exception {
+    @Test
+	void iteratorGetName() throws Exception {
     	Path a = Paths.get(makeURI("/a/b/c"));
     	assertThat(a.toString(), equalTo("/a/b/c"));
     	assertThat(a.getFileName().toString().equals("c"), is(true));
@@ -292,14 +243,12 @@ public class WebdavPathTest {
     		i++;
     	}
     	
-    	if(testwebdavclass) {
-      	  	assertThat(a, is(instanceOf(WebdavPath.class)));
-      	  	assertThat(b, is(instanceOf(WebdavPath.class)));      	  	
-    	}
+		assertThat(a, is(instanceOf(WebdavPath.class)));
+		assertThat(b, is(instanceOf(WebdavPath.class)));
     }
         
     @Test
-    public void testequals() throws Exception {
+	void pathEquals() throws Exception {
     	Path a = Paths.get(makeURI("/a/b/c"));
     	Path b = Paths.get(makeURI("/a/b/e"));
     	Path c = Paths.get(makeURI("/a/b/c/e"));
@@ -310,48 +259,40 @@ public class WebdavPathTest {
     	assertThat(a.equals(c), is(false));
     	assertThat(a.equals(d), is(false));
     	assertThat(a.equals(e), is(true));
-    	if(testwebdavclass) {
-    		assertThat(a, is(instanceOf(WebdavPath.class)));
-    		assertThat(b, is(instanceOf(WebdavPath.class)));
-    		assertThat(c, is(instanceOf(WebdavPath.class)));
-    		assertThat(d, is(instanceOf(WebdavPath.class)));
-    		assertThat(e, is(instanceOf(WebdavPath.class)));
-    	}
+		assertThat(a, is(instanceOf(WebdavPath.class)));
+		assertThat(b, is(instanceOf(WebdavPath.class)));
+		assertThat(c, is(instanceOf(WebdavPath.class)));
+		assertThat(d, is(instanceOf(WebdavPath.class)));
+		assertThat(e, is(instanceOf(WebdavPath.class)));
     }
     
     @Test
-    public void testcompareTo() throws Exception {
+	void compareTo() throws Exception {
     	Path a = Paths.get(makeURI("/a/b/c"));
     	Path b = Paths.get(makeURI("/a/b/e"));
     	Path c = Paths.get(makeURI("/a/b/c/e"));
     	Path d = Paths.get(makeURI("/a/b"));
     	Path e = Paths.get(makeURI("/a/b/c"));
-    	
-    	assertThat(a.compareTo(b) < 0, is(true));
-    	assertThat(a.compareTo(c) < 0, is(true));
-    	assertThat(a.compareTo(d) > 0, is(true));
-    	assertThat(a.compareTo(e) == 0, is(true));
+
+    	assertThat(a.compareTo(b), is(lessThan(0)));
+    	assertThat(a.compareTo(c), is(lessThan(0)));
+    	assertThat(a.compareTo(d), is(greaterThan(0)));
+    	assertThat(a.compareTo(e), is(equalTo(0)));
     	    	    	
-    	if(testwebdavclass) {
-    		assertThat(a, is(instanceOf(WebdavPath.class)));
-    		assertThat(b, is(instanceOf(WebdavPath.class)));
-    		assertThat(c, is(instanceOf(WebdavPath.class)));
-    		assertThat(d, is(instanceOf(WebdavPath.class)));
-    		assertThat(e, is(instanceOf(WebdavPath.class)));
-    		
-        	try {
-        		Path u = Paths.get(new URI("file:///")); // UnixPath
-        		a.compareTo(u);
-        		assertThat(false, is(true)); //shouldn't reach here
-        	} catch (ClassCastException e1) {
-        		//Logger log = Logger.getLogger("test");
-        		//log.info(e1.getMessage()); //test ok
-        	}
-    	}
+		assertThat(a, is(instanceOf(WebdavPath.class)));
+		assertThat(b, is(instanceOf(WebdavPath.class)));
+		assertThat(c, is(instanceOf(WebdavPath.class)));
+		assertThat(d, is(instanceOf(WebdavPath.class)));
+		assertThat(e, is(instanceOf(WebdavPath.class)));
+
+		assertThrows(ClassCastException.class, () -> {
+			Path u = Paths.get(new URI("file:///")); // UnixPath
+			a.compareTo(u);
+		});
     }
     
     @Test
-    public void testrelativizeresolve(TestReporter reporter) throws Exception {
+	void relativizeResolve() throws Exception {
     	
     	Path root = Paths.get(makeURI("/"));
     	assertThat(root.toString().equals("/"), is(true));
@@ -371,11 +312,9 @@ public class WebdavPathTest {
     	
     	assertThat(p.resolve(q).equals(p.resolve("c/d")), is(true));
     	    	
-    	Logger log = Logger.getLogger("test");
     	// "/a/b".relativize("a/b/c/d") returns "c/d"
     	assertThat(p.relativize(p.resolve(q)).equals(q), is(true));
-    	//log.info(p.relativize(p.resolve(q)).toString());    	
-    	
+
     	assertThat(p.resolve(qa).equals(qa), is(true));
     	
     	assertThat(p.resolve(root).equals(root), is(true));
@@ -384,111 +323,51 @@ public class WebdavPathTest {
     	assertThat(p.resolve(empty).equals(p), is(true));    	
     	
     	//check exception conditions    	    	      	    	    	    	
-    	if(testwebdavclass) {
-        	assertThat(root, is(instanceOf(WebdavPath.class)));
-        	assertThat(empty, is(instanceOf(WebdavPath.class)));
-        	assertThat(p, is(instanceOf(WebdavPath.class)));
-        	assertThat(q, is(instanceOf(WebdavPath.class)));        	
-        	
-        	try {
-        		Path u = Paths.get(new URI("file:///")); // UnixPath
-        		p.relativize(u);
-        		assertThat(false, is(true)); //shouldn't reach here
-        	} catch (IllegalArgumentException e) {    		
-        		//log.info(e.getMessage()); //test ok
-        	}
+		assertThat(root, is(instanceOf(WebdavPath.class)));
+		assertThat(empty, is(instanceOf(WebdavPath.class)));
+		assertThat(p, is(instanceOf(WebdavPath.class)));
+		assertThat(q, is(instanceOf(WebdavPath.class)));
 
-        	try {
-        		Path u = Paths.get(new URI("file:///")); // UnixPath    		
-        		p.resolve(u.relativize(u.getRoot()));
-        		assertThat(false, is(true)); //shouldn't reach here
-        	} catch (IllegalArgumentException e) {    		
-        		//log.info(e.getMessage()); //test ok
-        	}
+		assertThrows(IllegalArgumentException.class, () -> {
+			Path u = Paths.get(new URI("file:///")); // UnixPath
+			p.relativize(u);
+		});
 
-    	} 
+		assertThrows(IllegalArgumentException.class, () -> {
+			Path u = Paths.get(new URI("file:///")); // UnixPath
+			p.resolve(u.relativize(u.getRoot()));
+		});
 
-    	try {    		
-    		p.resolve((Path)null);
-    		assertThat(false, is(true)); //shouldn't reach here
-    	} catch (NullPointerException e) {    		
-    		//log.info(e.getMessage()); //test ok
-    	}
+		assertThrows(IllegalArgumentException.class, () -> {
+			p.resolve((Path)null);
+		});
 
-    	try {    		
-    		p.relativize((Path)null);
-    		assertThat(false, is(true)); //shouldn't reach here
-    	} catch (NullPointerException e) {    		
-    		//log.info(e.getMessage()); //test ok
-    	}
-    	
-    	try {
-    		/*
-    		 * There is a difference between WebdavPath implementation vs
-    		 * UnixPath implementation, UnixPath resolves this successfully
-    		 * 
-    		 * "/a/b/c/d".relativize("/a/b/e/f") returns "../../e/f"
-    		 *
-    		 * while this returns IllegalArgumentException
-    		 *
-    		 * current implementation of relativivize requires the 
-    		 * current path to start with and is a subset of the other path
-    		 * 
-    		 * e.g. "/a/b".relativize("/a/b/c/d") returns "c/d"
-    		 * 
-    		 * i.e. the current WebdavPath.relativize() returns the remaining subpath as a
-    		 * relative path. This results conforms to JDK 1.8 javadoc spec
-    		 * 
-    		 */
-        	Path r = Paths.get(makeURI("/a/b/e/f"));
-        	//"/a/b/c/d".relativize("/a/b/e/f")
-        	reporter.publishEntry("'/a/b/c/d'.relativize('/a/b/e/f')", p.resolve(q).relativize(r).toString());
+		assertThrows(IllegalArgumentException.class, () -> {
+			p.relativize((Path)null);
+		});
 
-    		if(testwebdavclass) assertThat(false, is(true)); //shouldn't reach here
-    	} catch (IllegalArgumentException e) {
-    		//log.info("test ok: exception received:".concat(e.getMessage())); 
-    	}
-    	
-    	try {
-    		/*
-    		 * relativize a shorter path against a longer path
-    		 * 
- 			 * There is a difference between WebdavPath implementation vs
-    		 * UnixPath implementation, UnixPath resolves this successfully
-    		 * 
-    		 * "/a/b/c/d".relativize("/a/b") returns "../.."
-    		 * 
-    		 * while this returns 
-    		 */
-    		// "/a/b/c/d".relativize("/a/b")
-    		reporter.publishEntry("'/a/b/c/d'.relativize('/a/b')", p.resolve(q).relativize(p).toString());
-    		if(testwebdavclass) assertThat(false, is(true)); //shouldn't reach here
-    	} catch (IllegalArgumentException e) {
-    		//log.info("test ok: exception received:".concat(e.getMessage())); 
-    	}
-    	
-    	try {
-    		/*
-    		 * Relativize a relative path against absolute path.    		 * 
-    		 * 
-    		 * A relative path cannot be constructed if only one of the paths have a root component.
-    		 *  
-    		 * This test returns the same exception for both WebdavPath and UnixPath
-    		 * conforms to javadoc spec for jdk 1.8
-    		 * 
-    		 */
-    		// "/a/b/c/d".relativize("c/d")
-    		reporter.publishEntry("'a/b/c/d'.relativize('c/d')", p.resolve(q).relativize(q).toString());
-    		assertThat(false, is(true)); //shouldn't reach here
-    	} catch (IllegalArgumentException e) {
-    		//log.info("test ok: exception received:".concat(e.getMessage())); 
-    	}
+		assertThrows(IllegalArgumentException.class, () -> {
+			Path r = Paths.get(makeURI("/a/b/e/f"));
+			//"/a/b/c/d".relativize("/a/b/e/f")
+			p.resolve(q).relativize(r).toString();
 
-    
+			assertThat(false, is(true)); //shouldn't reach here
+		});
+
+		assertThrows(IllegalArgumentException.class, () -> {
+			// "/a/b/c/d".relativize("/a/b")
+			p.resolve(q).relativize(p).toString();
+			assertThat(false, is(true)); //shouldn't reach here
+		});
+
+		assertThrows(IllegalArgumentException.class, () -> {
+			// "/a/b/c/d".relativize("c/d")
+			p.resolve(q).relativize(q).toString();
+		});
     }
     
 	@Test
-	public void teststartendswith() throws Exception {
+	void startEndsWith() throws Exception {
 		Path root = Paths.get(makeURI("/"));
     	Path a = Paths.get(makeURI("/a/b/c"));
     	Path b = Paths.get(makeURI("/a/b"));
@@ -514,23 +393,20 @@ public class WebdavPathTest {
     	assertThat(d.endsWith(b), is(false));
     	assertThat(b.endsWith(root.relativize(e)), is(false));
     	    	
-    	
-    	if(testwebdavclass) {
-    		assertThat(a, is(instanceOf(WebdavPath.class)));
-    		assertThat(b, is(instanceOf(WebdavPath.class)));
-    		assertThat(c, is(instanceOf(WebdavPath.class)));
-    		assertThat(d, is(instanceOf(WebdavPath.class)));
-    		assertThat(e, is(instanceOf(WebdavPath.class)));
+		assertThat(a, is(instanceOf(WebdavPath.class)));
+		assertThat(b, is(instanceOf(WebdavPath.class)));
+		assertThat(c, is(instanceOf(WebdavPath.class)));
+		assertThat(d, is(instanceOf(WebdavPath.class)));
+		assertThat(e, is(instanceOf(WebdavPath.class)));
     		
-        	Path u = Paths.get(new URI("file:///a/b")); // UnixPath
-        	assertThat(a.startsWith(u), is(false));
+		Path u = Paths.get(new URI("file:///a/b")); // UnixPath
+		assertThat(a.startsWith(u), is(false));
         	
-        	assertThat(a.endsWith(u), is(false));
-    	}
+		assertThat(a.endsWith(u), is(false));
 	}
 	
 	@Test
-	public void testresolvsib_subpath(TestReporter reporter) throws Exception {
+	void resolveSubPath() throws Exception {
 		Path root = Paths.get(makeURI("/"));		
     	Path a = Paths.get(makeURI("/a/b/c"));
     	Path b = root.relativize(Paths.get(makeURI("/sib")));
@@ -547,42 +423,23 @@ public class WebdavPathTest {
     	assertThat(root.resolveSibling(b).toString().equals("sib"), is(true));
     	
     	assertThat(a.subpath(1, 3).toString().equals("b/c"), is(true));
-    	    	
-    	try {
-        	a.subpath(1, 4);
-    		assertThat(false, is(true)); //shouldn't reach here
-    	} catch (IllegalArgumentException e) {
-    	}
 
-    	try {
-    		root.subpath(0, 1);
-    		assertThat(false, is(true)); //shouldn't reach here
-    	} catch (IllegalArgumentException e) {
-    	}
+		assertThrows(IllegalArgumentException.class, () -> {
+			a.subpath(1, 4);
+		});
 
-    	if(testwebdavclass) {
-    		assertThat(a, is(instanceOf(WebdavPath.class)));
-    		assertThat(b, is(instanceOf(WebdavPath.class)));
-    		assertThat(c, is(instanceOf(WebdavPath.class)));
-    		assertThat(root, is(instanceOf(WebdavPath.class)));
-    		
-        	try {
-        		Path u = Paths.get(new URI("file:///")); // UnixPath    		
-        		a.resolveSibling(u);
-        		assertThat(false, is(true)); //shouldn't reach here
-        	} catch (IllegalArgumentException e) { 
-        		//Logger log = Logger.getLogger("test");
-        		//log.info(e.getMessage()); //test ok
-        	}
-    	}		
-	}	
-		    
-	private String fixNullorBlank(String text) {
-		if (text == null)
-			return "NULL";
-		else if (text.equals(""))
-			return "BLANK";
-		else
-			return text;
+		assertThrows(IllegalArgumentException.class, () -> {
+			root.subpath(0, 1);
+		});
+
+		assertThat(a, is(instanceOf(WebdavPath.class)));
+		assertThat(b, is(instanceOf(WebdavPath.class)));
+		assertThat(c, is(instanceOf(WebdavPath.class)));
+		assertThat(root, is(instanceOf(WebdavPath.class)));
+
+		assertThrows(IllegalArgumentException.class, () -> {
+			Path u = Paths.get(new URI("file:///")); // UnixPath
+			a.resolveSibling(u);
+		});
 	}
 }
