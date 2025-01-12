@@ -48,4 +48,3 @@ jobs:
         comment: true
         detailed_summary: true
         group_suite: true
-        annotate_only: true # forked repo cannot write to checks so just do annotations
