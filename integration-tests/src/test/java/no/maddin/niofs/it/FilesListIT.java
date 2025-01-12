@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.anExistingDirectory;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
@@ -141,19 +142,35 @@ public class FilesListIT {
         }
     }
 
-    @Test
-    void createTempDirectoryDefault() throws IOException {
-        Path dir = FileSystems.getDefault().getPath("/tmp", UUID.randomUUID().toString());
-        Files.createDirectories(dir);
-        Path tmpDir = Files.createTempDirectory(dir, "tmp");
-        assertThat(tmpDir.toFile(), anExistingDirectory());
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void createTempFile(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            assertThat(localTestFile(tmpFile.toUri().getPath()), anExistingFile());
+        }
     }
 
-    void createTempFile() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void delete(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            assertThat(localTestFile(tmpFile.toUri().getPath()), anExistingFile());
+            Files.delete(tmpFile);
+            assertThat(localTestFile(tmpFile.toUri().getPath()), not(anExistingFile()));
+        }
 
-    }
-
-    void delete() {
 
     }
 
