@@ -15,6 +15,9 @@ on:
 
 jobs:
   build:
+    permissions:
+      checks: write
+      pull-requests: write
 
     runs-on: ubuntu-24.04
     strategy:
@@ -38,3 +41,11 @@ jobs:
           ${{ runner.os }}-maven-${{ matrix.java }}
     - name: Build with Maven
       run: mvn -B verify
+    - name: Write out Unit Test report annotation for forked repo
+      if: ${{ failure() &&  (github.event.pull_request.head.repo.full_name != github.repository) }}
+      uses: mikepenz/action-junit-report@v5
+      with:
+        comment: true
+        detailed_summary: true
+        group_suite: true
+        annotate_only: true # forked repo cannot write to checks so just do annotations
