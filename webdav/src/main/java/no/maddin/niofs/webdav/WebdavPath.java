@@ -199,7 +199,7 @@ public class WebdavPath implements Path {
      */
     @Override
     public Path getParent() {
-        if (elements.isEmpty()) {
+        if (elements.isEmpty() || (elements.size() == 1 && !isAbsolute)) {
 			return null;
 		}
 		return new WebdavPath(host, rootPath + String.join(pathSeparator, elements.subList(0, elements.size()-1)));
