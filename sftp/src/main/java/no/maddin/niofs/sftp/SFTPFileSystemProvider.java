@@ -179,8 +179,18 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public void delete(Path path) {
-        throw new UnsupportedOperationException();
+    public void delete(Path path) throws IOException {
+        if (!(path instanceof SFTPPath)) {
+            throw new IllegalArgumentException(String.valueOf(path));
+        }
+
+        SFTPHost sftpHost = (SFTPHost)path.getFileSystem();
+
+        try (SFTPSession sftpSession = new SFTPSession(sftpHost, jsch)) {
+            sftpSession.sftp.rm(((SFTPPath)path).getPathString());
+        } catch (JSchException | SftpException e) {
+            throw new IOException(e);
+        }
     }
 
     @Override

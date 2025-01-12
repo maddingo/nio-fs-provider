@@ -1,6 +1,9 @@
 package no.maddin.niofs.sftp;
 
-import com.jcraft.jsch.*;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
 import jakarta.validation.constraints.NotNull;
 
 import java.io.IOException;
@@ -12,7 +15,6 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileAttribute;
-import java.util.EnumSet;
 import java.util.Set;
 
 public class JSchByteChannel implements SeekableByteChannel {
