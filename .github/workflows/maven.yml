@@ -42,7 +42,7 @@ jobs:
     - name: Build with Maven
       run: mvn -B verify
     - name: Write out Unit Test report annotation for forked repo
-      if: ${{ failure() &&  (github.event.pull_request.head.repo.full_name != github.repository) }}
+      if: failure()
       uses: mikepenz/action-junit-report@v5
       with:
         comment: true
