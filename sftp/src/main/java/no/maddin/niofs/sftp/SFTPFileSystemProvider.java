@@ -145,20 +145,37 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
             if (!parts.isEmpty() && "".equals(parts.get(0))) {
                 parts = parts.subList(1, parts.size()-1);
             }
-            // Implementation might not support recursive creation of directories
             for (String subPath : parts) {
-                try {
-                    sftpSession.sftp.mkdir(subPath);
-                    sftpSession.sftp.cd(subPath);
-                } catch(SftpException e) {
-                    throw new IOException(subPath, e);
-                }
-
+                mkdir(subPath, sftpSession);
+                cd(subPath, sftpSession);
             }
-
         } catch (JSchException e) {
             throw new IOException(e);
         }
+    }
+
+    private static void cd(String subPath, SFTPSession sftpSession) throws IOException {
+        try {
+            sftpSession.sftp.cd(subPath);
+        } catch (SftpException e) {
+            throw new IOException(e);
+        }
+    }
+
+    private static void mkdir(String subPath, SFTPSession sftpSession) throws IOException {
+        try {
+            sftpSession.sftp.mkdir(subPath);
+        } catch(SftpException e) {
+            if (!isFileExistsException(e)) {
+                throw new IOException(subPath, e);
+//                    } else {
+//                        // ignore throw new FileAlreadyExistsException(subPath);
+            }
+        }
+    }
+
+    private static boolean isFileExistsException(@NotNull SftpException e) {
+        return e.id == ChannelSftp.SSH_FX_FAILURE && e.getMessage().contains("file exists");
     }
 
     @Override

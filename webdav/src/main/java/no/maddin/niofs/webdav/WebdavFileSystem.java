@@ -26,9 +26,7 @@ import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -49,7 +47,7 @@ public class WebdavFileSystem extends FileSystem {
     
     private String rootpath;
 
-    Cache<Path, WebdavFileAttributes> attcache;
+    private Cache<Path, WebdavFileAttributes> attcache;
 
     /**
      *
@@ -64,17 +62,19 @@ public class WebdavFileSystem extends FileSystem {
         if (serverUri.getUserInfo() != null) {
         	String[] ui = serverUri.getUserInfo().split(":");
         	this.username = ui[0];
-        	if(ui.length > 1)
-        		this.password = ui[1];
-        	else 
-        		this.password = null;
+        	if(ui.length > 1) {
+                this.password = ui[1];
+            } else {
+                this.password = null;
+            }
         } else {
         	this.username = null;
         	this.password = null;
         }
         this.rootpath = getSeparator();
-        if( serverUri.getPath() != null && ! serverUri.getPath().equals(""))
-        	this.rootpath = serverUri.getPath();
+//        if( serverUri.getPath() != null && ! serverUri.getPath().equals("")) {
+//            this.rootpath = serverUri.getPath();
+//        }
         
 		this.attcache = Caffeine.newBuilder()
 				   .expireAfterWrite(5, TimeUnit.MINUTES)
@@ -113,7 +113,7 @@ public class WebdavFileSystem extends FileSystem {
             StringBuilder sb = new StringBuilder();
             sb.append(first);
             for (String segment: more) {
-                if (segment.length() > 0) {
+                if (!segment.isEmpty()) {
                     if (sb.length() > 0) {
                         sb.append(getSeparator());
                     }
@@ -135,23 +135,11 @@ public class WebdavFileSystem extends FileSystem {
     }
 
     /**
-     * Not implemented
-     * @return null
+     * {@inheritDoc}
      */
     @Override
     public Iterable<Path> getRootDirectories() {
-    	final Path rootp = new WebdavPath(this, rootpath);
-    	
-    	Iterable<Path> ret = new Iterable<Path>() {			
-			@Override
-			public Iterator<Path> iterator() {
-				ArrayList<Path> ap = new ArrayList<Path>(1);
-				ap.add(rootp);
-				return ap.iterator();
-			}
-		};
-    	
-        return ret;
+        return Collections.singletonList(new WebdavPath(this, rootpath));
     }
 
     @Override
@@ -219,11 +207,12 @@ public class WebdavFileSystem extends FileSystem {
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        return Objects.hash(provider, host, username, port);
     }
 
-    public String getUserName() {
-        return this.username;
+    @Override
+    public String toString() {
+        return provider.getScheme() + "://" + username + "@" + this.host + ":" + port + rootpath;
     }
 
     String getHost() {
@@ -234,25 +223,15 @@ public class WebdavFileSystem extends FileSystem {
         return this.port;
     }
 
-    public String getPassword() {
-        return this.password;
-    }
-
     Sardine getSardine() throws IOException {
-    	if(!(username == null && password == null))
-    		return SardineFactory.begin(username, password, ProxySelector.getDefault());
-    	else
-    		return SardineFactory.begin();     		    		
+    	if(!(username == null && password == null)) {
+            return SardineFactory.begin(username, password, ProxySelector.getDefault());
+        } else {
+            return SardineFactory.begin();
+        }
     }
 
 	public Cache<Path, WebdavFileAttributes> getAttcache() {
 		return attcache;
 	}
-
-	public void setAttcache(Cache<Path, WebdavFileAttributes> attcache) {
-		this.attcache = attcache;
-	}
-
-    
-    
 }

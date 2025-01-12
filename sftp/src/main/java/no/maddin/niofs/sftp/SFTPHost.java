@@ -154,9 +154,12 @@ public class SFTPHost extends FileSystem {
 
     private void checkSameFileSystem(String uriString) {
         try {
-            URI uri = getServerUri(URI.create(uriString), false);
-            if (!this.serverUri.equals(uri)) {
-                throw new IllegalArgumentException("Filesystems do not match");
+            URI fileUri = URI.create(uriString);
+            if (fileUri.isAbsolute()) {
+                URI uri = getServerUri(fileUri, false);
+                if (!this.serverUri.equals(uri)) {
+                    throw new IllegalArgumentException("Filesystems do not match");
+                }
             }
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);

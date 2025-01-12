@@ -3,13 +3,16 @@ package no.maddin.niofs.it;
 import no.maddin.niofs.testutil.BasicTestContainer;
 import no.maddin.niofs.testutil.FileUtils;
 import no.maddin.niofs.testutil.SftpgoContainer;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -124,8 +127,26 @@ public class FilesListIT {
         }
     }
 
-    void createTempDirectory() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void createTempDirectory(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpPath = Files.createTempDirectory(dir, "tmp");
+            assertThat(localTestFile(tmpPath.toUri().getPath()), anExistingDirectory());
+        }
+    }
 
+    @Test
+    void createTempDirectoryDefault() throws IOException {
+        Path dir = FileSystems.getDefault().getPath("/tmp", UUID.randomUUID().toString());
+        Files.createDirectories(dir);
+        Path tmpDir = Files.createTempDirectory(dir, "tmp");
+        assertThat(tmpDir.toFile(), anExistingDirectory());
     }
 
     void createTempFile() {
