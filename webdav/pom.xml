@@ -70,7 +70,7 @@
 		<dependency>
 			<groupId>com.github.lookfirst</groupId>
 			<artifactId>sardine</artifactId>
-			<version>5.10</version>
+			<version>5.13</version>
 			<!-- sardine 5.10+ has jakarta dependency that requires java 11 or above -->
 		</dependency>
 		<dependency>
