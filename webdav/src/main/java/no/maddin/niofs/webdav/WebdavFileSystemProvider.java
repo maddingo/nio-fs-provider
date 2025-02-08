@@ -147,7 +147,15 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     	log.fine("deleteIfExists");
         WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
         final String s = path.toUri().toString();
-        return webdavFs.getSardine().exists(s);
+        if (webdavFs.getSardine().exists(s)) {
+            if (!webdavFs.getSardine().list(s).isEmpty()) {
+                throw new DirectoryNotEmptyException(s);
+            }
+            delete(path);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

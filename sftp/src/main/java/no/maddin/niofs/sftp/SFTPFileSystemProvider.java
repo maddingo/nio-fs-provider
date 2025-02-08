@@ -185,11 +185,28 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         }
 
         SFTPHost sftpHost = (SFTPHost)path.getFileSystem();
-
+        boolean isDir = false;
         try (SFTPSession sftpSession = new SFTPSession(sftpHost, jsch)) {
-            sftpSession.sftp.rm(((SFTPPath)path).getPathString());
-        } catch (JSchException | SftpException e) {
+            SftpATTRS stat = sftpSession.sftp.stat(((SFTPPath) path).getPathString());
+            isDir = stat.isDir();
+            sftpSession.sftp.rm(((SFTPPath) path).getPathString());
+        } catch(JSchException e) {
             throw new IOException(e);
+        } catch (SftpException e) {
+            switch (e.id) {
+                case ChannelSftp.SSH_FX_NO_SUCH_FILE:
+                    throw new NoSuchFileException(path.toString());
+                case ChannelSftp.SSH_FX_PERMISSION_DENIED:
+                    throw new AccessDeniedException(path.toString());
+                case ChannelSftp.SSH_FX_FAILURE:
+                    if (isDir) {
+                        throw new DirectoryNotEmptyException(path.toString());
+                    } else {
+                        throw new IOException(e);
+                    }
+                default:
+                    throw new IOException(e);
+            }
         }
     }
 

@@ -3,6 +3,7 @@ package no.maddin.niofs.it;
 import no.maddin.niofs.testutil.BasicTestContainer;
 import no.maddin.niofs.testutil.FileUtils;
 import no.maddin.niofs.testutil.SftpgoContainer;
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -12,10 +13,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -174,8 +172,24 @@ public class FilesListIT {
 
     }
 
-    void deleteIfExists() {
-
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void deleteIfExists(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            // if the file is a directory and could not otherwise be deleted because the directory is not empty (optional specific exception)
+            Assert.assertThrows(DirectoryNotEmptyException.class, () -> Files.deleteIfExists(dir));
+            assertThat(localTestFile(tmpFile.toUri().getPath()), anExistingFile());
+            Files.delete(tmpFile);
+            assertThat(localTestFile(tmpFile.toUri().getPath()), not(anExistingFile()));
+            assertThat(Files.deleteIfExists(tmpFile), equalTo(false));
+            assertThat(localTestFile(tmpFile.toUri().getPath()), not(anExistingFile()));
+        }
     }
 
     void exists() {
