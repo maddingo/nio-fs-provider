@@ -288,8 +288,55 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public void checkAccess(Path path, AccessMode... modes) {
+    public void checkAccess(Path path, AccessMode... modes) throws IOException {
+        if (!(path instanceof SFTPPath)) {
+            throw new IllegalArgumentException(String.valueOf(path));
+        }
+        SFTPPath sftpPath = (SFTPPath) path;
+        SFTPHost host = (SFTPHost) sftpPath.getFileSystem();
+        try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
+            SftpATTRS stat = sftpSession.sftp.stat(sftpPath.getPathString());
+            if (modes.length == 0) {
+                return;
+            }
+            int permissions = stat.getPermissions();
+            for (AccessMode m : modes) {
+                switch (m) {
+                    case READ:
+                        if (!canRead(permissions)) {
+                            throw new FileSystemException(path.toString(), null, "cannot read file");
+                        }
+                        break;
+                    case WRITE:
+                        if (!canWrite(permissions)) {
+                            throw new FileSystemException(path.toString(), null, "cannote write");
+                        }
+                        break;
+                    case EXECUTE:
+                        if (!canExecute(permissions)) {
+                            throw new FileSystemException(path.toString(), null, "cannote axecute");
+                        }
+                        break;
+                    default:
+                        throw new UnsupportedOperationException("AccessMode " + m + " not supported");
+                }
+            }
+        } catch (JSchException | SftpException e) {
+            throw new FileSystemException(path.toString(), null, e.getMessage());
+        }
         throw new UnsupportedOperationException();
+    }
+
+    private boolean canExecute(int permissions) {
+        return false;
+    }
+
+    private boolean canWrite(int permissions) {
+        return false;
+    }
+
+    private boolean canRead(int permissions) {
+        return false;
     }
 
     @Override
@@ -298,8 +345,21 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) {
-        throw new UnsupportedOperationException();
+    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
+        if (!(path instanceof SFTPPath)) {
+            throw new IllegalArgumentException(String.valueOf(path));
+        }
+        if (type == null || !BasicFileAttributes.class.isAssignableFrom(type)) {
+            throw new UnsupportedOperationException("Only BasicFileAttributes supported");
+        }
+        SFTPPath sftpPath = (SFTPPath) path;
+        SFTPHost host = (SFTPHost) sftpPath.getFileSystem();
+        try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
+            SftpATTRS stat = sftpSession.sftp.stat(sftpPath.getPathString());
+            return (A)new SFTPFileAttributes(stat);
+        } catch (JSchException | SftpException e) {
+            throw new FileSystemException(path.toString(), null, e.getMessage());
+        }
     }
 
     @Override
@@ -360,4 +420,72 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
 
+    public static class SFTPFileAttributes implements BasicFileAttributes {
+        private final FileTime lastModifiedTime;
+        private final FileTime lastAccessTime;
+        private final FileTime creationTime;
+        private final boolean isRegularFile;
+        private final boolean isDirectory;
+        private final boolean isSymbolicLink;
+        private final boolean isOther;
+        private final long size;
+        private final Object fileKey;
+
+        private SFTPFileAttributes(SftpATTRS stat) {
+            this.lastModifiedTime = FileTime.fromMillis(stat.getMTime() * 1000L);
+            this.lastAccessTime = FileTime.fromMillis(stat.getATime() * 1000L);
+            this.creationTime = FileTime.fromMillis(stat.getMTime() * 1000L);
+            this.isRegularFile = stat.isReg();
+            this.isDirectory = stat.isDir();
+            this.isSymbolicLink = stat.isLink();
+            this.isOther = !stat.isReg() && !stat.isDir() && !stat.isLink();
+            this.size = stat.getSize();
+            this.fileKey = null;
+        }
+
+        @Override
+        public FileTime lastModifiedTime() {
+            return this.lastModifiedTime;
+        }
+
+        @Override
+        public FileTime lastAccessTime() {
+            return this.lastAccessTime;
+        }
+
+        @Override
+        public FileTime creationTime() {
+            return this.creationTime;
+        }
+
+        @Override
+        public boolean isRegularFile() {
+            return this.isRegularFile;
+        }
+
+        @Override
+        public boolean isDirectory() {
+            return this.isDirectory;
+        }
+
+        @Override
+        public boolean isSymbolicLink() {
+            return this.isSymbolicLink;
+        }
+
+        @Override
+        public boolean isOther() {
+            return this.isOther;
+        }
+
+        @Override
+        public long size() {
+            return this.size;
+        }
+
+        @Override
+        public Object fileKey() {
+            return this.fileKey;
+        }
+    }
 }

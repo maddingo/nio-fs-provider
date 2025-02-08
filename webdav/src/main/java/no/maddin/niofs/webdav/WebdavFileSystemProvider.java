@@ -17,6 +17,8 @@
 package no.maddin.niofs.webdav;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import com.github.sardine.DavAcl;
+import com.github.sardine.DavPrincipal;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.impl.SardineException;
@@ -27,9 +29,7 @@ import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.*;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -213,7 +213,21 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
     	log.fine("getFileAttributeView");
-        throw new UnsupportedOperationException();
+        if (!(path instanceof WebdavPath)) {
+            throw new IllegalArgumentException(String.valueOf(path));
+        }
+        WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
+        final String s = path.toUri().toString();
+        try {
+            Sardine sardine = webdavFs.getSardine();
+            DavAcl acl = sardine.getAcl(s);
+            List<String> principalCollectionSet = sardine.getPrincipalCollectionSet(s);
+            List<DavPrincipal> principals = sardine.getPrincipals(s);
+
+            return (V) new WebdavFileAttributeView((WebdavPath)path, acl, principalCollectionSet, principals);
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -348,7 +362,11 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) 
     		throws IOException
 	{
-    	log.fine("readAttributes(path,type)");
+        if (type == null || !PosixFileAttributes.class.isAssignableFrom(type)) {
+            throw new UnsupportedOperationException("Attribute class not supported");
+        }
+
+        log.fine("readAttributes(path,type)");
     	if(!(path.getFileSystem() instanceof WebdavFileSystem)) {
     		log.warning("readAttributes(path,type): Invalid filesystem");
     		throw new FileSystemException("Invalid filesystem");
@@ -367,10 +385,6 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 			throw new IllegalArgumentException();
 		}
 		final DavResource res = resources.get(0);
-
-		if (!type.isAssignableFrom(WebdavFileAttributes.class)) {
-			throw new ProviderMismatchException();
-		}
 
 		WebdavFileAttributes attr = new WebdavFileAttributes(res);
 		cache.put(path, attr);

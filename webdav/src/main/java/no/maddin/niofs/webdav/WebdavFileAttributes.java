@@ -1,17 +1,15 @@
 package no.maddin.niofs.webdav;
 
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.*;
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
 import com.github.sardine.DavResource;
 
 /**
  * File attributes for WebDAV.
  */
-public class WebdavFileAttributes implements BasicFileAttributes {
+public class WebdavFileAttributes implements PosixFileAttributes {
     private final DavResource res;
 
     WebdavFileAttributes(DavResource res) {
@@ -25,11 +23,7 @@ public class WebdavFileAttributes implements BasicFileAttributes {
 
     @Override
     public FileTime lastModifiedTime() {
-    	Date d = res.getModified();
-    	if (d == null)
-    		return null;
-    	else 
-    		return FileTime.fromMillis(d.getTime());
+        return Optional.ofNullable(res.getModified()).map(Date::getTime).map(FileTime::fromMillis).orElse(null);
     }
 
     @Override
@@ -65,5 +59,24 @@ public class WebdavFileAttributes implements BasicFileAttributes {
     @Override
     public FileTime creationTime() {
         return Optional.ofNullable(res.getCreation()).map(Date::getTime).map(FileTime::fromMillis).orElse(null);
+    }
+
+    @Override
+    public UserPrincipal owner() {
+        return null;
+    }
+
+    @Override
+    public GroupPrincipal group() {
+        return null;
+    }
+
+    @Override
+    public Set<PosixFilePermission> permissions() {
+        if (res.isDirectory()) {
+            return EnumSet.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
+        } else {
+            return EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
+        }
     }
 }

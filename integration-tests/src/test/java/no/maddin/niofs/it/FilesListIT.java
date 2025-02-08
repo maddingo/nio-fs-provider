@@ -4,16 +4,21 @@ import no.maddin.niofs.testutil.BasicTestContainer;
 import no.maddin.niofs.testutil.FileUtils;
 import no.maddin.niofs.testutil.SftpgoContainer;
 import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URI;
 import java.nio.file.*;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -192,15 +197,53 @@ public class FilesListIT {
         }
     }
 
-    void exists() {
-
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void exists(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            assertThat(Files.exists(tmpFile), equalTo(true));
+            Files.delete(tmpFile);
+            assertThat(Files.exists(tmpFile), equalTo(false));
+        }
     }
 
-    void isDirectory() {
-
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void isDirectory(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            assertThat(Files.isDirectory(tmpFile), equalTo(false));
+            assertThat(Files.isDirectory(dir), equalTo(true));
+        }
     }
 
-    void isExecutable() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void isExecutable(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        Assumptions.assumeFalse(protocol.equals("webdav"), "Sardine has an incomplete implementation of the ACL");
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            assertThat(localTestFile(tmpFile.toUri().getPath()), anExistingFile());
+            Files.setPosixFilePermissions(tmpFile, Collections.singleton(PosixFilePermission.OWNER_EXECUTE));
+            assertThat(Files.isExecutable(tmpFile), equalTo(false));
+            assertThat(Files.isExecutable(dir), equalTo(true));
+        }
 
     }
 
