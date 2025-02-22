@@ -22,6 +22,7 @@ import com.github.sardine.DavPrincipal;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.impl.SardineException;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.IOException;
 import java.net.URI;
@@ -362,8 +363,8 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) 
     		throws IOException
 	{
-        if (type == null || !BasicFileAttributes.class.isAssignableFrom(type)) {
-            throw new UnsupportedOperationException("Attribute class not supported");
+        if (type == null || !type.isAssignableFrom(WebdavFileAttributes.class)) {
+            throw new UnsupportedOperationException("attribute type " + type + " not supported");
         }
 
         log.fine("readAttributes(path,type)");
@@ -373,22 +374,21 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     	}    		
     	
     	Cache<Path, WebdavFileAttributes> cache = ((WebdavFileSystem) path.getFileSystem()).getAttcache();
-    	if (cache.getIfPresent(path) != null) {
-    		return (A) cache.getIfPresent(path);
-    	}
-    	
-		WebdavFileSystem wfs = (WebdavFileSystem)path.getFileSystem();
-        List<DavResource> resources = wfs.getSardine().list(path.toUri().toString(),0,true);
+        WebdavFileAttributes attr = cache.getIfPresent(path);
+    	if (attr == null) {
 
-		//List<DavResource> resources = wfs.getSardine().list(path.toUri().toString());
-		if (resources.size() != 1) {
-			throw new IllegalArgumentException();
-		}
-		final DavResource res = resources.get(0);
+            WebdavFileSystem wfs = (WebdavFileSystem) path.getFileSystem();
+            List<DavResource> resources = wfs.getSardine().list(path.toUri().toString(), 0, true);
 
-		WebdavFileAttributes attr = new WebdavFileAttributes(res);
-		cache.put(path, attr);
+            //List<DavResource> resources = wfs.getSardine().list(path.toUri().toString());
+            if (resources.size() != 1) {
+                throw new IllegalArgumentException();
+            }
+            final DavResource res = resources.get(0);
 
+            attr = new WebdavFileAttributes(res);
+            cache.put(path, attr);
+        }
 		return (A) attr;
     }
 

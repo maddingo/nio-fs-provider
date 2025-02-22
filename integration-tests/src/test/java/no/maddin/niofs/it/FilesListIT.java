@@ -231,7 +231,7 @@ public class FilesListIT {
     @ParameterizedTest(name = "{index} {0}")
     @MethodSource("data")
     void isExecutable(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
-        //Assumptions.assumeFalse(protocol.equals("webdav"), "Sardine has an incomplete implementation of the ACL");
+        Assumptions.assumeFalse(protocol.equals("webdav"), "Sardine has an incomplete implementation of the ACL");
         String randomString = UUID.randomUUID().toString();
         try (BasicTestContainer container = containerSupplier.get()) {
             container.start();
@@ -240,14 +240,27 @@ public class FilesListIT {
             Files.createDirectories(dir);
             Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
             assertThat(localTestFile(tmpFile.toUri().getPath()), anExistingFile());
-            Files.setPosixFilePermissions(tmpFile, Collections.singleton(PosixFilePermission.OWNER_EXECUTE));
-            assertThat(Files.isExecutable(tmpFile), equalTo(false));
+            Files.setPosixFilePermissions(tmpFile, EnumSet.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ));
+            assertThat(Files.isExecutable(tmpFile), equalTo(true));
             assertThat(Files.isExecutable(dir), equalTo(true));
         }
 
     }
 
-    void isHidden() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void isHidden(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        Assumptions.assumeFalse(protocol.equals("webdav"), "Sardine has an incomplete implementation of the ACL");
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, ".tmp", ".txt");
+            assertThat(Files.isHidden(tmpFile), equalTo(true));
+            assertThat(Files.isHidden(dir), equalTo(false));
+        }
 
     }
 

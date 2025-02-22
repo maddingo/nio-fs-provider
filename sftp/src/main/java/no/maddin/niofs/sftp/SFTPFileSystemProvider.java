@@ -278,8 +278,24 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public boolean isHidden(Path path) {
-        throw new UnsupportedOperationException();
+    public boolean isHidden(Path path) throws IOException {
+        if (!(path instanceof SFTPPath)) {
+            throw new IllegalArgumentException(String.valueOf(path));
+        }
+        SFTPPath sftpPath = (SFTPPath) path;
+        SFTPHost host = (SFTPHost) sftpPath.getFileSystem();
+        try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
+            String pathString = sftpPath.getPathString();
+            SftpATTRS stat = sftpSession.sftp.stat(pathString);
+            return stat.getPermissions() == 0 || fileName(pathString).startsWith(".");
+        } catch (JSchException | SftpException e) {
+            throw new FileSystemException(path.toString(), null, e.getMessage());
+        }
+    }
+
+    private String fileName(String fullPath) {
+        int idx = fullPath.lastIndexOf('/');
+        return idx == -1 ? fullPath : fullPath.substring(idx + 1);
     }
 
     @Override
@@ -303,18 +319,18 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
             for (AccessMode m : modes) {
                 switch (m) {
                     case READ:
-                        if (!canRead(permissions)) {
+                        if ((permissions & 0_444) == 0) {
                             throw new FileSystemException(path.toString(), null, "cannot read file");
                         }
                         break;
                     case WRITE:
-                        if (!canWrite(permissions)) {
-                            throw new FileSystemException(path.toString(), null, "cannote write");
+                        if ((permissions & 0_222) == 0) {
+                            throw new FileSystemException(path.toString(), null, "cannot write");
                         }
                         break;
                     case EXECUTE:
-                        if (!canExecute(permissions)) {
-                            throw new FileSystemException(path.toString(), null, "cannote axecute");
+                        if ((permissions & 0_111) == 0) {
+                            throw new FileSystemException(path.toString(), null, "cannot execute");
                         }
                         break;
                     default:
@@ -324,19 +340,6 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         } catch (JSchException | SftpException e) {
             throw new FileSystemException(path.toString(), null, e.getMessage());
         }
-        throw new UnsupportedOperationException();
-    }
-
-    private boolean canExecute(int permissions) {
-        return false;
-    }
-
-    private boolean canWrite(int permissions) {
-        return false;
-    }
-
-    private boolean canRead(int permissions) {
-        return false;
     }
 
     @Override
@@ -344,8 +347,8 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         if (!(path instanceof SFTPPath)) {
             throw new IllegalArgumentException(String.valueOf(path));
         }
-        if (type == null || !(BasicFileAttributeView.class.isAssignableFrom(type) || PosixFileAttributeView.class.isAssignableFrom(type))) {
-            throw new UnsupportedOperationException("Only BasicFileAttributeView or PosixFileAttributeView supported");
+        if (type == null || !type.isAssignableFrom(SFTPFileAttributeView.class)) {
+            throw new UnsupportedOperationException("Attribute view of type " + type + " not supported");
         }
         return (V)new SFTPFileAttributeView(this, (SFTPPath) path, options);
     }
@@ -355,8 +358,8 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         if (!(path instanceof SFTPPath)) {
             throw new IllegalArgumentException(String.valueOf(path));
         }
-        if (type == null || !BasicFileAttributes.class.isAssignableFrom(type)) {
-            throw new UnsupportedOperationException("Only BasicFileAttributes supported");
+        if (type == null || !type.isAssignableFrom(SFTPFileAttributes.class)) {
+            throw new UnsupportedOperationException("File attribute type " + type + " not supported");
         }
         SFTPPath sftpPath = (SFTPPath) path;
         SFTPHost host = sftpPath.getHost();
@@ -382,8 +385,43 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         hosts.remove(serverUri);
     }
 
-    void setPermissions(SFTPPath path, List<LinkOption> options) {
-        path.getHost()
+    void setPermissions(SFTPPath path, Set<PosixFilePermission> permissions) throws IOException {
+        try (SFTPSession sftpSession = new SFTPSession(path.getHost(), jsch)) {
+            int fileMask = permissionsToMask(permissions);
+            sftpSession.sftp.chmod(fileMask, path.getPathString());
+        } catch (JSchException | SftpException e) {
+            throw new FileSystemException(path.toString(), null, e.getMessage());
+        }
+    }
+
+    static int permissionsToMask(Set<PosixFilePermission> permissions) {
+        return permissions.stream()
+                .mapToInt(p -> {
+                    switch (p) {
+                        case OWNER_READ:
+                            return 0_400;
+                        case OWNER_WRITE:
+                            return 0_200;
+                        case OWNER_EXECUTE:
+                            return 0_100;
+                        case GROUP_READ:
+                            return 0_40;
+                        case GROUP_WRITE:
+                            return 0_20;
+                        case GROUP_EXECUTE:
+                            return 0_10;
+                        case OTHERS_READ:
+                            return 0_4;
+                        case OTHERS_WRITE:
+                            return 0_2;
+                        case OTHERS_EXECUTE:
+                            return 0_1;
+                        default:
+                            return 0;
+                    }
+                })
+                .reduce((res, elem) -> res | elem)
+            .orElse(0);
     }
 
     static class SFTPSession implements AutoCloseable {

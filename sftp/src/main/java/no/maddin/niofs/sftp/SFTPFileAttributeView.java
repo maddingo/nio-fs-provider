@@ -45,7 +45,7 @@ public class SFTPFileAttributeView implements PosixFileAttributeView {
 
     @Override
     public void setPermissions(Set<PosixFilePermission> perms) throws IOException {
-        provider.setPermissions(path, options);
+        provider.setPermissions(path, perms);
     }
 
     @Override
