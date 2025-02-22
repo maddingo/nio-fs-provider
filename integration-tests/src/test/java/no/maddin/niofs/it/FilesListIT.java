@@ -231,7 +231,7 @@ public class FilesListIT {
     @ParameterizedTest(name = "{index} {0}")
     @MethodSource("data")
     void isExecutable(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
-        Assumptions.assumeFalse(protocol.equals("webdav"), "Sardine has an incomplete implementation of the ACL");
+        //Assumptions.assumeFalse(protocol.equals("webdav"), "Sardine has an incomplete implementation of the ACL");
         String randomString = UUID.randomUUID().toString();
         try (BasicTestContainer container = containerSupplier.get()) {
             container.start();

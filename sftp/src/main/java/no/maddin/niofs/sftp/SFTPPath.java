@@ -69,6 +69,10 @@ public class SFTPPath implements Path {
         return this.host;
     }
 
+    SFTPHost getHost() {
+        return host;
+    }
+
     @Override
     public boolean isAbsolute() {
         return path.startsWith(PATH_SEP) && host != null;

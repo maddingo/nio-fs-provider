@@ -362,7 +362,7 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) 
     		throws IOException
 	{
-        if (type == null || !PosixFileAttributes.class.isAssignableFrom(type)) {
+        if (type == null || !BasicFileAttributes.class.isAssignableFrom(type)) {
             throw new UnsupportedOperationException("Attribute class not supported");
         }
 

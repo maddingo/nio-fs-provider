@@ -341,7 +341,13 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
-        throw new UnsupportedOperationException();
+        if (!(path instanceof SFTPPath)) {
+            throw new IllegalArgumentException(String.valueOf(path));
+        }
+        if (type == null || !(BasicFileAttributeView.class.isAssignableFrom(type) || PosixFileAttributeView.class.isAssignableFrom(type))) {
+            throw new UnsupportedOperationException("Only BasicFileAttributeView or PosixFileAttributeView supported");
+        }
+        return (V)new SFTPFileAttributeView(this, (SFTPPath) path, options);
     }
 
     @Override
@@ -353,7 +359,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
             throw new UnsupportedOperationException("Only BasicFileAttributes supported");
         }
         SFTPPath sftpPath = (SFTPPath) path;
-        SFTPHost host = (SFTPHost) sftpPath.getFileSystem();
+        SFTPHost host = sftpPath.getHost();
         try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
             SftpATTRS stat = sftpSession.sftp.stat(sftpPath.getPathString());
             return (A)new SFTPFileAttributes(stat);
@@ -374,6 +380,10 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     void removeCacheEntry(URI serverUri) {
         hosts.remove(serverUri);
+    }
+
+    void setPermissions(SFTPPath path, List<LinkOption> options) {
+        path.getHost()
     }
 
     static class SFTPSession implements AutoCloseable {
