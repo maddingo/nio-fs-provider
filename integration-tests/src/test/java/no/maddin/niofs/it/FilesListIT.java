@@ -261,19 +261,57 @@ public class FilesListIT {
             assertThat(Files.isHidden(tmpFile), equalTo(true));
             assertThat(Files.isHidden(dir), equalTo(false));
         }
-
     }
 
-    void isReadable() {
-
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void isReadable(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        Assumptions.assumeFalse(protocol.equals("webdav"), "Sardine has an incomplete implementation of the ACL");
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            assertThat(localTestFile(tmpFile.toUri().getPath()), anExistingFile());
+            Files.setPosixFilePermissions(tmpFile, EnumSet.of(PosixFilePermission.OWNER_READ));
+            assertThat(Files.isReadable(tmpFile), equalTo(true));
+            assertThat(Files.isReadable(dir), equalTo(true));
+        }
     }
 
-    void isRegularFile() {
-
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void isRegularFile(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            assertThat(Files.isRegularFile(tmpFile), equalTo(true));
+            assertThat(Files.isRegularFile(dir), equalTo(false));
+        }
     }
 
-    void isWritable() {
-
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void isWritable(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        Assumptions.assumeFalse(protocol.equals("webdav"), "Sardine has an incomplete implementation of the ACL");
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            assertThat(localTestFile(tmpFile.toUri().getPath()), anExistingFile());
+            Files.setPosixFilePermissions(tmpFile, EnumSet.of(PosixFilePermission.OWNER_WRITE));
+            assertThat(Files.isWritable(tmpFile), equalTo(true));
+            assertThat(Files.isWritable(dir), equalTo(true));
+        }
     }
 
     void createLink() {
