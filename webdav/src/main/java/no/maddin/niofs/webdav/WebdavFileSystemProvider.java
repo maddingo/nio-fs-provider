@@ -17,9 +17,12 @@
 package no.maddin.niofs.webdav;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import com.github.sardine.DavAcl;
+import com.github.sardine.DavPrincipal;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.impl.SardineException;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.IOException;
 import java.net.URI;
@@ -27,9 +30,7 @@ import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.*;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -147,7 +148,15 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     	log.fine("deleteIfExists");
         WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
         final String s = path.toUri().toString();
-        return webdavFs.getSardine().exists(s);
+        if (webdavFs.getSardine().exists(s)) {
+            if (!webdavFs.getSardine().list(s).isEmpty()) {
+                throw new DirectoryNotEmptyException(s);
+            }
+            delete(path);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -205,7 +214,21 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
     	log.fine("getFileAttributeView");
-        throw new UnsupportedOperationException();
+        if (!(path instanceof WebdavPath)) {
+            throw new IllegalArgumentException(String.valueOf(path));
+        }
+        WebdavFileSystem webdavFs = (WebdavFileSystem)path.getFileSystem();
+        final String s = path.toUri().toString();
+        try {
+            Sardine sardine = webdavFs.getSardine();
+            DavAcl acl = sardine.getAcl(s);
+            List<String> principalCollectionSet = sardine.getPrincipalCollectionSet(s);
+            List<DavPrincipal> principals = sardine.getPrincipals(s);
+
+            return (V) new WebdavFileAttributeView((WebdavPath)path, acl, principalCollectionSet, principals);
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -340,33 +363,32 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) 
     		throws IOException
 	{
-    	log.fine("readAttributes(path,type)");
+        if (type == null || !type.isAssignableFrom(WebdavFileAttributes.class)) {
+            throw new UnsupportedOperationException("attribute type " + type + " not supported");
+        }
+
+        log.fine("readAttributes(path,type)");
     	if(!(path.getFileSystem() instanceof WebdavFileSystem)) {
     		log.warning("readAttributes(path,type): Invalid filesystem");
     		throw new FileSystemException("Invalid filesystem");
     	}    		
     	
     	Cache<Path, WebdavFileAttributes> cache = ((WebdavFileSystem) path.getFileSystem()).getAttcache();
-    	if (cache.getIfPresent(path) != null) {
-    		return (A) cache.getIfPresent(path);
-    	}
-    	
-		WebdavFileSystem wfs = (WebdavFileSystem)path.getFileSystem();
-        List<DavResource> resources = wfs.getSardine().list(path.toUri().toString(),0,true);
+        WebdavFileAttributes attr = cache.getIfPresent(path);
+    	if (attr == null) {
 
-		//List<DavResource> resources = wfs.getSardine().list(path.toUri().toString());
-		if (resources.size() != 1) {
-			throw new IllegalArgumentException();
-		}
-		final DavResource res = resources.get(0);
+            WebdavFileSystem wfs = (WebdavFileSystem) path.getFileSystem();
+            List<DavResource> resources = wfs.getSardine().list(path.toUri().toString(), 0, true);
 
-		if (!type.isAssignableFrom(WebdavFileAttributes.class)) {
-			throw new ProviderMismatchException();
-		}
+            //List<DavResource> resources = wfs.getSardine().list(path.toUri().toString());
+            if (resources.size() != 1) {
+                throw new IllegalArgumentException();
+            }
+            final DavResource res = resources.get(0);
 
-		WebdavFileAttributes attr = new WebdavFileAttributes(res);
-		cache.put(path, attr);
-
+            attr = new WebdavFileAttributes(res);
+            cache.put(path, attr);
+        }
 		return (A) attr;
     }
 

@@ -1,3 +1,3 @@
-#java=8.0.432-tem
-java=21-local
+java=8-local
+#java=21-local
 maven=3.9.9

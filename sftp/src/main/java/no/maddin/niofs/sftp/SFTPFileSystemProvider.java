@@ -104,7 +104,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         SFTPHost sftpHost = (SFTPHost) dir.getFileSystem();
 
         try (SFTPSession sftpSession = new SFTPSession(sftpHost, jsch)) {
-            Vector<ChannelSftp.LsEntry> ls = sftpSession.sftp.ls(((SFTPPath)dir).getPathString());
+            List<ChannelSftp.LsEntry> ls = sftpSession.sftp.ls(((SFTPPath)dir).getPathString());
 
             List<Path> list = ls.stream()
                 .map(ChannelSftp.LsEntry::getFilename)
@@ -168,8 +168,6 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         } catch(SftpException e) {
             if (!isFileExistsException(e)) {
                 throw new IOException(subPath, e);
-//                    } else {
-//                        // ignore throw new FileAlreadyExistsException(subPath);
             }
         }
     }
@@ -185,11 +183,28 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         }
 
         SFTPHost sftpHost = (SFTPHost)path.getFileSystem();
-
+        boolean isDir = false;
         try (SFTPSession sftpSession = new SFTPSession(sftpHost, jsch)) {
-            sftpSession.sftp.rm(((SFTPPath)path).getPathString());
-        } catch (JSchException | SftpException e) {
+            SftpATTRS stat = sftpSession.sftp.stat(((SFTPPath) path).getPathString());
+            isDir = stat.isDir();
+            sftpSession.sftp.rm(((SFTPPath) path).getPathString());
+        } catch(JSchException e) {
             throw new IOException(e);
+        } catch (SftpException e) {
+            switch (e.id) {
+                case ChannelSftp.SSH_FX_NO_SUCH_FILE:
+                    throw new NoSuchFileException(path.toString());
+                case ChannelSftp.SSH_FX_PERMISSION_DENIED:
+                    throw new AccessDeniedException(path.toString());
+                case ChannelSftp.SSH_FX_FAILURE:
+                    if (isDir) {
+                        throw new DirectoryNotEmptyException(path.toString());
+                    } else {
+                        throw new IOException(e);
+                    }
+                default:
+                    throw new IOException(e);
+            }
         }
     }
 
@@ -261,8 +276,24 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public boolean isHidden(Path path) {
-        throw new UnsupportedOperationException();
+    public boolean isHidden(Path path) throws IOException {
+        if (!(path instanceof SFTPPath)) {
+            throw new IllegalArgumentException(String.valueOf(path));
+        }
+        SFTPPath sftpPath = (SFTPPath) path;
+        SFTPHost host = (SFTPHost) sftpPath.getFileSystem();
+        try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
+            String pathString = sftpPath.getPathString();
+            SftpATTRS stat = sftpSession.sftp.stat(pathString);
+            return stat.getPermissions() == 0 || fileName(pathString).startsWith(".");
+        } catch (JSchException | SftpException e) {
+            throw new FileSystemException(path.toString(), null, e.getMessage());
+        }
+    }
+
+    private String fileName(String fullPath) {
+        int idx = fullPath.lastIndexOf('/');
+        return idx == -1 ? fullPath : fullPath.substring(idx + 1);
     }
 
     @Override
@@ -271,18 +302,71 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public void checkAccess(Path path, AccessMode... modes) {
-        throw new UnsupportedOperationException();
+    public void checkAccess(Path path, AccessMode... modes) throws IOException {
+        if (!(path instanceof SFTPPath)) {
+            throw new IllegalArgumentException(String.valueOf(path));
+        }
+        SFTPPath sftpPath = (SFTPPath) path;
+        SFTPHost host = (SFTPHost) sftpPath.getFileSystem();
+        try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
+            SftpATTRS stat = sftpSession.sftp.stat(sftpPath.getPathString());
+            if (modes.length == 0) {
+                return;
+            }
+            int permissions = stat.getPermissions();
+            for (AccessMode m : modes) {
+                switch (m) {
+                    case READ:
+                        if ((permissions & 0_444) == 0) {
+                            throw new FileSystemException(path.toString(), null, "cannot read file");
+                        }
+                        break;
+                    case WRITE:
+                        if ((permissions & 0_222) == 0) {
+                            throw new FileSystemException(path.toString(), null, "cannot write");
+                        }
+                        break;
+                    case EXECUTE:
+                        if ((permissions & 0_111) == 0) {
+                            throw new FileSystemException(path.toString(), null, "cannot execute");
+                        }
+                        break;
+                    default:
+                        throw new UnsupportedOperationException("AccessMode " + m + " not supported");
+                }
+            }
+        } catch (JSchException | SftpException e) {
+            throw new FileSystemException(path.toString(), null, e.getMessage());
+        }
     }
 
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
-        throw new UnsupportedOperationException();
+        if (!(path instanceof SFTPPath)) {
+            throw new IllegalArgumentException(String.valueOf(path));
+        }
+        if (type == null || !type.isAssignableFrom(SFTPFileAttributeView.class)) {
+            throw new UnsupportedOperationException("Attribute view of type " + type + " not supported");
+        }
+        return (V)new SFTPFileAttributeView(this, (SFTPPath) path, options);
     }
 
     @Override
-    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) {
-        throw new UnsupportedOperationException();
+    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
+        if (!(path instanceof SFTPPath)) {
+            throw new IllegalArgumentException(String.valueOf(path));
+        }
+        if (type == null || !type.isAssignableFrom(SFTPFileAttributes.class)) {
+            throw new UnsupportedOperationException("File attribute type " + type + " not supported");
+        }
+        SFTPPath sftpPath = (SFTPPath) path;
+        SFTPHost host = sftpPath.getHost();
+        try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
+            SftpATTRS stat = sftpSession.sftp.stat(sftpPath.getPathString());
+            return (A)new SFTPFileAttributes(stat);
+        } catch (JSchException | SftpException e) {
+            throw new FileSystemException(path.toString(), null, e.getMessage());
+        }
     }
 
     @Override
@@ -297,6 +381,45 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     void removeCacheEntry(URI serverUri) {
         hosts.remove(serverUri);
+    }
+
+    void setPermissions(SFTPPath path, Set<PosixFilePermission> permissions) throws IOException {
+        try (SFTPSession sftpSession = new SFTPSession(path.getHost(), jsch)) {
+            int fileMask = permissionsToMask(permissions);
+            sftpSession.sftp.chmod(fileMask, path.getPathString());
+        } catch (JSchException | SftpException e) {
+            throw new FileSystemException(path.toString(), null, e.getMessage());
+        }
+    }
+
+    static int permissionsToMask(Set<PosixFilePermission> permissions) {
+        return permissions.stream()
+                .mapToInt(p -> {
+                    switch (p) {
+                        case OWNER_READ:
+                            return 0_400;
+                        case OWNER_WRITE:
+                            return 0_200;
+                        case OWNER_EXECUTE:
+                            return 0_100;
+                        case GROUP_READ:
+                            return 0_40;
+                        case GROUP_WRITE:
+                            return 0_20;
+                        case GROUP_EXECUTE:
+                            return 0_10;
+                        case OTHERS_READ:
+                            return 0_4;
+                        case OTHERS_WRITE:
+                            return 0_2;
+                        case OTHERS_EXECUTE:
+                            return 0_1;
+                        default:
+                            return 0;
+                    }
+                })
+                .reduce((res, elem) -> res | elem)
+            .orElse(0);
     }
 
     static class SFTPSession implements AutoCloseable {
@@ -343,4 +466,72 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
 
+    public static class SFTPFileAttributes implements BasicFileAttributes {
+        private final FileTime lastModifiedTime;
+        private final FileTime lastAccessTime;
+        private final FileTime creationTime;
+        private final boolean isRegularFile;
+        private final boolean isDirectory;
+        private final boolean isSymbolicLink;
+        private final boolean isOther;
+        private final long size;
+        private final Object fileKey;
+
+        private SFTPFileAttributes(SftpATTRS stat) {
+            this.lastModifiedTime = FileTime.fromMillis(stat.getMTime() * 1000L);
+            this.lastAccessTime = FileTime.fromMillis(stat.getATime() * 1000L);
+            this.creationTime = FileTime.fromMillis(stat.getMTime() * 1000L);
+            this.isRegularFile = stat.isReg();
+            this.isDirectory = stat.isDir();
+            this.isSymbolicLink = stat.isLink();
+            this.isOther = !stat.isReg() && !stat.isDir() && !stat.isLink();
+            this.size = stat.getSize();
+            this.fileKey = null;
+        }
+
+        @Override
+        public FileTime lastModifiedTime() {
+            return this.lastModifiedTime;
+        }
+
+        @Override
+        public FileTime lastAccessTime() {
+            return this.lastAccessTime;
+        }
+
+        @Override
+        public FileTime creationTime() {
+            return this.creationTime;
+        }
+
+        @Override
+        public boolean isRegularFile() {
+            return this.isRegularFile;
+        }
+
+        @Override
+        public boolean isDirectory() {
+            return this.isDirectory;
+        }
+
+        @Override
+        public boolean isSymbolicLink() {
+            return this.isSymbolicLink;
+        }
+
+        @Override
+        public boolean isOther() {
+            return this.isOther;
+        }
+
+        @Override
+        public long size() {
+            return this.size;
+        }
+
+        @Override
+        public Object fileKey() {
+            return this.fileKey;
+        }
+    }
 }

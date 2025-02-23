@@ -62,7 +62,7 @@ class PartsTest {
     @MethodSource({"invalidPathsData"})
     void invalidPaths(String input, Matcher<Exception> expectedException) {
         try {
-            SFTPPath path = new SFTPPath(SFTPHost.SFTP_TEST_HOST, input);
+            new SFTPPath(SFTPHost.SFTP_TEST_HOST, input);
 
             fail("Call with '" + input + "' should have failed.");
         } catch (Exception ex) {
