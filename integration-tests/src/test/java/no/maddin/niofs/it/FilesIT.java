@@ -33,10 +33,10 @@ import static org.hamcrest.io.FileMatchers.anExistingFile;
  */
 @Testcontainers
 @SuppressWarnings("java:S1186")
-public class FilesListIT {
+public class FilesIT {
 
     private static final String TESTDATA_RESOURCE = "/sftpgo-data";
-    private static final File localDataFileRoot = FileUtils.classpathFile(FilesListIT.class, TESTDATA_RESOURCE);
+    private static final File localDataFileRoot = FileUtils.classpathFile(FilesIT.class, TESTDATA_RESOURCE);
 
     public static Stream<Arguments> data() {
         // anonymous class
