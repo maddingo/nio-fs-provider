@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.LinkOption;
 import java.nio.file.attribute.*;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -15,7 +16,7 @@ public class SFTPFileAttributeView implements PosixFileAttributeView {
     public SFTPFileAttributeView(SFTPFileSystemProvider sftpFileSystemProvider, SFTPPath path, LinkOption[] options) {
         this.path = path;
         this.provider = sftpFileSystemProvider;
-        this.options = Arrays.asList(options);
+        this.options = options != null ? Arrays.asList(options) : Collections.emptyList();
     }
 
     @Override

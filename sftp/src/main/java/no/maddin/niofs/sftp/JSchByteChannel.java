@@ -15,6 +15,9 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileAttribute;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class JSchByteChannel implements SeekableByteChannel {
@@ -23,6 +26,7 @@ public class JSchByteChannel implements SeekableByteChannel {
     private final @NotNull String fileName;
     private final Object ioLock = new Object();
     private final InputStream inputStream;
+    private final List<FileAttribute<?>> attrs;
     private long ioPosition = 0;
     private final boolean writing;
     private final boolean reading;
@@ -32,6 +36,7 @@ public class JSchByteChannel implements SeekableByteChannel {
     JSchByteChannel(JSch jsch, SFTPPath path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
         this.writing = options.contains(StandardOpenOption.WRITE);
         this.reading = options.contains(StandardOpenOption.READ);
+        this.attrs = attrs != null ? Arrays.asList(attrs) : Collections.emptyList();
         if (writing && reading) {
             throw new UnsupportedOperationException("Write and Read at the same time is not supported");
         }

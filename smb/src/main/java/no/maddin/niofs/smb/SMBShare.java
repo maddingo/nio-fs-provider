@@ -1,7 +1,6 @@
 package no.maddin.niofs.smb;
 
 import com.hierynomus.smbj.auth.AuthenticationContext;
-import com.hierynomus.smbj.common.SmbPath;
 import com.hierynomus.smbj.connection.Connection;
 import com.hierynomus.smbj.session.Session;
 import com.hierynomus.smbj.share.DiskShare;
@@ -10,14 +9,13 @@ import com.hierynomus.smbj.share.Share;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.WatchService;
+import java.nio.file.*;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.*;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Denotes a Windows share.

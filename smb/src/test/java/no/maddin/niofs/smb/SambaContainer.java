@@ -4,7 +4,6 @@ import com.github.dockerjava.api.model.ContainerNetwork;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
-import java.net.Socket;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.function.Supplier;

@@ -3,7 +3,6 @@ package no.maddin.niofs.webdav;
 import com.github.sardine.DavAce;
 import com.github.sardine.DavAcl;
 import com.github.sardine.DavPrincipal;
-import com.github.sardine.model.Principal;
 
 import java.io.IOException;
 import java.nio.file.attribute.*;

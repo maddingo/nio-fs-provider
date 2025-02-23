@@ -104,7 +104,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         SFTPHost sftpHost = (SFTPHost) dir.getFileSystem();
 
         try (SFTPSession sftpSession = new SFTPSession(sftpHost, jsch)) {
-            Vector<ChannelSftp.LsEntry> ls = sftpSession.sftp.ls(((SFTPPath)dir).getPathString());
+            List<ChannelSftp.LsEntry> ls = sftpSession.sftp.ls(((SFTPPath)dir).getPathString());
 
             List<Path> list = ls.stream()
                 .map(ChannelSftp.LsEntry::getFilename)
@@ -168,8 +168,6 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         } catch(SftpException e) {
             if (!isFileExistsException(e)) {
                 throw new IOException(subPath, e);
-//                    } else {
-//                        // ignore throw new FileAlreadyExistsException(subPath);
             }
         }
     }
