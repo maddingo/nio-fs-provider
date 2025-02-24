@@ -162,12 +162,28 @@ public class SFTPPath implements Path {
         if (!(other instanceof SFTPPath)) {
             throw new IllegalArgumentException("other should be an instance of SFTPPath");
         }
-        return new SFTPPath(this.host, this.path + "/" + ((SFTPPath) other).getPathString());
+        if (!this.host.equals(((SFTPPath) other).getHost())) {
+            throw new IllegalArgumentException("other should be on the same host");
+        }
+        if (other.isAbsolute()) {
+            return other;
+        } else {
+            return this.resolve(((SFTPPath)other).getPathString());
+        }
     }
 
     @Override
     public @NotNull Path resolve(@NotNull String other) {
-        throw new UnsupportedOperationException();
+        URI otherUri = URI.create(other);
+        if (otherUri.getScheme() == null) {
+            boolean isDir = Files.isDirectory(this);
+            URI thisUri = URI.create(this.path + (isDir ? PATH_SEP : ""));
+            return new SFTPPath(this.host, thisUri.resolve(otherUri.getPath()).getPath());
+        }
+        if (SFTPFileSystemProvider.SFTP.equals(otherUri.getScheme()) && this.getHost().getHost().equals(otherUri.getHost())) {
+            return resolve(otherUri.getPath());
+        }
+        throw new IllegalArgumentException("other should be an sftp url and have the same host");
     }
 
     @Override

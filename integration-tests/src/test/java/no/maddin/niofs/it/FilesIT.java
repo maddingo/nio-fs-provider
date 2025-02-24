@@ -3,8 +3,10 @@ package no.maddin.niofs.it;
 import no.maddin.niofs.testutil.BasicTestContainer;
 import no.maddin.niofs.testutil.FileUtils;
 import no.maddin.niofs.testutil.SftpgoContainer;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -12,10 +14,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
 import java.net.URI;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 import java.util.function.Supplier;
@@ -27,6 +27,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.anExistingDirectory;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * We prepare a file structure and use the various providers list the files.
@@ -313,20 +314,43 @@ public class FilesIT {
         }
     }
 
-    void createLink() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void createLink(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        Assumptions.assumeFalse(protocol.equals("webdav") || protocol.equals("sftp"), "Sardine has an incomplete implementation of the ACL");
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            Path target = tmpFile.resolve("link.txt");
 
+            Path linkFile = Files.createLink(tmpFile, target);
+            assertThat(Files.isSymbolicLink(target), equalTo(true));
+            assertThat(linkFile, equalTo(tmpFile));
+            assertThat(Files.isSymbolicLink(dir), equalTo(false));
+        }
     }
 
-    void createSymbolicLink() {
-
-    }
-
-    void isSbolicLink() {
-
-    }
-
-    void isSymbolicLink() {
-
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void isSymbolicLink(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        Assumptions.assumeFalse(protocol.equals("webdav"), "Sardine has an incomplete implementation of the ACL");
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            Path target = tmpFile.resolve("link.txt");
+            Path linkFile = Files.createSymbolicLink(tmpFile, target);
+            assertThat(Files.isSymbolicLink(target), equalTo(true));
+            assertThat(linkFile, equalTo(tmpFile));
+            assertThat(Files.isSymbolicLink(dir), equalTo(false));
+        }
     }
 
     void readSymbolicLink() {
