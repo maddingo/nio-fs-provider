@@ -362,7 +362,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         SFTPPath sftpPath = (SFTPPath) path;
         SFTPHost host = sftpPath.getHost();
         try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
-            SftpATTRS stat = sftpSession.sftp.stat(sftpPath.getPathString());
+            SftpATTRS stat = sftpSession.sftp.lstat(sftpPath.getPathString());
             return (A)new SFTPFileAttributes(stat);
         } catch (JSchException | SftpException e) {
             throw new FileSystemException(path.toString(), null, e.getMessage());
@@ -377,6 +377,40 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     @Override
     public void setAttribute(Path path, String attribute, Object value, LinkOption... options) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void createSymbolicLink(Path link, Path target, FileAttribute<?>... attrs) throws IOException {
+        if (!(link instanceof SFTPPath)) {
+            throw new IllegalArgumentException(String.valueOf(link));
+        }
+        if (!Objects.equals(link.getFileSystem(), target.getFileSystem())) {
+            throw new UnsupportedOperationException("Symbolic links between different filesystems not supported");
+        }
+        if (!link.isAbsolute()) {
+            throw new IllegalArgumentException("link must be absolute");
+        }
+//        if (!target.isAbsolute()) {
+//             Could resolve from link to target, and convert to absolute
+//            throw new IllegalArgumentException("target must be absolute");
+//        }
+
+        SFTPPath sftpLink = (SFTPPath) link;
+        SFTPPath sftpTarget = (SFTPPath) target;
+        if (sftpLink.getHost() != sftpTarget.getHost()) {
+            throw new UnsupportedOperationException("Symbolic links between different hosts not supported");
+        }
+        SFTPHost host = sftpLink.getHost();
+        try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
+            sftpSession.sftp.symlink(sftpLink.getPathString(), sftpTarget.getPathString());
+        } catch (JSchException | SftpException e) {
+            throw (FileSystemException)new FileSystemException(link.toString(), target.toString(), e.getMessage()).initCause(e);
+        }
+    }
+
+    @Override
+    public void createLink(Path link, Path existing) throws IOException {
+        super.createLink(link, existing);
     }
 
     void removeCacheEntry(URI serverUri) {
