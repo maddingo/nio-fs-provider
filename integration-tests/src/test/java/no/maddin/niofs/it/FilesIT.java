@@ -353,8 +353,21 @@ public class FilesIT {
         }
     }
 
-    void readSymbolicLink() {
-
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void readSymbolicLink(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        Assumptions.assumeFalse(protocol.equals("webdav"), "Sardine has an incomplete implementation of the ACL");
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            Path target = tmpFile.resolve("link.txt");
+            Path linkFile = Files.createSymbolicLink(tmpFile, target);
+            assertThat(Files.readSymbolicLink(target), equalTo(linkFile));
+        }
     }
 
     void getAttribute() {
@@ -372,7 +385,7 @@ public class FilesIT {
     void getFileStore() {
     }
 
-    void getLasetModifiedTime() {
+    void getLastModifiedTime() {
     }
 
     void setModifiedTime() {
@@ -405,7 +418,7 @@ public class FilesIT {
     void newByteChannel() {
     }
 
-    void bewDirectoryStream() {
+    void newDirectoryStream() {
     }
 
     void newInputStream() {
