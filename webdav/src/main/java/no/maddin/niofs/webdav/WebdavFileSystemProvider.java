@@ -394,7 +394,6 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     @Override
     public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... arg2) throws IOException {
-        //throw new UnsupportedOperationException();
         log.fine("readAttributes(path,sattr)");
 
         if (!(path.getFileSystem() instanceof WebdavFileSystem)) {
@@ -424,31 +423,31 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     	String[] attr = attributes.split(",");
     	for(String a: attr) {
     		switch(a) {
-    		case "lastModifiedTime":
+    		case "basic:lastModifiedTime":
     			map.put("lastModifiedTime", wattr.lastModifiedTime());
     			break;
-    		case "lastAccessTime":
+    		case "basic:lastAccessTime":
     			map.put("lastAccessTime", wattr.lastAccessTime());
     			break;
-    		case "creationTime":
+    		case "basic:creationTime":
     			map.put("creationTime", wattr.creationTime());
     			break;
-    		case "size":
+    		case "basic:size":
     			map.put("size", wattr.size());
     			break;
-    		case "isRegularFile":
+    		case "basic:isRegularFile":
     			map.put("isRegularFile", wattr.isRegularFile());
     			break;
-    		case "isDirectory":
+    		case "basic:isDirectory":
     			map.put("isDirectory", wattr.isDirectory());
     			break;
-    		case "isSymbolicLink":
+    		case "basic:isSymbolicLink":
     			map.put("isSymbolicLink", wattr.isSymbolicLink());
     			break;
-    		case "isOther":
+    		case "basic:isOther":
     			map.put("isOther", wattr.isSymbolicLink());
     			break;
-    		case "fileKey":
+    		case "basic:fileKey":
     			map.put("fileKey", wattr.fileKey());
     			break;
     		}    			
