@@ -6,7 +6,7 @@ import no.maddin.niofs.testutil.SftpgoContainer;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -14,8 +14,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
 import java.net.URI;
-import java.nio.file.*;
-import java.nio.file.attribute.FileAttribute;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 import java.util.function.Supplier;
@@ -23,11 +26,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingDirectory;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * We prepare a file structure and use the various providers list the files.
@@ -353,84 +354,198 @@ public class FilesIT {
         }
     }
 
-    void readSymbolicLink() {
-
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void readSymbolicLink(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        Assumptions.assumeFalse(protocol.equals("webdav"), "Sardine has an incomplete implementation of the ACL");
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            Path target = tmpFile.resolve("link.txt");
+            Path linkFile = Files.createSymbolicLink(tmpFile, target);
+            assertThat(Files.readSymbolicLink(target), equalTo(linkFile));
+        }
     }
 
-    void getAttribute() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    void getAttribute(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+            assertThat(Files.getAttribute(tmpFile, "basic:isDirectory"), equalTo(false));
+            assertThat(Files.getAttribute(dir, "basic:isDirectory"), equalTo(true));
+        }
     }
 
-    void setAttribute() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @SuppressWarnings("java:S2699")
+    void setAttribute(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        Assumptions.assumeFalse(protocol.equals("webdav"), "Sardine has an incomplete implementation of the ACL");
+        Assumptions.assumeFalse(protocol.equals("sftp"), "Setting attributes is not supported by SFTP");
     }
 
-    void getFileAttributeView() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void getFileAttributeView(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+
+            BasicFileAttributeView fileAttributeView = Files.getFileAttributeView(tmpFile, BasicFileAttributeView.class);
+            assertThat(fileAttributeView, hasProperty("owner", equalTo(true)));
+            assertThat(fileAttributeView.readAttributes(), hasProperty("lastModifiedTime", Matchers.notNullValue()));
+
+            BasicFileAttributeView dirAttributeView = Files.getFileAttributeView(dir, BasicFileAttributeView.class);
+            assertThat(dirAttributeView, hasProperty("owner", equalTo(true)));
+            assertThat(dirAttributeView.readAttributes(), hasProperty("lastModifiedTime", Matchers.notNullValue()));
+        }
     }
 
-    void readAttributes() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void readAttributes(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void getFileStore() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void getFileStore(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void getLasetModifiedTime() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void getLastModifiedTime(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void setModifiedTime() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void setModifiedTime(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void getOwner() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void getOwner(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void setOwner() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void setOwner(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void getPosixFilePermissions() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void getPosixFilePermissions(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void setPosixFilePermissions() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void setPosixFilePermissions(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void isSameFile() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void isSameFile(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void move() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void move(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void newBufferedReader() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void newBufferedReader(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void newBufferedWriter() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void newBufferedWriter(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void newByteChannel() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void newByteChannel(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void bewDirectoryStream() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void newDirectoryStream(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void newInputStream() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void newInputStream(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void newOutputStream() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void newOutputStream(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void probeContentType() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void probeContentType(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void readAllBytes() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void readAllBytes(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-
-    void readAllLines() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void readAllLines(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void size() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void size(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void walkFileTree() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void walkFileTree(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
-    void write() {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("data")
+    @Disabled("Not yet implemented")
+    void write(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
     }
 
     private static File localTestFile(String... parts) {
