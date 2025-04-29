@@ -14,11 +14,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
 import java.net.URI;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 import java.util.function.Supplier;
@@ -420,6 +418,17 @@ public class FilesIT {
     @MethodSource("data")
     @Disabled("Not yet implemented")
     void readAttributes(String protocol, Supplier<BasicTestContainer> containerSupplier) throws Exception {
+        String randomString = UUID.randomUUID().toString();
+        try (BasicTestContainer container = containerSupplier.get()) {
+            container.start();
+            URI uri = container.getBaseUri(protocol);
+            Path dir = Paths.get(uri.resolve("/" + randomString));
+            Files.createDirectories(dir);
+            Path tmpFile = Files.createTempFile(dir, "tmp", ".txt");
+
+            Map<String, Object> fileAttributes = Files.readAttributes(tmpFile, "lastModifiedTime", LinkOption.NOFOLLOW_LINKS);
+            assertThat(fileAttributes, hasEntry(equalTo("lastModifiedTime"), instanceOf(FileTime.class)));
+        }
     }
 
     @ParameterizedTest(name = "{index} {0}")

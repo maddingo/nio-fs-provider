@@ -423,31 +423,31 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
     	String[] attr = attributes.split(",");
     	for(String a: attr) {
     		switch(a) {
-    		case "basic:lastModifiedTime":
+    		case "lastModifiedTime":
     			map.put("lastModifiedTime", wattr.lastModifiedTime());
     			break;
-    		case "basic:lastAccessTime":
+    		case "lastAccessTime":
     			map.put("lastAccessTime", wattr.lastAccessTime());
     			break;
-    		case "basic:creationTime":
+    		case "creationTime":
     			map.put("creationTime", wattr.creationTime());
     			break;
-    		case "basic:size":
+    		case "size":
     			map.put("size", wattr.size());
     			break;
-    		case "basic:isRegularFile":
+    		case "isRegularFile":
     			map.put("isRegularFile", wattr.isRegularFile());
     			break;
-    		case "basic:isDirectory":
+    		case "isDirectory":
     			map.put("isDirectory", wattr.isDirectory());
     			break;
-    		case "basic:isSymbolicLink":
+    		case "isSymbolicLink":
     			map.put("isSymbolicLink", wattr.isSymbolicLink());
     			break;
-    		case "basic:isOther":
+    		case "isOther":
     			map.put("isOther", wattr.isSymbolicLink());
     			break;
-    		case "basic:fileKey":
+    		case "fileKey":
     			map.put("fileKey", wattr.fileKey());
     			break;
     		}    			
