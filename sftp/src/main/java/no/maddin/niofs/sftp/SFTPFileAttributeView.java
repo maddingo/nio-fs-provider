@@ -27,7 +27,12 @@ public class SFTPFileAttributeView implements PosixFileAttributeView {
 
     @Override
     public UserPrincipal getOwner() throws IOException {
-        throw new UnsupportedOperationException();
+        BasicFileAttributes attributes = readAttributes();
+        if (!(attributes instanceof PosixFileAttributes)) {
+            throw new UnsupportedOperationException("File attributes are not PosixFileAttributes");
+        } else {
+            return ((PosixFileAttributes)attributes).owner();
+        }
     }
 
     @Override
@@ -42,7 +47,7 @@ public class SFTPFileAttributeView implements PosixFileAttributeView {
 
     @Override
     public void setTimes(FileTime lastModifiedTime, FileTime lastAccessTime, FileTime createTime) throws IOException {
-        throw new UnsupportedOperationException();
+        provider.setTimes(path, lastModifiedTime, lastAccessTime, createTime);
     }
 
     @Override

@@ -14,6 +14,7 @@ import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.attribute.*;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -106,9 +107,8 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
             List<Path> list = ls.stream()
                 .map(ChannelSftp.LsEntry::getFilename)
-                .filter(fn -> !fn.equals(".") && !fn.equals("..")) // TODO relative filenames not supported
-                .map(fn -> "/" + fn) // TODO relative filenames not supported
-                .map(fn -> new SFTPPath(sftpHost,fn))
+                .filter(fn -> !fn.equals(".") && !fn.equals(".."))
+                .map(fn -> ((SFTPPath) dir).resolve(fn))
                 .filter(p -> {
                     try {
                         if (filter != null) {
@@ -268,7 +268,15 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public boolean isSameFile(Path path, Path path2) {
-        throw new UnsupportedOperationException();
+        if (!(path instanceof SFTPPath && path2 instanceof SFTPPath)) {
+            return false;
+        }
+        
+        SFTPPath sftpPath1 = (SFTPPath) path;
+        SFTPPath sftpPath2 = (SFTPPath) path2;
+        
+        return sftpPath1.getHost().equals(sftpPath2.getHost()) && 
+               sftpPath1.toAbsolutePath().equals(sftpPath2.toAbsolutePath());
     }
 
     @Override
@@ -291,8 +299,13 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public FileStore getFileStore(Path path) {
-        throw new UnsupportedOperationException();
+    public FileStore getFileStore(Path path) throws IOException {
+        SFTPPath sftpPath = sftpPath(path);
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission("getFileStoreAttributes"));
+        }
+        return new SFTPFileStore(sftpPath.getHost());
     }
 
     @Override
@@ -432,6 +445,29 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         try (SFTPSession sftpSession = new SFTPSession(path.getHost(), jsch)) {
             int fileMask = permissionsToMask(permissions);
             sftpSession.sftp.chmod(fileMask, path.getPathString());
+        } catch (JSchException | SftpException e) {
+            throw new FileSystemException(path.toString(), null, e.getMessage());
+        }
+    }
+
+    void setTimes(SFTPPath path, FileTime lastModifiedTime, FileTime lastAccessTime, FileTime createTime) throws IOException {
+        try (SFTPSession sftpSession = new SFTPSession(path.getHost(), jsch)) {
+            SftpATTRS currentAttrs = sftpSession.sftp.stat(path.getPathString());
+            
+            int atime = currentAttrs.getATime();
+            int mtime = currentAttrs.getMTime();
+            
+            if (lastAccessTime != null) {
+                atime = (int) lastAccessTime.to(TimeUnit.SECONDS);
+            }
+            if (lastModifiedTime != null) {
+                mtime = (int) lastModifiedTime.to(TimeUnit.SECONDS);
+            }
+            
+            if (lastAccessTime != null || lastModifiedTime != null) {
+                currentAttrs.setACMODTIME(atime, mtime);
+                sftpSession.sftp.setStat(path.getPathString(), currentAttrs);
+            }
         } catch (JSchException | SftpException e) {
             throw new FileSystemException(path.toString(), null, e.getMessage());
         }
