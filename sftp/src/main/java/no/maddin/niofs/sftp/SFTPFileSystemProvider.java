@@ -14,6 +14,7 @@ import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.attribute.*;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -89,9 +90,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
-        if (!(path instanceof SFTPPath)) {
-            throw new IllegalArgumentException(String.valueOf(path));
-        }
+        sftpPath(path);
         return new JSchByteChannel(jsch, (SFTPPath)path, options, attrs);
     }
 
@@ -108,9 +107,8 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
             List<Path> list = ls.stream()
                 .map(ChannelSftp.LsEntry::getFilename)
-                .filter(fn -> !fn.equals(".") && !fn.equals("..")) // TODO relative filenames not supported
-                .map(fn -> "/" + fn) // TODO relative filenames not supported
-                .map(fn -> new SFTPPath(sftpHost,fn))
+                .filter(fn -> !fn.equals(".") && !fn.equals(".."))
+                .map(fn -> ((SFTPPath) dir).resolve(fn))
                 .filter(p -> {
                     try {
                         if (filter != null) {
@@ -178,9 +176,7 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void delete(Path path) throws IOException {
-        if (!(path instanceof SFTPPath)) {
-            throw new IllegalArgumentException(String.valueOf(path));
-        }
+        SFTPPath sftpPath = sftpPath(path);
 
         SFTPHost sftpHost = (SFTPHost)path.getFileSystem();
         boolean isDir = false;
@@ -272,14 +268,20 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public boolean isSameFile(Path path, Path path2) {
-        throw new UnsupportedOperationException();
+        if (!(path instanceof SFTPPath && path2 instanceof SFTPPath)) {
+            return false;
+        }
+        
+        SFTPPath sftpPath1 = (SFTPPath) path;
+        SFTPPath sftpPath2 = (SFTPPath) path2;
+        
+        return sftpPath1.getHost().equals(sftpPath2.getHost()) && 
+               sftpPath1.toAbsolutePath().equals(sftpPath2.toAbsolutePath());
     }
 
     @Override
     public boolean isHidden(Path path) throws IOException {
-        if (!(path instanceof SFTPPath)) {
-            throw new IllegalArgumentException(String.valueOf(path));
-        }
+        sftpPath(path);
         SFTPPath sftpPath = (SFTPPath) path;
         SFTPHost host = (SFTPHost) sftpPath.getFileSystem();
         try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
@@ -297,15 +299,18 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public FileStore getFileStore(Path path) {
-        throw new UnsupportedOperationException();
+    public FileStore getFileStore(Path path) throws IOException {
+        SFTPPath sftpPath = sftpPath(path);
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission("getFileStoreAttributes"));
+        }
+        return new SFTPFileStore(sftpPath.getHost());
     }
 
     @Override
     public void checkAccess(Path path, AccessMode... modes) throws IOException {
-        if (!(path instanceof SFTPPath)) {
-            throw new IllegalArgumentException(String.valueOf(path));
-        }
+        sftpPath(path);
         SFTPPath sftpPath = (SFTPPath) path;
         SFTPHost host = (SFTPHost) sftpPath.getFileSystem();
         try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
@@ -342,24 +347,26 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
-        if (!(path instanceof SFTPPath)) {
-            throw new IllegalArgumentException(String.valueOf(path));
-        }
+        sftpPath(path);
         if (type == null || !type.isAssignableFrom(SFTPFileAttributeView.class)) {
             throw new UnsupportedOperationException("Attribute view of type " + type + " not supported");
         }
         return (V)new SFTPFileAttributeView(this, (SFTPPath) path, options);
     }
 
-    @Override
-    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
+    private static SFTPPath sftpPath(Path path) {
         if (!(path instanceof SFTPPath)) {
             throw new IllegalArgumentException(String.valueOf(path));
         }
+        return (SFTPPath)path;
+    }
+
+    @Override
+    public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
+        SFTPPath sftpPath = sftpPath(path);
         if (type == null || !type.isAssignableFrom(SFTPFileAttributes.class)) {
             throw new UnsupportedOperationException("File attribute type " + type + " not supported");
         }
-        SFTPPath sftpPath = (SFTPPath) path;
         SFTPHost host = sftpPath.getHost();
         try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
             SftpATTRS stat = sftpSession.sftp.lstat(sftpPath.getPathString());
@@ -370,8 +377,15 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) {
-        throw new UnsupportedOperationException();
+    public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException{
+        SFTPPath sftpPath = sftpPath(path);
+        SFTPHost host = sftpPath.getHost();
+        try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
+            SftpATTRS stat = sftpSession.sftp.lstat(sftpPath.getPathString());
+            return SFTPFileAttributes.asMap(stat);
+        } catch (JSchException | SftpException e) {
+            throw new FileSystemException(path.toString(), null, e.getMessage());
+        }
     }
 
     @Override
@@ -381,19 +395,17 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void createSymbolicLink(Path link, Path target, FileAttribute<?>... attrs) throws IOException {
-        if (!(link instanceof SFTPPath)) {
-            throw new IllegalArgumentException(String.valueOf(link));
-        }
+        createLink(ChannelSftp::symlink, link, target, attrs);
+    }
+
+    private void createLink(LinkFunction linkFunction, Path link, Path target, FileAttribute<?>... attrs) throws IOException {
+        sftpPath(link);
         if (!Objects.equals(link.getFileSystem(), target.getFileSystem())) {
             throw new UnsupportedOperationException("Symbolic links between different filesystems not supported");
         }
         if (!link.isAbsolute()) {
             throw new IllegalArgumentException("link must be absolute");
         }
-//        if (!target.isAbsolute()) {
-//             Could resolve from link to target, and convert to absolute
-//            throw new IllegalArgumentException("target must be absolute");
-//        }
 
         SFTPPath sftpLink = (SFTPPath) link;
         SFTPPath sftpTarget = (SFTPPath) target;
@@ -402,15 +414,27 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         }
         SFTPHost host = sftpLink.getHost();
         try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
-            sftpSession.sftp.symlink(sftpLink.getPathString(), sftpTarget.getPathString());
+            linkFunction.createLink(sftpSession.sftp, sftpLink.getPathString(), sftpTarget.getPathString());
         } catch (JSchException | SftpException e) {
             throw (FileSystemException)new FileSystemException(link.toString(), target.toString(), e.getMessage()).initCause(e);
         }
     }
 
     @Override
-    public void createLink(Path link, Path existing) throws IOException {
-        super.createLink(link, existing);
+    public void createLink(Path link, Path target) throws IOException {
+        createLink(ChannelSftp::hardlink, link, target);
+    }
+
+    @Override
+    public Path readSymbolicLink(Path link) throws IOException {
+        sftpPath(link);
+        SFTPPath sftpLink = (SFTPPath) link;
+        SFTPHost host = sftpLink.getHost();
+        try (SFTPSession sftpSession = new SFTPSession(host, jsch)) {
+            return new SFTPPath(host, sftpSession.sftp.readlink(sftpLink.getPathString()));
+        } catch (JSchException | SftpException e) {
+            throw new FileSystemException(link.toString(), null, e.getMessage());
+        }
     }
 
     void removeCacheEntry(URI serverUri) {
@@ -421,6 +445,29 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
         try (SFTPSession sftpSession = new SFTPSession(path.getHost(), jsch)) {
             int fileMask = permissionsToMask(permissions);
             sftpSession.sftp.chmod(fileMask, path.getPathString());
+        } catch (JSchException | SftpException e) {
+            throw new FileSystemException(path.toString(), null, e.getMessage());
+        }
+    }
+
+    void setTimes(SFTPPath path, FileTime lastModifiedTime, FileTime lastAccessTime, FileTime createTime) throws IOException {
+        try (SFTPSession sftpSession = new SFTPSession(path.getHost(), jsch)) {
+            SftpATTRS currentAttrs = sftpSession.sftp.stat(path.getPathString());
+            
+            int atime = currentAttrs.getATime();
+            int mtime = currentAttrs.getMTime();
+            
+            if (lastAccessTime != null) {
+                atime = (int) lastAccessTime.to(TimeUnit.SECONDS);
+            }
+            if (lastModifiedTime != null) {
+                mtime = (int) lastModifiedTime.to(TimeUnit.SECONDS);
+            }
+            
+            if (lastAccessTime != null || lastModifiedTime != null) {
+                currentAttrs.setACMODTIME(atime, mtime);
+                sftpSession.sftp.setStat(path.getPathString(), currentAttrs);
+            }
         } catch (JSchException | SftpException e) {
             throw new FileSystemException(path.toString(), null, e.getMessage());
         }
@@ -499,73 +546,8 @@ public class SFTPFileSystemProvider extends FileSystemProvider {
 
     }
 
-
-    public static class SFTPFileAttributes implements BasicFileAttributes {
-        private final FileTime lastModifiedTime;
-        private final FileTime lastAccessTime;
-        private final FileTime creationTime;
-        private final boolean isRegularFile;
-        private final boolean isDirectory;
-        private final boolean isSymbolicLink;
-        private final boolean isOther;
-        private final long size;
-        private final Object fileKey;
-
-        private SFTPFileAttributes(SftpATTRS stat) {
-            this.lastModifiedTime = FileTime.fromMillis(stat.getMTime() * 1000L);
-            this.lastAccessTime = FileTime.fromMillis(stat.getATime() * 1000L);
-            this.creationTime = FileTime.fromMillis(stat.getMTime() * 1000L);
-            this.isRegularFile = stat.isReg();
-            this.isDirectory = stat.isDir();
-            this.isSymbolicLink = stat.isLink();
-            this.isOther = !stat.isReg() && !stat.isDir() && !stat.isLink();
-            this.size = stat.getSize();
-            this.fileKey = null;
-        }
-
-        @Override
-        public FileTime lastModifiedTime() {
-            return this.lastModifiedTime;
-        }
-
-        @Override
-        public FileTime lastAccessTime() {
-            return this.lastAccessTime;
-        }
-
-        @Override
-        public FileTime creationTime() {
-            return this.creationTime;
-        }
-
-        @Override
-        public boolean isRegularFile() {
-            return this.isRegularFile;
-        }
-
-        @Override
-        public boolean isDirectory() {
-            return this.isDirectory;
-        }
-
-        @Override
-        public boolean isSymbolicLink() {
-            return this.isSymbolicLink;
-        }
-
-        @Override
-        public boolean isOther() {
-            return this.isOther;
-        }
-
-        @Override
-        public long size() {
-            return this.size;
-        }
-
-        @Override
-        public Object fileKey() {
-            return this.fileKey;
-        }
+    @FunctionalInterface
+    private interface LinkFunction {
+        void createLink(ChannelSftp sftp, String source, String target) throws IOException, SftpException, JSchException;
     }
 }

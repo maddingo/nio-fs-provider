@@ -353,5 +353,15 @@
                 </repository>
             </distributionManagement>
         </profile>
+        <profile>
+            <id>java8</id>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
+            <properties>
+                <!-- java 8 generates wrong javadoc command line -->
+                <maven.javadoc.skip>true</maven.javadoc.skip>
+            </properties>
+        </profile>
     </profiles>
 </project>

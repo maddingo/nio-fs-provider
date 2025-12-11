@@ -394,7 +394,6 @@ public class WebdavFileSystemProvider extends FileSystemProvider {
 
     @Override
     public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... arg2) throws IOException {
-        //throw new UnsupportedOperationException();
         log.fine("readAttributes(path,sattr)");
 
         if (!(path.getFileSystem() instanceof WebdavFileSystem)) {
