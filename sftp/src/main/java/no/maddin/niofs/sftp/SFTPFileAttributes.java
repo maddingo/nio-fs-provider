@@ -35,6 +35,7 @@ public class SFTPFileAttributes implements PosixFileAttributes {
         this.permissions = asPermissions(stat.getPermissions());
     }
 
+    @SuppressWarnings("java:S2612")
     private static Set<PosixFilePermission> asPermissions(int permissions) {
         Set<PosixFilePermission> result = EnumSet.noneOf(PosixFilePermission.class);
         
