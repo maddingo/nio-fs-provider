@@ -53,8 +53,8 @@ public class RelativizeTest {
             Arguments.of(
                 "sibling with spaces",
                 new URI("smb://" + sambaAddress + "/public"),
-                new URI("smb", "" + sambaAddress + "", "/public/My%20Documents/Folder%20One/", null),
-                new URI("smb", "" + sambaAddress + "", "/public/My%20Documents/Folder%20Two/", null),
+                new URI("smb", sambaAddress, "/public/My%20Documents/Folder%20One/", null),
+                new URI("smb", sambaAddress, "/public/My%20Documents/Folder%20Two/", null),
                 "../Folder Two"
             ),
             Arguments.of(
